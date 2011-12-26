@@ -616,6 +616,26 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         // lmb savepoint reached
         upgrade_plugin_savepoint(true, 2011030801, 'enrol', 'lmb');
     }
+    
+    if ($oldversion < 2011122501) {
+
+        // Changing type of field sourcedidsource on table lmb_categories to char
+        $table = new xmldb_table('lmb_categories');
+        $field = new xmldb_field('sourcedidsource', XMLDB_TYPE_CHAR, '128', null, null, null, null, 'termsourcedid');
+
+        // Launch change of type for field sourcedidsource
+        $dbman->change_field_type($table, $field);
+        
+        // Changing type of field dept on table lmb_categories to char
+        $field = new xmldb_field('dept', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'sourcedidsource');
+
+        // Launch change of type for field dept
+        $dbman->change_field_type($table, $field);
+
+        // lmb savepoint reached
+        upgrade_plugin_savepoint(true, 2011122501, 'enrol', 'lmb');
+    }
+
 
     
     return $result;

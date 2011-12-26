@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="enrol/lmb/db" VERSION="20110308" COMMENT="XMLDB file for Moodle enrol/lmb"
+<XMLDB PATH="enrol/lmb/db" VERSION="20111225" COMMENT="XMLDB file for Moodle enrol/lmb"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -120,8 +120,8 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="termsourcedid"/>
         <FIELD NAME="termsourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="sourcedidsource"/>
-        <FIELD NAME="sourcedidsource" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" PREVIOUS="termsourcedid" NEXT="dept"/>
-        <FIELD NAME="dept" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" PREVIOUS="sourcedidsource" NEXT="categoryid"/>
+        <FIELD NAME="sourcedidsource" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" PREVIOUS="termsourcedid" NEXT="dept"/>
+        <FIELD NAME="dept" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="sourcedidsource" NEXT="categoryid"/>
         <FIELD NAME="categoryid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="dept" NEXT="cattype"/>
         <FIELD NAME="cattype" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false" PREVIOUS="categoryid"/>
       </FIELDS>

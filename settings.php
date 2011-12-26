@@ -111,10 +111,14 @@ if ($ADMIN->fulltree) {
 	$options['other'] = get_string('selectedcat', 'enrol_lmb');
     $settings->add(new admin_setting_configselect('enrol_lmb/cattype', get_string('categorytype', 'enrol_lmb'), get_string('categorytypehelp', 'enrol_lmb'), 'term', $options));
     
-    $displaylist = array();
-	$parentlist = array();
-	make_categories_list($displaylist, $parentlist);
-    $settings->add(new admin_setting_configselect('enrol_lmb/catselect', get_string('catselect', 'enrol_lmb'), get_string('catselecthelp', 'enrol_lmb'), '', $displaylist));
+    if (function_exists('make_categories_list')) {
+	    $displaylist = array();
+		$parentlist = array();
+		make_categories_list($displaylist, $parentlist);
+	    $settings->add(new admin_setting_configselect('enrol_lmb/catselect', get_string('catselect', 'enrol_lmb'), get_string('catselecthelp', 'enrol_lmb'), '', $displaylist));
+    } else {
+    
+    }
     
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/forcecat', get_string('forcecat', 'enrol_lmb'), get_string('forcecathelp', 'enrol_lmb'), 1));
     
