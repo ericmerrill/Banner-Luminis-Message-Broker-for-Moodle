@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.0.1
+Version: 2.0.5
 Moodle version: 2.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -11,6 +11,14 @@ Maintainer: Eric Merrill (merrill@oakland.edu)
 
 CHANGES
 -------
+Since 2.0.1
+Added option to compute number of sections based on course duration.
+Removed make enrollable option - not supported in Moodle 2.
+Use Moodle's internal course creation tool, enrollment methods added based on default settings.
+Now uses new Moodle 2 meta course system and should work properly.
+Fixed problem with auth names throwing errors and not loading and setting pages.
+
+
 Since 2.0.0
 Changes of sourcedidsource and dept columns in lmb_categories to char(128) and char(255) respectively.
 Fixes problem could cause failure when included in a new Moodle install.
@@ -49,11 +57,14 @@ term sourcedid converted to 128 varchar
 
 TODO
 ----
+Catch exceptions for update_course and similar
+Use moodle delete functions
 Prune XML table
 -Reprocess enrolments (enrol/unenrol need to be done in plugin now)
 Check into term length dependancies
 Load config descriptions
 Filter Terms
+meta sync changes (when to sync)
 
 
 

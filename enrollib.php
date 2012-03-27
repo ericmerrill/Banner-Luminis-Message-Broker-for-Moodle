@@ -9,11 +9,7 @@
  */
 
 
-/*
- * TODO2
- * 
- * Done - get_record, get_records, get_record*, get_field*, set_field, delete_record*, insert_record, count_records*, record_exists, update_record
- */
+
 
 
 //function enrol_lmb_process_extract_drops($termid)
@@ -43,26 +39,6 @@ function enrol_lmb_get_roleid($imsrole, $config=NULL) {
     return false;
 }
 
-
-/**
- * Used to call enrol_lmb_assign_role_log() without passing a 
- * logline variable. See enrol_lmb_assign_role_log()
- * 
- * @param int $roleid id of the moodle role to assign
- * @param int $rolecontextid id of the context to assign
- * @param int $userid id of the moodle user
- * @param object $config passed plugin config object
- * @return bool success or failure of the role assignment
- */ //TODO2 remove
-function enrol_lmb_assign_role($roleid, $rolecontextid, $userid) {
-    $logline = '';
-    
-    $status = enrol_lmb_assign_role_log($roleid, $rolecontextid, $userid, &$logline);
-    
-    unset($logline);
-    
-    return $status;
-}
 
 
 /**
@@ -241,124 +217,6 @@ function enrol_lmb_expand_course_title($lmbcourse, $titledef) {
     return $title;
 }
 
-/**
- * Used to call enrol_lmb_process_enrolment_log() without passing a 
- * logline variable. See enrol_lmb_process_enrolment_log()
- * 
- * @param object $enrol an enrol object representing a record in lmb_enrolments
- * @param object $config plugin config object passed optionally passes for caching speed
- * @param int $rolecontextid role context id passed optionally passes for caching speed. Can cause errors if impropperly set.
- * @return bool success or failure of the role assignments
- */ //TODO2 remove
-/*function enrol_lmb_process_enrolment($enrol, $config=NULL, $rolecontextid=NULL) {
-    $logline = '';
-    
-    $status = enrol_lmb_process_enrolment_log($enrol, &$logline, $config=NULL, $rolecontextid);
-    
-    unset($logline);
-    
-    return $status;
-}*/
-
-/**
- * Processes an enrol object, executing the associated assign or
- * unassign and update the lmb entry for success or failure
- * 
- * @param object $enrol an enrol object representing a record in lmb_enrolments
- * @param string $logline passed logline object to append log entries to
- * @param object $config plugin config object passed optionally passes for caching speed
- * @param int $rolecontextid role context id passed optionally passes for caching speed. Can cause errors if impropperly set.
- * @return bool success or failure of the role assignments
- */ //TODO2 remove
-/*function enrol_lmb_process_enrolment_log($enrol, &$logline, $config=NULL, $rolecontextid=NULL) {
-
-    if (!class_exists('enrol_lmb_plugin')) {
-        require_once('./lib.php');
-    }
-    
-    $enrol = new enrol_lmb_plugin();
-    
-    return $enrol->process_enrolment_log($enrol, $logline, $config, $rolecontextid);
-    //=======
-
-    global $DB;
-    $status = true;
-    
-    if (!$config) {
-        $config = enrol_lmb_get_config();
-    }
-    
-    $newcoursedid = enrol_lmb_get_course_id($enrol->coursesourcedid);
-    
-    if ($config->xlsmergegroups && $xlist = $DB->get_record('lmb_crosslist', array('status' => 1, 'coursesourcedid' => $enrol->coursesourcedid))) {
-        $groupid = enrol_lmb_get_crosslist_groupid($enrol->coursesourcedid, $xlist->crosslistsourcedid);
-    } else {
-        $groupid = false;
-    }
-    
-    
-    if (!$rolecontextid) {
-        $rolecontextid = enrol_lmb_get_course_contextid($enrol->coursesourcedid);
-    }
-    
-    $enrolup = new object();
-    $enrolup->id = $enrol->id;
-    
-    if ($rolecontextid) {
-        if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
-            if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
-                if ($enrol->status) {
-                    $status = enrol_lmb_assign_role_log($roleid, $rolecontextid, $userid, &$logline);
-                    print $roleid.";".$rolecontextid.';'.$userid;
-                    if ($status && $groupid && !groups_is_member($groupid, $userid)) {
-                        global $CFG;
-                        require_once($CFG->dirroot.'/group/lib.php');
-                        groups_add_member($groupid, $userid);
-                        $logline .= 'added user to group:';
-                    }
-                } else {
-                    $status = enrol_lmb_unassign_role_log($roleid, $rolecontextid, $userid, &$logline);
-                    if ($status && $groupid && groups_is_member($groupid, $userid)) {
-                        global $CFG;
-                        require_once($CFG->dirroot.'/group/lib.php');
-                        groups_remove_member($groupid, $userid);
-                        $logline .= 'removed user from group:';
-                    }
-                }
-            } else {
-                $logline .= 'roleid not found:';
-                $status = false;
-            }
-        } else {
-            $logline .= 'user not found:';
-            $status = false;
-        }
-    } else {
-        $logline .= 'course/role context not found:';
-        $status = false;
-    }
-    
-    if ($status) {
-        $enrolup->succeeded = 1;
-    } else {
-        $enrolup->succeeded = 0;
-    }
-    
-    //TODO2 if (enrol_lmb_compare_objects($enrolup, addslashes_object($enrol))) {
-    if (enrol_lmb_compare_objects($enrolup, $enrol)) {
-        if (!$DB->update_record('lmb_enrolments', $enrolup)) {
-            $logline .= 'error updating in lmb_enrolments:';
-            $status = false;
-        } else {
-            $logline .= 'lmb updated:';
-        }
-    }
-    
-    unset($enrolup);
-    
-    return $status;
-    
-}*/
 
 
 

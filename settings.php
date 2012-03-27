@@ -120,12 +120,16 @@ if ($ADMIN->fulltree) {
     
     }
     
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/cathidden', get_string('cathidden', 'enrol_lmb'), get_string('cathiddenhelp', 'enrol_lmb'), 1));
+    
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/forcecat', get_string('forcecat', 'enrol_lmb'), get_string('forcecathelp', 'enrol_lmb'), 1));
     
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/usemoodlecoursesettings', get_string('usemoodlecoursesettings', 'enrol_lmb'), get_string('usemoodlecoursesettingshelp', 'enrol_lmb'), 0));
     
-    $settings->add(new admin_setting_configcheckbox('enrol_lmb/makeenrollable', get_string('makeenrollable', 'enrol_lmb'), get_string('makeenrollablehelp', 'enrol_lmb'), 0));
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/computesections', get_string('computesections', 'enrol_lmb'), get_string('computesectionshelp', 'enrol_lmb'), 0));
     
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/forcecomputesections', get_string('forcecomputesections', 'enrol_lmb'), get_string('forcecomputesectionshelp', 'enrol_lmb'), 0));
+        
     
     
     // Parse XLS -----------------------------------------------------------------------------------
@@ -181,10 +185,10 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/consolidateusernames', get_string('consolidateusers', 'enrol_lmb'), get_string('consolidateusershelp', 'enrol_lmb'), 1));
     
     unset($options);
-    $modules = get_list_of_plugins('auth');
+    $modules = get_plugin_list('auth');
 	$options = array();
-	foreach ($modules as $module) {
-		$options[$module] = get_string("auth_$module"."title", "auth");
+	foreach ($modules as $module => $path) {
+		$options[$module] = get_string("pluginname", "auth_".$module);
 	}
 	$settings->add(new admin_setting_configselect('enrol_lmb/auth', get_string('authmethod', 'enrol_lmb'), get_string('authmethodhelp', 'enrol_lmb'), '', $options));
 

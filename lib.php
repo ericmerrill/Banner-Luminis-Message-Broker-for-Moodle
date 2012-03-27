@@ -9,14 +9,9 @@
  * @package enrol-lmb
  * Based on enrol_imsenterprise from Dan Stowell.
  */
-//require_once("$CFG->libdir/blocklib.php");
 require_once('enrollib.php');
 
-/*
- * TODO2
- * 
- * Done - get_record, get_records, get_record*, get_field*, set_field, delete_record*, insert_record, count_records*, record_exists, update_record
- */
+
 
 
 class enrol_lmb_plugin extends enrol_plugin {
@@ -261,6 +256,12 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
         set_config('catselect', $config->catselect, 'enrol/lmb');
         
+        
+        if (!isset($config->cathidden)) {
+            $config->cathidden = 0;
+        }
+        set_config('cathidden', $config->cathidden, 'enrol/lmb');
+        
         if (!isset($config->forcecat)) {
             $config->forcecat = '';
         }
@@ -271,10 +272,16 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
         set_config('usemoodlecoursesettings', $config->usemoodlecoursesettings, 'enrol/lmb');
         
-        if (!isset($config->makeenrollable)) {
-            $config->makeenrollable = 0;
+        if (!isset($config->computesections)) {
+            $config->computesections = 0;
         }
-        set_config('makeenrollable', $config->makeenrollable, 'enrol/lmb');
+        set_config('computesections', $config->computesections, 'enrol/lmb');
+        
+        if (!isset($config->forcecomputesections)) {
+            $config->forcecomputesections = 0;
+        }
+        set_config('forcecomputesections', $config->forcecomputesections, 'enrol/lmb');
+        
         // ---- XML XLS ----
         
         if (!isset($config->xlstitle)) {
@@ -974,7 +981,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         if ($oldcourse = $DB->get_record('lmb_courses', array('sourcedid' => $course->sourcedid))) {
             $course->id = $oldcourse->id;
-            //TODO2  if (enrol_lmb_compare_objects($course, addslashes_object($oldcourse))) {
             if (enrol_lmb_compare_objects($course, $oldcourse)) {
                 if ($DB->update_record('lmb_courses', $course)) {
                     $logline .= 'updated lmb_courses:';
@@ -1021,28 +1027,34 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $moodlecourse->category = $cat->id;
             }
             
-            if (true) {
-                $moodlecourse->startdate = $course->startdate;
-                $moodlecourse->enrolstartdate = $course->startdate;
+            $moodlecourse->startdate = $course->startdate;
+            
+            if ($config->forcecomputesections && $config->computesections) {
+                $moodlecourseconfig = get_config('moodlecourse');
+            
+                $length = $course->enddate - $course->startdate;
+                
+                $length = ceil(($length/(24*3600)/7));
+                
+                if ($length < 1) {
+                    $length = $moodlecourse->numsections;
+                } elseif ($length > $moodlecourseconfig->maxsections) {
+                    $length = $moodlecourseconfig->maxsections;
+                }
+                
+                $moodlecourse->numsections = $length;
             }
             
-            if (true) {
-                $moodlecourse->enrolenddate = $course->enddate;
-            }
-            
+                        
             
             $update = false;
             
-            //TODO2 $update = enrol_lmb_compare_objects($moodlecourse, addslashes_object($currentcourse));
             $update = enrol_lmb_compare_objects($moodlecourse, $currentcourse);
             
             if ($update) {
-                if($id = $DB->update_record('course', $moodlecourse)){
-                    $logline .= 'updated course:';
-                } else {
-                    $logline .= 'error updating course:';
-                    $status = false;
-                }
+                update_course($moodlecourse);
+                $logline .= 'updated course:';
+                
             } else {
                 $logline .= 'no changes to make:';
             }
@@ -1137,20 +1149,10 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         $moodlecourse->shortname = $shortname;
         $moodlecourse->fullname = $name;
-        
-        $moodlecourse->metacourse = $meta;
-        
+                
         $moodlecourse->startdate = $startdate;
-        $moodlecourse->enrolstartdate = $startdate;
         
-        $moodlecourse->enrolenddate = $enddate;
-        
-        if ($config->makeenrollable) {
-            $moodlecourse->enrollable = 1;
-        } else {
-            $moodlecourse->enrollable = 0;
-        }
-        
+                
         if ($config->coursehidden == 'never') {
             $moodlecourse->visible = 1;
         } else if ($config->coursehidden == 'cron') {
@@ -1173,79 +1175,64 @@ class enrol_lmb_plugin extends enrol_plugin {
         //##### Set some preferences
         if ($config->usemoodlecoursesettings && ($moodlecourseconfig = get_config('moodlecourse'))) {
             $logline .= 'Using default Moodle settings:';
-            $moodlecourse->format = $moodlecourseconfig->format;
-            $moodlecourse->numsections = $moodlecourseconfig->numsections;
-            $moodlecourse->hiddensections = $moodlecourseconfig->hiddensections;
-            $moodlecourse->newsitems = $moodlecourseconfig->newsitems;
-            $moodlecourse->showgrades = $moodlecourseconfig->showgrades;
-            $moodlecourse->showreports = $moodlecourseconfig->showreports;
-            $moodlecourse->maxbytes = $moodlecourseconfig->maxbytes;
+            $moodlecourse->format                   = $moodlecourseconfig->format;
+            $moodlecourse->numsections              = $moodlecourseconfig->numsections;
+            $moodlecourse->hiddensections           = $moodlecourseconfig->hiddensections;
+            $moodlecourse->newsitems                = $moodlecourseconfig->newsitems;
+            $moodlecourse->showgrades               = $moodlecourseconfig->showgrades;
+            $moodlecourse->showreports              = $moodlecourseconfig->showreports;
+            $moodlecourse->maxbytes                 = $moodlecourseconfig->maxbytes;
+            $moodlecourse->groupmode                = $moodlecourseconfig->groupmode;
+            $moodlecourse->groupmodeforce           = $moodlecourseconfig->groupmodeforce;
+            $moodlecourse->lang                     = $moodlecourseconfig->lang;
+            $moodlecourse->enablecompletion         = $moodlecourseconfig->enablecompletion;
+            $moodlecourse->completionstartonenrol   = $moodlecourseconfig->completionstartonenrol;
+            
         } else {
             $logline .= 'Using hard-coded settings:';
-            $moodlecourse->format = 'topics';
-            $moodlecourse->numsections = 6;
-            $moodlecourse->hiddensections = 0;
-            $moodlecourse->newsitems = 3;
-            $moodlecourse->showgrades = 1;
-            $moodlecourse->showreports = 1;
-        }
-        //$moodlecourse->maxbytes = 
-        $moodlecourse->teacher = "Instructor";
-        $moodlecourse->teachers = "Instructors";
-        // Insert default names for students, from the current language
-        $site = get_site();
-        if (current_language() == $CFG->lang) {
-            /*$moodlecourse->teacher  = $site->teacher;
-            $moodlecourse->teachers = $site->teachers;
-            $moodlecourse->student  = $site->student;
-            $moodlecourse->students = $site->students;*/ //TODO2
-        } else {
-            $moodlecourse->teacher = get_string("defaultcourseteacher");
-            $moodlecourse->teachers = get_string("defaultcourseteachers");
-            $moodlecourse->student = get_string("defaultcoursestudent");
-            $moodlecourse->students = get_string("defaultcoursestudents");
-        }
-        $moodlecourse->teacher = "Instructor";
-        $moodlecourse->teachers = "Instructors";
-        
-        $sqlparams = array('catid' => $catid);
-        $sql = "SELECT MAX(sortorder)+1 FROM {course} WHERE category = :catid";
-                
-        $moodlecourse->sortorder = $DB->get_field_sql($sql, $sqlparams);
-        if (!$moodlecourse->sortorder) {
-            $moodlecourse->sortorder = 1;
+            $moodlecourse->format               = 'topics';
+            $moodlecourse->numsections          = 6;
+            $moodlecourse->hiddensections       = 0;
+            $moodlecourse->newsitems            = 3;
+            $moodlecourse->showgrades           = 1;
+            $moodlecourse->showreports          = 1;
         }
         
-        if($moodlecourse->id = $DB->insert_record('course', $moodlecourse, true)) {
-            // Setup the blocks
-            //$page = page_create_object(PAGE_COURSE_VIEW, $moodlecourse->id);
-            //blocks_repopulate_page($page); // Return value not checked because you can always edit later
-            blocks_add_default_course_blocks($moodlecourse);
-            $section = NULL;
-            $section->course = $moodlecourse->id;   // Create a default section.
-            $section->section = 0;
-            $section->visible = 1;
-            $section->summaryformat = FORMAT_HTML;
-            $section->id = $DB->insert_record("course_sections", $section, true);
+        if ($config->computesections) {
+            $length = $enddate - $startdate;
             
-            /*$section->section = 0;
+            $length = ceil(($length/(24*3600)/7));
             
-            $section->id = $DB->insert_record('course_sections', $section);*/
+            if ($length < 1) {
+                $length = $moodlecourse->numsections;
+            } elseif ($length > $moodlecourseconfig->maxsections) {
+                $length = $moodlecourseconfig->maxsections;
+            }
             
-            
+            $moodlecourse->numsections = $length;
+        }
         
-            $this->sort_if_needed();
-    
-            add_to_log(SITEID, "course", "new", "view.php?id=$moodlecourse->id", "$moodlecourse->fullname (ID $moodlecourse->id)");
-            
+        
+        if ($moodlecourse = create_course($moodlecourse)) {
             $logline .= 'created course:';
+            
+            
         } else {
             $logline .= 'error adding course:';
             $status = false;
+            return false;
         }
         
-        $this->add_instance($moodlecourse); //TODO2
+        $this->add_instance($moodlecourse);
+        
+        
+        
+        
         return $moodlecourse->id;
+        
+        
+        
+        
     }
     
     
@@ -1257,7 +1244,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function instance_deleteable($instance) {
         return false;
-    }//TODO2
+    }//TODO - make option?
 
 
     
@@ -1395,12 +1382,19 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function get_term_category_id($term, &$logline, &$status) {
         global $DB;
         
+        $config = $this->get_config();
+        
         if ($lmbcat = $DB->get_record('lmb_categories', array('termsourcedid' => $term, 'cattype' => 'term'))) {
             return $lmbcat->categoryid;
         } else {
             if ($lmbterm = $DB->get_record('lmb_terms', array('sourcedid' => $term))) {
                 $cat->name = $lmbterm->title;
-                $cat->visible = 0; // TODO - Make an option
+                if ($config->cathidden) {
+                    $cat->visible = 0;
+                } else {
+                    $cat->visible = 1;
+                }
+                
                 $cat->sortorder = 999;
                 if($cat->id = $DB->insert_record('course_categories', $cat, true)){
                     $lmbcat = new Object();
@@ -1639,7 +1633,6 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $xlist->type = $type;
                 if ($oldxlist = $DB->get_record('lmb_crosslist', array('crosslistsourcedid' => $xlist->crosslistsourcedid, 'coursesourcedid' => $xlist->coursesourcedid))) {
                     $xlist->id = $oldxlist->id;
-                    //TODO2 if (enrol_lmb_compare_objects($xlist, addslashes_object($oldxlist))) {
                     if (enrol_lmb_compare_objects($xlist, $oldxlist)) {
                         if ($DB->update_record('lmb_crosslist', $xlist)) {
                             $xlist->newrecord = 1;
@@ -1692,23 +1685,40 @@ class enrol_lmb_plugin extends enrol_plugin {
                 //Setup the course
                 unset($moodlecourse);
     
-                
+                $enddate = $this->get_crosslist_endtime($xlist->crosslistsourcedid);
                 if ($status && !$moodlecourse->id = $DB->get_field('course', 'id', array('idnumber' => $xlist->crosslistsourcedid))) {
                     $starttime = $this->get_crosslist_starttime($xlist->crosslistsourcedid);
                     $moodlecourse->id = $this->create_shell_course($xlist->crosslistsourcedid, 'Crosslisted Course',
                                                 $xlist->crosslistsourcedid, $catid, 
-                                                $logline, $status, $meta, $starttime);
+                                                $logline, $status, $meta, $starttime, $enddate);
                 }
                 
                 if ($status && $moodlecourse->id) {
                     $moodlecourse->fullname = $this->expand_crosslist_title($xlist->crosslistsourcedid, $config->xlstitle, $config->xlstitlerepeat, $config->xlstitledivider);
                     $moodlecourse->shortname = $this->expand_crosslist_title($xlist->crosslistsourcedid, $config->xlsshorttitle, $config->xlsshorttitlerepeat, $config->xlsshorttitledivider);
-                    //print_r($moodlecourse);
-                    $moodlecourse->startdate = $this->get_crosslist_starttime($xlist->crosslistsourcedid);
-                    $moodlecourse->enrolstartdate = $moodlecourse->startdate;
-                    //TODO We should recompute the hidden status if this changes
                     
-                    $moodlecourse->enrolenddate = $this->get_crosslist_endtime($xlist->crosslistsourcedid);
+                    $moodlecourse->startdate = $this->get_crosslist_starttime($xlist->crosslistsourcedid);//TODO We should recompute the hidden status if this changes
+                    
+                    
+                    
+                    
+                    if ($config->forcecomputesections && $config->computesections) {
+                        $moodlecourseconfig = get_config('moodlecourse');
+                    
+                        $length = $enddate - $moodlecourse->startdate;
+                        
+                        $length = ceil(($length/(24*3600)/7));
+                        
+                        if (($length > 0) && ($length <= $moodlecourseconfig->maxsections)) {
+                            $moodlecourse->numsections = $length;
+                        }
+                        
+                        
+                    }
+
+                    
+                    
+                    
                     
                     if ($DB->update_record('course', $moodlecourse)) {
                         $logline .= 'set course name:';
@@ -1728,16 +1738,15 @@ class enrol_lmb_plugin extends enrol_plugin {
             
                 if (($status) && $meta) {
                     if ($addid = $DB->get_field('course', 'id', array('idnumber' => $xlist->coursesourcedid))) {
-                        //set_time_limit(180);
                         if ($xlist->status) {
-                            if (!add_to_metacourse($moodlecourse->id,$addid)) {
+                            if (!$this->add_to_metacourse($moodlecourse->id,$addid)) {
                                 $logline .= 'could not join course to meta course:';
                                 $status = false;
                                 $errormessage = 'Error adding course '.$xlist->coursesourcedid.' to metacourse';
                                 $errorcode = 9;
                             }
                         } else {
-                            if (!remove_from_metacourse($moodlecourse->id,$addid)) {
+                            if (!$this->remove_from_metacourse($moodlecourse->id,$addid)) {
                                 $logline .= 'could not unjoin course from meta course:';
                                 $status = false;
                                 $errormessage = 'Error removing course '.$xlist->coursesourcedid.' from metacourse';
@@ -1805,6 +1814,76 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     
         return $status;
+    }
+    
+    
+    /**
+     * Adds a meta course enrolment method from a course
+     * 
+     * @param int $parentid parent course id
+     * @param int $childid child course id
+     * @return bool result
+     */
+    public function add_to_metacourse($parentid, $childid) {
+        global $DB;
+        
+        if (($enrols = $DB->get_record('enrol', array('courseid' => $parentid, 'customint1' => $childid, 'enrol' => 'meta'), '*', IGNORE_MULTIPLE)) && (count($enrols) > 0)) {
+            return true;
+        }
+    
+        
+        
+        $parentcourse = $DB->get_record('course', array('id' => $parentid));
+        $metaplugin = enrol_get_plugin('meta');
+        $metaplugin->add_instance($parentcourse, array('customint1' => $childid));
+        
+        $this->meta_sync($parentid);
+
+        
+        return true;
+    }
+    
+    
+    /**
+     * Removes a meta course enrolment method from a course
+     * 
+     * @param int $parentid parent course id
+     * @param int $childid child course id
+     * @return bool result
+     */
+    public function remove_from_metacourse($parentid, $childid) {
+        global $DB;
+        
+        $enrol = $DB->get_record('enrol', array('courseid' => $parentid, 'customint1' => $childid, 'enrol' => 'meta'), '*', IGNORE_MULTIPLE);
+        if (!$enrol) {
+            return true;
+        }
+        
+        $metaplugin = enrol_get_plugin('meta');
+        
+        $metaplugin->delete_instance($enrol);
+        
+        
+        return true;
+        
+
+    }
+    
+    
+    /**
+     * Syncs meta enrolments between children and parent.
+     * 
+     * @param int $parentid course id of the parent course to sync
+     */
+    public function meta_sync($parentid) {
+        
+        $metaplugin = enrol_get_plugin('meta');
+        
+        $course = new stdClass();
+        $course->id = $parentid;
+        
+        $metaplugin->course_updated(false, $course, false);
+        
     }
     
     
@@ -2156,13 +2235,11 @@ class enrol_lmb_plugin extends enrol_plugin {
     
         $lmbperson->timemodified = time();
         
-        //TODO2 $lmbpersonslash = addslashes_object($lmbperson);
         $lmbpersonslash = $lmbperson;
     
         //Check to see if we have an existing record for this person
         if ($oldlmbperson = $DB->get_record('lmb_people', array('sourcedid' => $lmbperson->sourcedid))) {
             $lmbpersonslash->id = $oldlmbperson->id;
-            //TODO2 if (enrol_lmb_compare_objects($lmbpersonslash, addslashes_object($oldlmbperson))) {
             if (enrol_lmb_compare_objects($lmbpersonslash, $oldlmbperson)) {
                 if (!$DB->update_record('lmb_people', $lmbpersonslash)) {
                     $logline .= 'error updating lmb_people:';
@@ -2189,10 +2266,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($config->createusersemaildomain) {
             
             if (isset($lmbperson->email) && ($lmbperson->email) && ($domain = explode('@', $lmbperson->email)) && (count($domain) > 1)) {
-                //$domain = explode('@', $lmbperson->email);
                 $domain = trim($domain[1]);
     
-                //if (trim($config->createusersemaildomain) != $domain) {
                 if (!preg_match('/^'.trim($config->createusersemaildomain).'$/', $domain)) {
                     $logline .= 'no in domain email:';
                     $emailallow = false;
@@ -2284,14 +2359,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $moodleuser->address = '';
                     }
                     
-                    //TODO2 $moodleuser = addslashes_object($moodleuser);
                     
-                    
-                    //If the username is changing and we have a collision.
-                    //print_r($moodleuser);
-                    //print_r(addslashes_object($oldmoodleuser));
-                    
-                    //TODO2 if (enrol_lmb_compare_objects($moodleuser, addslashes_object($oldmoodleuser))) {
                     if (enrol_lmb_compare_objects($moodleuser, $oldmoodleuser)) {
                         if(($oldmoodleuser->username != $moodleuser->username) && ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username)))) {
                             $logline .= 'username collision while trying to update:';
@@ -2648,7 +2716,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($status) {
             if ($oldenrolment = $DB->get_record('lmb_enrolments', array('coursesourcedid' => $enrolment->coursesourcedid, 'personsourcedid' => $enrolment->personsourcedid))) {
                 $enrolment->id = $oldenrolment->id;
-                //TODO2 if (enrol_lmb_compare_objects($enrolment, addslashes_object($oldenrolment))) {
                 if (enrol_lmb_compare_objects($enrolment, $oldenrolment)) {
                     if (!$DB->update_record('lmb_enrolments', $enrolment)) {
                         $logline .= 'error updating in lmb_enrolments:';
@@ -2711,7 +2778,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         $DB->delete_records('lmb_enrolments', array('term' => $term));
         $DB->delete_records('lmb_courses', array('term' => $term));
         
-        //TODO2 - test this
         $sqlparams = array('term' => '%'.$term);
         $DB->delete_records_select('lmb_crosslist', "coursesourcedid LIKE :term", $sqlparams);
         
@@ -2948,18 +3014,15 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         foreach ($this->terms as $termid => $count) {
             $this->log_line('Processing drops for term '.$termid);
-            //TODO2
-            $sqlparams = array('termid' => $termid, 'status' => 1);
-            $sql = 'SELECT COUNT(*) FROM {lmb_enrolments} WHERE term = :termid AND status = :status';
-            
-            $termcnt = $DB->get_field_sql($sql, $sqlparams);
+
+            $sqlparams = array('term' => $termid, 'status' => 1);
+            $termcnt = $DB->count_records('lmb_enrolments', $sqlparams);
             
             
             $sqlparams = array('processid' => $this->processid, 'termid' => $termid, 'status' => 1);
-            $sql = 'SELECT COUNT(*) FROM {lmb_enrolments} WHERE extractstatus < :processid AND term = :termid AND status = :status';
+            $termcnt = $DB->count_records_select('lmb_enrolments', 'extractstatus < :processid AND term = :termid AND status = :status', $sqlparams);
             
-            $dropcnt = $DB->get_field_sql($sql, $sqlparams);
-            
+                        
             $percent = (int)ceil(($dropcnt/$termcnt)*100);
             $this->log_line('Dropping '.$dropcnt.' out of '.$termcnt.' ('.$percent.'%) enrolments.');
             
@@ -2969,11 +3032,9 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
                         
             $sqlparams = array('extractstatus' => $this->processid, 'termid' => $termid);
-            $sql = 'SELECT * FROM {lmb_enrolments} WHERE extractstatus < :extractstatus AND term = :termid ORDER BY coursesourcedid ASC';
             
             
-            if ($enrols = $DB->get_records_sql($sql, $sqlparams)) {
-                //TODO Cap drop count/percent
+            if ($enrols = $DB->get_records_select('lmb_enrolments', 'extractstatus < :extractstatus AND term = :termid', $sqlparams, 'coursesourcedid ASC')) {
                 $count = count($enrols);
                 $curr = 0;
                 $percent = 0;
@@ -3034,7 +3095,6 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $logline .= 'role context not found:';
                         }
                         
-                        //TODO2 if (enrol_lmb_compare_objects($enrolup, addslashes_object($enrol))) {
                         if (enrol_lmb_compare_objects($enrolup, $enrol)) {
                             if (!$DB->update_record('lmb_enrolments', $enrolup)) {
                                 $logline .= 'error updating lmb:';
@@ -3186,7 +3246,6 @@ class enrol_lmb_plugin extends enrol_plugin {
             $enrolup->succeeded = 0;
         }
         
-        //TODO2 if (enrol_lmb_compare_objects($enrolup, addslashes_object($enrol))) {
         if (enrol_lmb_compare_objects($enrolup, $enrol)) {
             if (!$DB->update_record('lmb_enrolments', $enrolup)) {
                 $logline .= 'error updating in lmb_enrolments:';
@@ -3306,18 +3365,20 @@ class enrol_lmb_plugin extends enrol_plugin {
         return false;*/ //TODO2 catch error?
     }
     
+    /**
+     * Returns enrolment instance in given course.
+     * @param int $courseid
+     * @return object of enrol instances, or false
+     */
     function get_instance($courseid) {
         global $DB;
-        //$einstance = $DB->get_record('enrol',
-        //                            array('courseid' => $courseobj->id, 'enrol' => $memberstoreobj->enrol));
+
         
         $instance = $DB->get_record('enrol',
                                 array('courseid' => $courseid, 'enrol' => 'lmb'));
-        //TODO2 doc, create if missing, use user enrol?
                                 
         return $instance;
     }
 
 } // end of class
 
-?>
