@@ -408,6 +408,11 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         
         
+        if (!isset($config->nickname)) {
+            $config->nickname = '';
+        }
+        set_config('nickname', $config->nickname, 'enrol/lmb');
+        
         if (!isset($config->forcename)) {
             $config->forcename = '';
         }
@@ -1953,6 +1958,11 @@ class enrol_lmb_plugin extends enrol_plugin {
             $person->fullname = trim($matches[1]);
         }
         
+        //Full Name
+        if(preg_match('{<name>.*?<nickname>(.+?)</nickname>.*?</name>}is', $tagcontents, $matches)){
+            $person->nickname = trim($matches[1]);
+        }
+        
         //Given Name
         if(preg_match('{<name>.*?<n>.*?<given>(.+?)</given>.*?</n>.*?</name>}is', $tagcontents, $matches)){
             $person->givenname = trim($matches[1]);
@@ -2109,6 +2119,9 @@ class enrol_lmb_plugin extends enrol_plugin {
         if (isset($person->fullname)) {
             $lmbperson->fullname = $person->fullname;
         }
+        if (isset($person->nickname)) {
+            $lmbperson->nickname = $person->nickname;
+        }
         if (isset($person->familyname)) {
             $lmbperson->familyname = $person->familyname;
         }
@@ -2197,6 +2210,23 @@ class enrol_lmb_plugin extends enrol_plugin {
     
         }
         
+        
+        if ($config->nickname && isset($lmbperson->nickname) && !empty($lmbperson->nickname)) {
+            $pos = strrpos($lmbperson->nickname, ' '.$lmbperson->familyname);
+            $firstname = $lmbperson->nickname;
+            
+            //remove last name
+            if ($pos !== FALSE) {
+                $firstname = substr($firstname, 0, $pos);
+            }
+            
+            if (empty($firstname) || ($firstname === FALSE)) {
+                $firstname = $lmbperson->givenname;
+            }
+            
+        } else {
+            $firstname = $lmbperson->givenname;
+        }
     
         //$status = $status && enrol_lmb_restore_user_enrolments($lmbperson->sourcedid);
         if (isset($lmbperson->email)) {
@@ -2224,7 +2254,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $moodleuser->id = $oldmoodleuser->id;
                     
                     if ($config->forcename) {
-                        $moodleuser->firstname = $lmbperson->givenname;
+                        $moodleuser->firstname = $firstname;
                         $moodleuser->lastname = $lmbperson->familyname;
                     }
                     
@@ -2289,7 +2319,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $moodleuser->confirmed = 1;
                     
                     //The user appears to not exist at all yet
-                    $moodleuser->firstname = $lmbperson->givenname;
+                    $moodleuser->firstname = $firstname;
                     $moodleuser->lastname = $lmbperson->familyname;
                     $moodleuser->email = $lmbperson->email;
                     $moodleuser->auth = $config->auth;

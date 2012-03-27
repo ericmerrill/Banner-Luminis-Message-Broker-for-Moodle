@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="enrol/lmb/db" VERSION="20111225" COMMENT="XMLDB file for Moodle enrol/lmb"
+<XMLDB PATH="enrol/lmb/db" VERSION="20120327" COMMENT="XMLDB file for Moodle enrol/lmb"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -33,8 +33,9 @@
         <FIELD NAME="sourcedidsource" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" COMMENT="The sourcedid source, unique form every other banner system" PREVIOUS="sourcedid" NEXT="fullname"/>
         <FIELD NAME="fullname" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Full name of person" PREVIOUS="sourcedidsource" NEXT="familyname"/>
         <FIELD NAME="familyname" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Familty name of person" PREVIOUS="fullname" NEXT="givenname"/>
-        <FIELD NAME="givenname" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Given name of the person" PREVIOUS="familyname" NEXT="email"/>
-        <FIELD NAME="email" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="email address reported" PREVIOUS="givenname" NEXT="username"/>
+        <FIELD NAME="givenname" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Given name of the person" PREVIOUS="familyname" NEXT="nickname"/>
+        <FIELD NAME="nickname" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="givenname" NEXT="email"/>
+        <FIELD NAME="email" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="email address reported" PREVIOUS="nickname" NEXT="username"/>
         <FIELD NAME="username" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The username to use" PREVIOUS="email" NEXT="telephone"/>
         <FIELD NAME="telephone" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="telephone number reported" PREVIOUS="username" NEXT="adrstreet"/>
         <FIELD NAME="adrstreet" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The street address reported" PREVIOUS="telephone" NEXT="locality"/>

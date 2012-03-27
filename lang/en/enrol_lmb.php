@@ -118,6 +118,7 @@ $string['usestandardcityxml'] = 'Use given if \'locality\' missing:';
 $string['usestandardcity'] = 'Always use given city:';
 $string['standardcity'] = 'Standard City';
 
+$string['nickname'] = 'Use nickname';
 $string['forcename'] = 'Force name on update';
 $string['forceemail'] = 'Force email address on update';
 $string['includetele'] = 'Include telephone';
@@ -271,6 +272,7 @@ $string['passwordsourcehelp'] = "This determines what will be the password of cr
 <li>useridtype - Other: Use the value supplied in the password field of the userid tag marked as indicated in the text box.
 </ul>";
 $string['otherpasswordhelp'] = '';
+$string['nicknamehelp'] = 'If the nickname is included XML, use it instead of the propper name first name.';
 $string['forcenamehelp'] = 'Always force the users name to match the XML, even if it has been manually changed.';
 $string['forceemailhelp'] = 'Always force the users email address to match the XML, even if it has been manually changed.';
 $string['includetelehelp'] = 'Include the users telephone number in the Moodle profile, if supplied by the XML.';

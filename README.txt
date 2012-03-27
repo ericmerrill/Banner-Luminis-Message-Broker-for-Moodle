@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.0.0+
+Version: 2.0.1
 Moodle version: 2.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -14,9 +14,12 @@ CHANGES
 Since 2.0.0
 Changes of sourcedidsource and dept columns in lmb_categories to char(128) and char(255) respectively.
 Fixes problem could cause failure when included in a new Moodle install.
+Added nickname processing
+
 
 Since 2.0.0b1
 Minor fix to email domain limitation
+
 
 Since 2.0.0a5
 Minor fix to xmlservice file

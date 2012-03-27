@@ -635,6 +635,22 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         // lmb savepoint reached
         upgrade_plugin_savepoint(true, 2011122501, 'enrol', 'lmb');
     }
+    
+    if ($oldversion < 2012032701) {
+
+        // Define field nickname to be added to lmb_people
+        $table = new xmldb_table('lmb_people');
+        $field = new xmldb_field('nickname', XMLDB_TYPE_TEXT, 'small', null, null, null, null, 'givenname');
+
+        // Conditionally launch add field nickname
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // lmb savepoint reached
+        upgrade_plugin_savepoint(true, 2012032701, 'enrol', 'lmb');
+    }
+
 
 
     
