@@ -2,9 +2,15 @@
 
 
 if ($ADMIN->fulltree) {
-    //include('version.php');
+
+    $plugin = new stdClass();
+    include($CFG->dirroot.'/enrol/lmb/version.php');
     
-    $settings->add(new admin_setting_heading('enrol_lmb_settings', '', get_string('version', 'enrol_lmb', 7)));
+    $a = new stdClass(); 
+    $a->version = $plugin->release.' ('.$plugin->version.')';
+    $a->toolslink = $CFG->wwwroot.'/enrol/lmb/tools';   
+    
+    $settings->add(new admin_setting_heading('enrol_lmb_settings', '', get_string('header', 'enrol_lmb', $a)));
     
     
     

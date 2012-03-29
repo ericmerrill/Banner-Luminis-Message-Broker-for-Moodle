@@ -6,8 +6,9 @@ $string['pluginname'] = 'Banner/Luminis Message Broker';
 
 $string['description'] = 'This module provides a way to integrate Moodle with Banner. You can either use the Luminis Message Broker to provide realtime updates, in the same way as WebCT, or using Banner export files. <br /><br />This module is not affiliated with, or endorsed by SunGard in any way.';
 
-$string['version'] = 'You are using Banner/Luminis Message Broker Module version $a.';
-$string['toolslink'] = 'To access the LMB tools, <a href=\"$a\">click here</a>.';
+$string['header'] = 'You are using Banner/Luminis Message Broker Module version {$a->version}.<br>
+To access the LMB tools, <a href="{$a->toolslink}">click here</a>.';
+
 $string['removelangs'] = '<b><font color=red>Notice:</font> It appears that old Banner/Luminis Message Broker language files are still installed. Please remove the file \'$a/enrol_lmb.php\' and the folder \'$a/help/enrol/lmb\'.</b>';
 
 $string['logsettings'] = 'Log settings';
