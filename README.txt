@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.0.5
+Version: 2.1.0
 Moodle version: 2.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -11,6 +11,23 @@ Maintainer: Eric Merrill (merrill@oakland.edu)
 
 CHANGES
 -------
+Since 2.0.5
+IMPORTANT!:
+Renamed tables to match Moodle conventions, adding enrol_ to the front of table names:
+lmb_courses    => enrol_lmb_courses
+lmb_people     => enrol_lmb_people
+lmb_enrolments => enrol_lmb_enrolments
+lmb_raw_xml    => enrol_lmb_raw_xml
+lmb_crosslist  => enrol_lmb_crosslists   (NOTE: added 's' to the end also)
+lmb_terms      => enrol_lmb_terms
+lmb_categories => enrol_lmb_categories
+
+If you use any additional scripts that access these tables, they will need to be updated. You can find them
+by using the regular expression: (?<!enrol_)\b(?:OLDNAME) and then replace with the new name for that table.
+
+
+
+
 Since 2.0.1
 Added option to compute number of sections based on course duration.
 Removed make enrollable option - not supported in Moodle 2.

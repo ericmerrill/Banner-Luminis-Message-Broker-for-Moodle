@@ -650,6 +650,64 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         // lmb savepoint reached
         upgrade_plugin_savepoint(true, 2012032701, 'enrol', 'lmb');
     }
+    
+    
+    
+    if ($oldversion < 2012032901) {
+
+        // Define table lmb_courses to be renamed to enrol_lmb_courses
+        $table = new xmldb_table('lmb_courses');
+
+        // Launch rename table for lmb_courses
+        $dbman->rename_table($table, 'enrol_lmb_courses');
+        
+        
+        // Define table lmb_people to be renamed to enrol_lmb_people
+        $table = new xmldb_table('lmb_people');
+
+        // Launch rename table for lmb_people
+        $dbman->rename_table($table, 'enrol_lmb_people');
+        
+        
+        // Define table lmb_enrolments to be renamed to enrol_lmb_enrolments
+        $table = new xmldb_table('lmb_enrolments');
+
+        // Launch rename table for lmb_enrolments
+        $dbman->rename_table($table, 'enrol_lmb_enrolments');
+        
+        
+        // Define table lmb_raw_xml to be renamed to enrol_lmb_raw_xml
+        $table = new xmldb_table('lmb_raw_xml');
+
+        // Launch rename table for lmb_courses
+        $dbman->rename_table($table, 'enrol_lmb_raw_xml');
+        
+        
+        // Define table lmb_crosslist to be renamed to enrol_lmb_crosslists
+        $table = new xmldb_table('lmb_crosslist');
+
+        // Launch rename table for lmb_crosslist
+        $dbman->rename_table($table, 'enrol_lmb_crosslists');
+        
+        
+        // Define table lmb_courses to be renamed to enrol_lmb_terms
+        $table = new xmldb_table('lmb_terms');
+
+        // Launch rename table for lmb_terms
+        $dbman->rename_table($table, 'enrol_lmb_terms');
+        
+        
+        // Define table lmb_categories to be renamed to enrol_lmb_categories
+        $table = new xmldb_table('lmb_categories');
+
+        // Launch rename table for lmb_categories
+        $dbman->rename_table($table, 'enrol_lmb_categories');
+        
+        
+
+        // lmb savepoint reached
+        upgrade_plugin_savepoint(true, 2012032901, 'enrol', 'lmb');
+    }
 
 
 

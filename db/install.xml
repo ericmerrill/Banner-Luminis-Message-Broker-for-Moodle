@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="enrol/lmb/db" VERSION="20120327" COMMENT="XMLDB file for Moodle enrol/lmb"
+<XMLDB PATH="enrol/lmb/db" VERSION="20120329" COMMENT="XMLDB file for Moodle enrol/lmb"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="lmb_courses" COMMENT="Courses that come from LMB/Banner" NEXT="lmb_people">
+    <TABLE NAME="enrol_lmb_courses" COMMENT="Courses that come from LMB/Banner" NEXT="enrol_lmb_people">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="sourcedid"/>
         <FIELD NAME="sourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="Unique id number from Banner/LMB" PREVIOUS="id" NEXT="sourcedidsource"/>
@@ -26,7 +26,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="lmb_people" COMMENT="People as reported by LMB/Banner" PREVIOUS="lmb_courses" NEXT="lmb_enrolments">
+    <TABLE NAME="enrol_lmb_people" COMMENT="People as reported by LMB/Banner" PREVIOUS="enrol_lmb_courses" NEXT="enrol_lmb_enrolments">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="sourcedid"/>
         <FIELD NAME="sourcedid" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Unique id number from Banner/LMB" PREVIOUS="id" NEXT="sourcedidsource"/>
@@ -50,7 +50,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="lmb_enrolments" COMMENT="Enrolments from LMB/Banner" PREVIOUS="lmb_people" NEXT="lmb_raw_xml">
+    <TABLE NAME="enrol_lmb_enrolments" COMMENT="Enrolments from LMB/Banner" PREVIOUS="enrol_lmb_people" NEXT="enrol_lmb_raw_xml">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="coursesourcedid"/>
         <FIELD NAME="coursesourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The courses unique identifier" PREVIOUS="id" NEXT="personsourcedid"/>
@@ -71,7 +71,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="lmb_raw_xml" COMMENT="A table the stores xml as it was received from LMB" PREVIOUS="lmb_enrolments" NEXT="lmb_crosslist">
+    <TABLE NAME="enrol_lmb_raw_xml" COMMENT="A table the stores xml as it was received from LMB" PREVIOUS="enrol_lmb_enrolments" NEXT="enrol_lmb_crosslists">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="headers"/>
         <FIELD NAME="headers" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" COMMENT="The headers that arrived with the message" PREVIOUS="id" NEXT="xml"/>
@@ -84,7 +84,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="lmb_crosslist" COMMENT="A crosslisting lookup table" PREVIOUS="lmb_raw_xml" NEXT="lmb_terms">
+    <TABLE NAME="enrol_lmb_crosslists" COMMENT="A crosslisting lookup table" PREVIOUS="enrol_lmb_raw_xml" NEXT="enrol_lmb_terms">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="coursesourcedidsource"/>
         <FIELD NAME="coursesourcedidsource" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The sourcedid source, unique form every other banner system" PREVIOUS="id" NEXT="coursesourcedid"/>
@@ -101,7 +101,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="lmb_terms" COMMENT="Terms as reported by LMB/Banner" PREVIOUS="lmb_crosslist" NEXT="lmb_categories">
+    <TABLE NAME="enrol_lmb_terms" COMMENT="Terms as reported by LMB/Banner" PREVIOUS="enrol_lmb_crosslists" NEXT="enrol_lmb_categories">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="sourcedid"/>
         <FIELD NAME="sourcedid" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Banner unique id for the term" PREVIOUS="id" NEXT="sourcedidsource"/>
@@ -117,7 +117,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="lmb_categories" COMMENT="A table to track categories" PREVIOUS="lmb_terms">
+    <TABLE NAME="enrol_lmb_categories" COMMENT="A table to track categories" PREVIOUS="enrol_lmb_terms">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="termsourcedid"/>
         <FIELD NAME="termsourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="sourcedidsource"/>

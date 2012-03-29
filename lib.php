@@ -540,7 +540,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         //Update normal courses
         $sqlparams = array('start' => $start, 'end' => $end);
-        $sql = 'UPDATE {course} SET visible=1 WHERE visible=0 AND idnumber IN (SELECT sourcedid FROM {lmb_courses} WHERE startdate > :start AND startdate <= :end)';
+        $sql = 'UPDATE {course} SET visible=1 WHERE visible=0 AND idnumber IN (SELECT sourcedid FROM {enrol_lmb_courses} WHERE startdate > :start AND startdate <= :end)';
                
         $this->log_line('cron unhide:'.$sql);
         $DB->execute($sql, $sqlparams);
@@ -548,7 +548,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         //Update crosslists
         $sqlparams = array('start' => $start, 'end' => $end);
-        $sql = 'UPDATE {course} SET visible=1 WHERE visible=0 AND idnumber IN (SELECT crosslistsourcedid FROM {lmb_crosslist} WHERE coursesourcedid IN (SELECT sourcedid FROM {lmb_courses} WHERE startdate > :start AND startdate <= :end))';
+        $sql = 'UPDATE {course} SET visible=1 WHERE visible=0 AND idnumber IN (SELECT crosslistsourcedid FROM {enrol_lmb_crosslists} WHERE coursesourcedid IN (SELECT sourcedid FROM {enrol_lmb_courses} WHERE startdate > :start AND startdate <= :end))';
 
         $this->log_line('cron unhide:'.$sql);
         $DB->execute($sql, $sqlparams);
@@ -979,23 +979,23 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         $course->timemodified = time();
         
-        if ($oldcourse = $DB->get_record('lmb_courses', array('sourcedid' => $course->sourcedid))) {
+        if ($oldcourse = $DB->get_record('enrol_lmb_courses', array('sourcedid' => $course->sourcedid))) {
             $course->id = $oldcourse->id;
             if (enrol_lmb_compare_objects($course, $oldcourse)) {
-                if ($DB->update_record('lmb_courses', $course)) {
-                    $logline .= 'updated lmb_courses:';
+                if ($DB->update_record('enrol_lmb_courses', $course)) {
+                    $logline .= 'updated enrol_lmb_courses:';
                 } else {
-                    $logline .= 'failed to update lmb_courses:';
+                    $logline .= 'failed to update enrol_lmb_courses:';
                     $status = false;
                 }
             } else {
                 $logline .= 'no lmb changes to make:';
             }
         } else {
-            if ($course->id = $DB->insert_record('lmb_courses', $course, true)) {
-                $logline .= 'inserted into lmb_courses:';
+            if ($course->id = $DB->insert_record('enrol_lmb_courses', $course, true)) {
+                $logline .= 'inserted into enrol_lmb_courses:';
             } else {
-                $logline .= 'failed to insert into lmb_courses:';
+                $logline .= 'failed to insert into enrol_lmb_courses:';
                 $status = false;
             }
         }
@@ -1279,7 +1279,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             case 'deptcode':
             case 'dept':
                 //TODO2 - Removed addslashes around depttitle, check
-                if ($lmbcat = $DB->get_record('lmb_categories', array('dept' => $depttitle, 'cattype' => 'dept'))) {
+                if ($lmbcat = $DB->get_record('enrol_lmb_categories', array('dept' => $depttitle, 'cattype' => 'dept'))) {
                     $cat->id = $lmbcat->categoryid;
                 } else {
                     $cat->name = $depttitle;
@@ -1297,8 +1297,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $cat->context = get_context_instance(CONTEXT_COURSECAT, $cat->id);
                         mark_context_dirty($cat->context->path);
                         fix_course_sortorder();
-                        if (!$DB->insert_record('lmb_categories', $lmbcat)) {
-                            $logline .= "error saving category to lmb_categories:";
+                        if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
+                            $logline .= "error saving category to enrol_lmb_categories:";
                         }
                         $logline .= 'Created new (hidden) category:';
                     }else{
@@ -1313,7 +1313,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             case 'termdeptcode':
             case 'termdept':
                 //TODO2 - Removed addslashes around depttitle, check
-                if ($lmbcat = $DB->get_record('lmb_categories', array('termsourcedid' => $term, 'dept' => $depttitle, 'cattype' => 'termdept'))) {
+                if ($lmbcat = $DB->get_record('enrol_lmb_categories', array('termsourcedid' => $term, 'dept' => $depttitle, 'cattype' => 'termdept'))) {
                     $cat->id = $lmbcat->categoryid;
                 } else {
                     if ($termid = $this->get_term_category_id($term, $logline, $status)) {
@@ -1331,8 +1331,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $cat->context = get_context_instance(CONTEXT_COURSECAT, $cat->id);
                             mark_context_dirty($cat->context->path);
                             fix_course_sortorder();
-                            if (!$DB->insert_record('lmb_categories', $lmbcat, true)) {
-                                $logline .= "error saving category to lmb_categories:";
+                            if (!$DB->insert_record('enrol_lmb_categories', $lmbcat, true)) {
+                                $logline .= "error saving category to enrol_lmb_categories:";
                             }
                             $logline .= 'Created new (hidden) category:';
                         }else{
@@ -1384,10 +1384,10 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         $config = $this->get_config();
         
-        if ($lmbcat = $DB->get_record('lmb_categories', array('termsourcedid' => $term, 'cattype' => 'term'))) {
+        if ($lmbcat = $DB->get_record('enrol_lmb_categories', array('termsourcedid' => $term, 'cattype' => 'term'))) {
             return $lmbcat->categoryid;
         } else {
-            if ($lmbterm = $DB->get_record('lmb_terms', array('sourcedid' => $term))) {
+            if ($lmbterm = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $term))) {
                 $cat->name = $lmbterm->title;
                 if ($config->cathidden) {
                     $cat->visible = 0;
@@ -1407,8 +1407,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                     mark_context_dirty($cat->context->path);
                     fix_course_sortorder();
                     
-                    if (!$DB->insert_record('lmb_categories', $lmbcat)) {
-                        $logline .= "error saving category to lmb_categories:";
+                    if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
+                        $logline .= "error saving category to enrol_lmb_categories:";
                     }
                     $logline .= 'Created new (hidden) category:';
                     
@@ -1587,7 +1587,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     
         
-        if ($status && $existing_xlists = $DB->get_records('lmb_crosslist', array('crosslistsourcedid' => $crosslistsourcedid))) {
+        if ($status && $existing_xlists = $DB->get_records('enrol_lmb_crosslists', array('crosslistsourcedid' => $crosslistsourcedid))) {
             foreach ($existing_xlists as $existing_xlist) {
                 if (isset($existing_type)) {
                     if ($existing_type != $existing_xlist->type) {
@@ -1609,7 +1609,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     
         foreach ($xlists as $xlist) {
-            if ($oldxlist = $DB->get_record('lmb_crosslist', array('status' => 1, 'coursesourcedid' => $xlist->coursesourcedid, 'type' => 'merge'))) {
+            if ($oldxlist = $DB->get_record('enrol_lmb_crosslists', array('status' => 1, 'coursesourcedid' => $xlist->coursesourcedid, 'type' => 'merge'))) {
                 if (($oldxlist->crosslistsourcedid != $xlist->crosslistsourcedid) ) {
                     $logline .= $xlist->coursesourcedid.' is already in xlist '.$oldxlist->crosslistsourcedid.':';
                     $errorcode = 3;
@@ -1618,7 +1618,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
             }
             if ($status && $type == 'merge') {
-                if ($oldxlist = $DB->get_record('lmb_crosslist', array('coursesourcedid' => $xlist->coursesourcedid, 'type' => 'meta'))) {
+                if ($oldxlist = $DB->get_record('enrol_lmb_crosslists', array('coursesourcedid' => $xlist->coursesourcedid, 'type' => 'meta'))) {
                     $logline .= $xlist->coursesourcedid.' is already in xlist '.$oldxlist->crosslistsourcedid.':';
                     $errormessage = $xlist->coursesourcedid.' is already in xlist '.$oldxlist->crosslistsourcedid;
                     $errorcode = 3;
@@ -1631,10 +1631,10 @@ class enrol_lmb_plugin extends enrol_plugin {
             $newxlists = array();
             foreach ($xlists as $xlist) {
                 $xlist->type = $type;
-                if ($oldxlist = $DB->get_record('lmb_crosslist', array('crosslistsourcedid' => $xlist->crosslistsourcedid, 'coursesourcedid' => $xlist->coursesourcedid))) {
+                if ($oldxlist = $DB->get_record('enrol_lmb_crosslists', array('crosslistsourcedid' => $xlist->crosslistsourcedid, 'coursesourcedid' => $xlist->coursesourcedid))) {
                     $xlist->id = $oldxlist->id;
                     if (enrol_lmb_compare_objects($xlist, $oldxlist)) {
-                        if ($DB->update_record('lmb_crosslist', $xlist)) {
+                        if ($DB->update_record('enrol_lmb_crosslists', $xlist)) {
                             $xlist->newrecord = 1;
                             $logline .= 'lmb updated:';
                         } else {
@@ -1647,7 +1647,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $logline .= 'no lmb changes to make:';
                     }
                 } else {
-                    if ($xlist->id = $DB->insert_record('lmb_crosslist', $xlist, true)) {
+                    if ($xlist->id = $DB->insert_record('enrol_lmb_crosslists', $xlist, true)) {
                         $logline .= 'lmb inserted:';
                         
                         
@@ -1797,7 +1797,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }//Close status check
     
         if (isset($droppedUsers) && $droppedUsers) {
-            if ($allxlists = $DB->get_records('lmb_crosslist', array('status' => 1, 'crosslistsourcedid' => $crosslistsourcedid))) {
+            if ($allxlists = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $crosslistsourcedid))) {
                 foreach ($allxlists as $xlist) {
                     enrol_lmb_restore_users_to_course($xlist->coursesourcedid);
                 }
@@ -1903,12 +1903,12 @@ class enrol_lmb_plugin extends enrol_plugin {
         $title = $titledef;
         $repeat = '';
         
-        if ($courseIds = $DB->get_records('lmb_crosslist', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
+        if ($courseIds = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
             $courses = array();
             
             foreach ($courseIds as $courseId) {
             
-                if ($course = $DB->get_record('lmb_courses', array('sourcedid' => $courseId->coursesourcedid))) {
+                if ($course = $DB->get_record('enrol_lmb_courses', array('sourcedid' => $courseId->coursesourcedid))) {
                     array_push($courses, $course);
                     
                 }
@@ -1954,11 +1954,11 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function get_crosslist_endtime($idnumber) {
         global $DB;
         
-        if ($courseIds = $DB->get_records('lmb_crosslist', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
+        if ($courseIds = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
             $enddates = array();
             
             foreach ($courseIds as $courseId) {
-                if ($enddate = $DB->get_field('lmb_courses', 'enddate', array('sourcedid' => $courseId->coursesourcedid))) {
+                if ($enddate = $DB->get_field('enrol_lmb_courses', 'enddate', array('sourcedid' => $courseId->coursesourcedid))) {
                     array_push($enddates, $enddate);
                     
                 }
@@ -1983,11 +1983,11 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function get_crosslist_starttime($idnumber) {
         global $DB;
         
-        if ($courseIds = $DB->get_records('lmb_crosslist', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
+        if ($courseIds = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
             $startdates = array();
             
             foreach ($courseIds as $courseId) {
-                if ($startdate = $DB->get_field('lmb_courses', 'startdate', array('sourcedid' => $courseId->coursesourcedid))) {
+                if ($startdate = $DB->get_field('enrol_lmb_courses', 'startdate', array('sourcedid' => $courseId->coursesourcedid))) {
                     array_push($startdates, $startdate);
                     
                 }
@@ -2238,11 +2238,11 @@ class enrol_lmb_plugin extends enrol_plugin {
         $lmbpersonslash = $lmbperson;
     
         //Check to see if we have an existing record for this person
-        if ($oldlmbperson = $DB->get_record('lmb_people', array('sourcedid' => $lmbperson->sourcedid))) {
+        if ($oldlmbperson = $DB->get_record('enrol_lmb_people', array('sourcedid' => $lmbperson->sourcedid))) {
             $lmbpersonslash->id = $oldlmbperson->id;
             if (enrol_lmb_compare_objects($lmbpersonslash, $oldlmbperson)) {
-                if (!$DB->update_record('lmb_people', $lmbpersonslash)) {
-                    $logline .= 'error updating lmb_people:';
+                if (!$DB->update_record('enrol_lmb_people', $lmbpersonslash)) {
+                    $logline .= 'error updating enrol_lmb_people:';
                     $status = false;
                 } else {
                     $logline .= 'updated lmb table:';
@@ -2251,8 +2251,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $logline .= 'no lmb changes to make:';
             }
         } else {
-            if (!$DB->insert_record('lmb_people', $lmbpersonslash)) {
-                $logline .= 'error inserting lmb_people:';
+            if (!$DB->insert_record('enrol_lmb_people', $lmbpersonslash)) {
+                $logline .= 'error inserting enrol_lmb_people:';
                 $status = false;
             } else {
                 $logline .= 'inserted into lmb table:';
@@ -2549,17 +2549,17 @@ class enrol_lmb_plugin extends enrol_plugin {
         $term->timemodified = time();
         
         
-        if ($oldterm = $DB->get_record('lmb_terms', array('sourcedid' => $term->sourcedid))) {
+        if ($oldterm = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $term->sourcedid))) {
             $term->id = $oldterm->id;
             
-            if($id = $DB->update_record('lmb_terms', $term)){
+            if($id = $DB->update_record('enrol_lmb_terms', $term)){
                 $logline .= 'updated term:';
             } else {
                 $logline .= 'failed to update term:';
                 $status = false;
             }
         } else {
-            if($id = $DB->insert_record('lmb_terms', $term, true)){
+            if($id = $DB->insert_record('enrol_lmb_terms', $term, true)){
                 $logline .= 'create term:';
                 $term->id = $id;
             } else {
@@ -2714,11 +2714,11 @@ class enrol_lmb_plugin extends enrol_plugin {
         $enrolment->timemodified = time();
         
         if ($status) {
-            if ($oldenrolment = $DB->get_record('lmb_enrolments', array('coursesourcedid' => $enrolment->coursesourcedid, 'personsourcedid' => $enrolment->personsourcedid))) {
+            if ($oldenrolment = $DB->get_record('enrol_lmb_enrolments', array('coursesourcedid' => $enrolment->coursesourcedid, 'personsourcedid' => $enrolment->personsourcedid))) {
                 $enrolment->id = $oldenrolment->id;
                 if (enrol_lmb_compare_objects($enrolment, $oldenrolment)) {
-                    if (!$DB->update_record('lmb_enrolments', $enrolment)) {
-                        $logline .= 'error updating in lmb_enrolments:';
+                    if (!$DB->update_record('enrol_lmb_enrolments', $enrolment)) {
+                        $logline .= 'error updating in enrol_lmb_enrolments:';
                         $status = false;
                     } else {
                         $logline .= 'lmb updated:';
@@ -2728,8 +2728,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
                 
             } else {
-                if (!$enrolment->id = $DB->insert_record('lmb_enrolments', $enrolment, true)) {
-                    $logline .= 'error inserting into lmb_enrolments:';
+                if (!$enrolment->id = $DB->insert_record('enrol_lmb_enrolments', $enrolment, true)) {
+                    $logline .= 'error inserting into enrol_lmb_enrolments:';
                     $status = false;
                 } else {
                     $logline .= 'lmb inserted:';
@@ -2775,13 +2775,13 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function prune_tables($term) {
         global $DB;
         
-        $DB->delete_records('lmb_enrolments', array('term' => $term));
-        $DB->delete_records('lmb_courses', array('term' => $term));
+        $DB->delete_records('enrol_lmb_enrolments', array('term' => $term));
+        $DB->delete_records('enrol_lmb_courses', array('term' => $term));
         
         $sqlparams = array('term' => '%'.$term);
-        $DB->delete_records_select('lmb_crosslist', "coursesourcedid LIKE :term", $sqlparams);
+        $DB->delete_records_select('enrol_lmb_crosslists', "coursesourcedid LIKE :term", $sqlparams);
         
-        $DB->delete_records('lmb_terms', array('sourcedid' => $term));
+        $DB->delete_records('enrol_lmb_terms', array('sourcedid' => $term));
         
         return true;
     }
@@ -3016,11 +3016,11 @@ class enrol_lmb_plugin extends enrol_plugin {
             $this->log_line('Processing drops for term '.$termid);
 
             $sqlparams = array('term' => $termid, 'status' => 1);
-            $termcnt = $DB->count_records('lmb_enrolments', $sqlparams);
+            $termcnt = $DB->count_records('enrol_lmb_enrolments', $sqlparams);
             
             
             $sqlparams = array('processid' => $this->processid, 'termid' => $termid, 'status' => 1);
-            $termcnt = $DB->count_records_select('lmb_enrolments', 'extractstatus < :processid AND term = :termid AND status = :status', $sqlparams);
+            $termcnt = $DB->count_records_select('enrol_lmb_enrolments', 'extractstatus < :processid AND term = :termid AND status = :status', $sqlparams);
             
                         
             $percent = (int)ceil(($dropcnt/$termcnt)*100);
@@ -3034,7 +3034,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             $sqlparams = array('extractstatus' => $this->processid, 'termid' => $termid);
             
             
-            if ($enrols = $DB->get_records_select('lmb_enrolments', 'extractstatus < :extractstatus AND term = :termid', $sqlparams, 'coursesourcedid ASC')) {
+            if ($enrols = $DB->get_records_select('enrol_lmb_enrolments', 'extractstatus < :extractstatus AND term = :termid', $sqlparams, 'coursesourcedid ASC')) {
                 $count = count($enrols);
                 $curr = 0;
                 $percent = 0;
@@ -3096,7 +3096,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         }
                         
                         if (enrol_lmb_compare_objects($enrolup, $enrol)) {
-                            if (!$DB->update_record('lmb_enrolments', $enrolup)) {
+                            if (!$DB->update_record('enrol_lmb_enrolments', $enrolup)) {
                                 $logline .= 'error updating lmb:';
                                 $enrolstatus = false;
                             } else {
@@ -3155,7 +3155,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * Used to call process_enrolment_log() without passing a 
      * logline variable. See process_enrolment_log()
      * 
-     * @param object $enrol an enrol object representing a record in lmb_enrolments
+     * @param object $enrol an enrol object representing a record in enrol_lmb_enrolments
      * @param object $config plugin config object passed optionally passes for caching speed
      * @param int $rolecontextid role context id passed optionally passes for caching speed. Can cause errors if impropperly set.
      * @return bool success or failure of the role assignments
@@ -3174,7 +3174,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * Processes an enrol object, executing the associated assign or
      * unassign and update the lmb entry for success or failure
      * 
-     * @param object $enrol an enrol object representing a record in lmb_enrolments
+     * @param object $enrol an enrol object representing a record in enrol_lmb_enrolments
      * @param string $logline passed logline object to append log entries to
      * @param object $config plugin config object passed optionally passes for caching speed
      * @param int $rolecontextid role context id passed optionally passes for caching speed. Can cause errors if impropperly set.
@@ -3190,7 +3190,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         $newcoursedid = enrol_lmb_get_course_id($enrol->coursesourcedid);
         
-        if ($config->xlsmergegroups && $xlist = $DB->get_record('lmb_crosslist', array('status' => 1, 'coursesourcedid' => $enrol->coursesourcedid))) {
+        if ($config->xlsmergegroups && $xlist = $DB->get_record('enrol_lmb_crosslists', array('status' => 1, 'coursesourcedid' => $enrol->coursesourcedid))) {
             $groupid = enrol_lmb_get_crosslist_groupid($enrol->coursesourcedid, $xlist->crosslistsourcedid);
         } else {
             $groupid = false;
@@ -3247,8 +3247,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
         
         if (enrol_lmb_compare_objects($enrolup, $enrol)) {
-            if (!$DB->update_record('lmb_enrolments', $enrolup)) {
-                $logline .= 'error updating in lmb_enrolments:';
+            if (!$DB->update_record('enrol_lmb_enrolments', $enrolup)) {
+                $logline .= 'error updating in enrol_lmb_enrolments:';
                 $status = false;
             } else {
                 $logline .= 'lmb updated:';

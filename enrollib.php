@@ -135,11 +135,11 @@ function enrol_lmb_get_course_contextid($idnumber, $original = false) {
 function enrol_lmb_get_crosslist_groupid($coursesourcedid, $crosslistsourcedid = null) {
     global $DB;
     if ($crosslistsourcedid) {
-        if (!$crosslist = $DB->get_record('lmb_crosslist', array('coursesourcedid' => $coursesourcedid, 'crosslistsourcedid' => $crosslistsourcedid))) {
+        if (!$crosslist = $DB->get_record('enrol_lmb_crosslists', array('coursesourcedid' => $coursesourcedid, 'crosslistsourcedid' => $crosslistsourcedid))) {
             return false;
         }
     } else {
-        if (!$crosslist = $DB->get_record('lmb_crosslist', array('coursesourcedid' => $coursesourcedid))) {
+        if (!$crosslist = $DB->get_record('enrol_lmb_crosslists', array('coursesourcedid' => $coursesourcedid))) {
             return false;
         }
     }
@@ -164,7 +164,7 @@ function enrol_lmb_create_crosslist_group($lmbcrosslist) {
         return false;
     }
     
-    if (!$lmbcourse = $DB->get_record('lmb_courses', array('sourcedid' => $lmbcrosslist->coursesourcedid))) {
+    if (!$lmbcourse = $DB->get_record('enrol_lmb_courses', array('sourcedid' => $lmbcrosslist->coursesourcedid))) {
         return false;
     }
     
@@ -183,7 +183,7 @@ function enrol_lmb_create_crosslist_group($lmbcrosslist) {
     $crossup = new Object();
     $crossup->id = $lmbcrosslist->id;
     $crossup->crosslistgroupid = $groupid;
-    $DB->update_record('lmb_crosslist', $crossup);
+    $DB->update_record('enrol_lmb_crosslists', $crossup);
     
     return $groupid;
     
@@ -202,7 +202,7 @@ function enrol_lmb_expand_course_title($lmbcourse, $titledef) {
     $title = str_replace('[SOURCEDID]', $lmbcourse->sourcedid, $titledef);
     $title = str_replace('[CRN]', $lmbcourse->coursenumber, $title);
     $title = str_replace('[TERM]', $lmbcourse->term, $title);
-    if ($lmbterm = $DB->get_record('lmb_terms', array('sourcedid' => $lmbcourse->term))) {
+    if ($lmbterm = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $lmbcourse->term))) {
         $title = str_replace('[TERMNAME]', $lmbterm->title, $title);
     } else {
         $title = str_replace('[TERMNAME]', $lmbcourse->term, $title);
@@ -238,7 +238,7 @@ function enrol_lmb_restore_users_to_course($idnumber) {
     $enrolmod = new enrol_lmb_plugin();
     
 
-    if ($enrols = $DB->get_records('lmb_enrolments', array('status' => 1, 'coursesourcedid' => $idnumber))) {
+    if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('status' => 1, 'coursesourcedid' => $idnumber))) {
         $rolecontext = enrol_lmb_get_course_contextid($idnumber);
 
         foreach ($enrols as $enrol) {
@@ -263,7 +263,7 @@ function enrol_lmb_drop_crosslist_users($xlist) {
     global $DB;
     $status = true;
     
-    if ($enrols = $DB->get_records('lmb_enrolments', array('status' => 1, 'coursesourcedid' => $xlist->coursesourcedid))) {
+    if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('status' => 1, 'coursesourcedid' => $xlist->coursesourcedid))) {
         if ($rolecontext = enrol_lmb_get_course_contextid($xlist->crosslistsourcedid)) {
             foreach ($enrols as $enrol) {
                 if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
@@ -294,9 +294,9 @@ function enrol_lmb_drop_all_users($idnumber, $role = NULL, $original = FALSE) {
     $config = enrol_lmb_get_config();
 
     if ($role) {
-        $enrols = $DB->get_records('lmb_enrolments', array('status' => 1, 'role' => $role, 'coursesourcedid'=> $idnumber));
+        $enrols = $DB->get_records('enrol_lmb_enrolments', array('status' => 1, 'role' => $role, 'coursesourcedid'=> $idnumber));
     } else {
-        $enrols = $DB->get_records('lmb_enrolments', array('status' => 1, 'coursesourcedid' => $idnumber));
+        $enrols = $DB->get_records('enrol_lmb_enrolments', array('status' => 1, 'coursesourcedid' => $idnumber));
     }
 
     if ($enrols) {
@@ -316,7 +316,7 @@ function enrol_lmb_drop_all_users($idnumber, $role = NULL, $original = FALSE) {
                 }
                 
                 $enrolup->id = $enrol->id;
-                $DB->update_record('lmb_enrolments', $enrolup);
+                $DB->update_record('enrol_lmb_enrolments', $enrolup);
                 unset($enrolup);
             }
         }
@@ -339,7 +339,7 @@ function enrol_lmb_force_all_courses($termid, $print = false, $printverbose = fa
     $status = true;
     
     
-    $courses = $DB->get_records('lmb_courses', array('term' => $termid));
+    $courses = $DB->get_records('enrol_lmb_courses', array('term' => $termid));
     
     $count = count($courses);
     $i = 1;
@@ -379,7 +379,7 @@ function enrol_lmb_force_course_to_db($idnumber,$print = false) {
     global $DB;
     $status = true;
 
-    if ($enrols = $DB->get_records('lmb_enrolments', array('coursesourcedid' => $idnumber))) {
+    if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('coursesourcedid' => $idnumber))) {
         $rolecontext = enrol_lmb_get_course_contextid($idnumber);
         
         if ($print) {
@@ -428,7 +428,7 @@ function enrol_lmb_get_course_id($idnumber, $original = FALSE) {
     
     $newidnumber = $idnumber;
     
-    if (!$original && $xlist = $DB->get_record('lmb_crosslist', array('status' => 1, 'coursesourcedid' => $idnumber))) {
+    if (!$original && $xlist = $DB->get_record('enrol_lmb_crosslists', array('status' => 1, 'coursesourcedid' => $idnumber))) {
         if ($xlist->type == 'merge') {
             $newidnumber = $xlist->crosslistsourcedid;
         }
@@ -442,7 +442,7 @@ function enrol_lmb_get_course_ids($idnumber, $original = FALSE) {
     global $DB;
     $out = array();
     
-    if (!$original && $xlists = $DB->get_records('lmb_crosslist', array('status' => 1, 'coursesourcedid' => $idnumber))) {
+    if (!$original && $xlists = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'coursesourcedid' => $idnumber))) {
         foreach ($xlists as $xlist) {
             if ($xlist->type == 'merge') {
                 $courseid = $DB->get_field('course', 'id', array('idnumber' => $xlist->crosslistsourcedid));
@@ -506,7 +506,7 @@ function enrol_lmb_restore_user_enrolments($idnumber) {
     $enrolmod = new enrol_lmb_plugin();
     
 
-    if ($enrols = $DB->get_records('lmb_enrolments', array('personsourcedid' => $idnumber))) {
+    if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('personsourcedid' => $idnumber))) {
         foreach ($enrols as $enrol) {
             //$status = enrol_lmb_process_enrolment($enrol, $config) && $status;
             $logline = '';
@@ -530,7 +530,7 @@ function enrol_lmb_reset_all_term_enrolments($termid) {
 
     $status = true;
     $sqlparams = array('termid' => $termid, 'succeeded' => 0);
-    $sql = "SELECT personsourcedid FROM {lmb_enrolments} WHERE term = :termid AND succeeded = :succeeded GROUP BY personsourcedid";
+    $sql = "SELECT personsourcedid FROM {enrol_lmb_enrolments} WHERE term = :termid AND succeeded = :succeeded GROUP BY personsourcedid";
 
     if ($enrols = $DB->get_records_sql($sql, $sqlparams)) {
         $count = sizeof($enrols);
@@ -577,7 +577,7 @@ function enrol_lmb_get_terms() {
     global $DB;
     $out = array();
     
-    if ($terms = $DB->get_records('lmb_terms', null, 'id DESC')) {
+    if ($terms = $DB->get_records('enrol_lmb_terms', null, 'id DESC')) {
         foreach ($terms as $term) {
             $out[] = $term->sourcedid;
         }
@@ -595,7 +595,7 @@ function enrol_lmb_make_terms_menu_array() {
     global $DB;
     $out = array();
     
-    if ($terms = $DB->get_records('lmb_terms', null, 'id DESC')) {
+    if ($terms = $DB->get_records('enrol_lmb_terms', null, 'id DESC')) {
         foreach ($terms as $term) {
             $out[$term->sourcedid] = $term->title.' ('.$term->sourcedid.')';
         }
