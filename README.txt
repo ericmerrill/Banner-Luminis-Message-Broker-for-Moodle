@@ -24,6 +24,7 @@ lmb_categories => enrol_lmb_categories
 
 If you use any additional scripts that access these tables, they will need to be updated. You can find them
 by using the regular expression: (?<!enrol_)\b(?:OLDNAME) and then replace with the new name for that table.
+Fixed Version display and link to tools on LMB settings page.
 
 
 
