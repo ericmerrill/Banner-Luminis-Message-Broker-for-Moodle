@@ -24,23 +24,23 @@ require_once('../enrollib.php');
 @set_time_limit(0);
 
 echo $OUTPUT->box_start();
-$sem = optional_param("sem");
+$sem = optional_param("sem", false, PARAM_INT);
 
 
 if ($sem) {
-    enrol_lmb_reset_all_term_enrolments($sem);
+    enrol_lmb_retry_term_enrolments($sem);
 } else {
     $terms = enrol_lmb_make_terms_menu_array();
     
 	?>
 	
 	<form action="" METHOD="post">
-	
-	Semester ID:<?php choose_from_menu($terms, 'sem'); ?><br>
-	<input TYPE=SUBMIT VALUE=Restore>
+	Reprocesses enrolments in a term that were not successful.<br>
+	Semester ID:<?php print html_writer::select($terms, 'sem'); ?><br>
+	<input TYPE=SUBMIT VALUE=Reprocess>
 	</form>
 	
-<?
+<?php
 }
 
 

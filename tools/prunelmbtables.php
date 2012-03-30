@@ -61,7 +61,7 @@ if ($sem && $conf) {
     ?>
 	
 	<form action="" METHOD="post">
-	Are you sure you want to prune the lmb_raw_xml table? This will remove the <? echo $count; ?> records before .<br>
+	Are you sure you want to prune the lmb_raw_xml table? This will remove the <?php echo $count; ?> records before .<br>
 	<input type="hidden" name="years" value="<?php print $years; ?>">
 	<input type="hidden" name="months" value="<?php print $months; ?>">
 	<input type="hidden" name="days" value="<?php print $days; ?>">
@@ -69,7 +69,7 @@ if ($sem && $conf) {
 	<input TYPE=SUBMIT VALUE=Yes name=conf><input TYPE=SUBMIT VALUE=No name=conf>
 	</form>
 	
-<?
+<?php
     
 } else if ($sem) {
     $term = get_record('lmb_terms', 'sourcedid', $sem);
@@ -81,7 +81,7 @@ if ($sem && $conf) {
 	<input TYPE=SUBMIT VALUE=Yes name=conf><input TYPE=SUBMIT VALUE=No name=conf>
 	</form>
 	
-<?
+<?php
 } else {
     $terms = enrol_lmb_make_terms_menu_array();
     
@@ -117,7 +117,7 @@ if ($sem && $conf) {
 	<input TYPE=SUBMIT VALUE="Prune...">
 	</form>
 	
-    <?
+    <?php
 }
 
 

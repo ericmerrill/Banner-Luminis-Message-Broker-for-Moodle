@@ -36,6 +36,8 @@ enrol_lmb_assign_role_log
 enrol_lmb_unassign_role
 enrol_lmb_unassign_role_log
 enrol_lmb_get_course_contextid
+enrol_lmb_reset_all_term_enrolments renamed to enrol_lmb_retry_term_enrolments
+
 
 Fixed Version display and link to tools on LMB settings page.
 Fixed error in drop percent calculation for bulk processing.

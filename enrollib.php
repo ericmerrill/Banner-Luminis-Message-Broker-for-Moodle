@@ -137,12 +137,12 @@ function enrol_lmb_expand_course_title($lmbcourse, $titledef) {
  * @return bool success or failure of the role assignments
  */
 function enrol_lmb_restore_users_to_course($idnumber) {
-    global $DB;
+    global $DB, $CFG;
     $config = enrol_lmb_get_config();
     $status = true;
 
     if (!class_exists('enrol_lmb_plugin')) {
-        require_once('./lib.php');
+        require_once($CFG->dirroot.'/enrol/lmb/lib.php');
     }
     
     $enrolmod = new enrol_lmb_plugin();
@@ -168,12 +168,12 @@ function enrol_lmb_restore_users_to_course($idnumber) {
  * @return bool sucess of failure of the drops
  */
 function enrol_lmb_drop_crosslist_users($xlist) {
-    global $DB;
+    global $DB, $CFG;
     $status = true;
     
     if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('status' => 1, 'coursesourcedid' => $xlist->coursesourcedid))) {
         if (!class_exists('enrol_lmb_plugin')) {
-            require_once('./lib.php');
+            require_once($CFG->dirroot.'/enrol/lmb/lib.php');
         }
         
         $enrolmod = new enrol_lmb_plugin();
@@ -203,7 +203,7 @@ function enrol_lmb_drop_crosslist_users($xlist) {
  * @return bool success or failure of the drops
  */
 function enrol_lmb_drop_all_users($idnumber, $role = NULL, $original = FALSE) {
-    global $DB;
+    global $DB, $CFG;
     
     $status = true;
     $config = enrol_lmb_get_config();
@@ -217,7 +217,7 @@ function enrol_lmb_drop_all_users($idnumber, $role = NULL, $original = FALSE) {
     if ($enrols) {
         if ($courseid = enrol_lmb_get_course_id($idnumber, $original)) {
             if (!class_exists('enrol_lmb_plugin')) {
-                require_once('./lib.php');
+                require_once($CFG->dirroot.'/enrol/lmb/lib.php');
             }
             
             $enrolmod = new enrol_lmb_plugin();
@@ -297,7 +297,7 @@ function enrol_lmb_force_all_courses($termid, $print = false, $printverbose = fa
  * @return bool success or failure of the enrolments
  */
 function enrol_lmb_force_course_to_db($idnumber,$print = false) {
-    global $DB;
+    global $DB, $CFG;
     $status = true;
 
     if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('coursesourcedid' => $idnumber))) {
@@ -307,7 +307,7 @@ function enrol_lmb_force_course_to_db($idnumber,$print = false) {
         }
         
         if (!class_exists('enrol_lmb_plugin')) {
-            require_once('./lib.php');
+            require_once($CFG->dirroot.'/enrol/lmb/lib.php');
         }
         
         $enrolmod = new enrol_lmb_plugin();
@@ -411,8 +411,8 @@ function enrol_lmb_compare_objects($new, $old) {
  * @param string $termid the ims/xml id of the term
  * @return bool success or failure of the enrolments
  */
-function enrol_lmb_reset_all_term_enrolments($termid) {
-    global $DB;
+function enrol_lmb_retry_term_enrolments($termid) {
+    global $DB, $CFG;
 
     $status = true;
     $sqlparams = array('termid' => $termid, 'succeeded' => 0);
@@ -420,16 +420,16 @@ function enrol_lmb_reset_all_term_enrolments($termid) {
 
     if ($persons = $DB->get_records_sql($sql, $sqlparams)) {
         if (!class_exists('enrol_lmb_plugin')) {
-            require_once('./lib.php');
+            require_once($CFG->dirroot.'/enrol/lmb/lib.php');
         }
         
         $enrolmod = new enrol_lmb_plugin();
         
-        $count = sizeof($enrols);
+        $count = sizeof($persons);
         $i = 1;
         foreach ($persons as $person) {
             print $i." of ".$count.":".$person->personsourcedid;
-            $status = $enrolmod->restore_user_enrolments($enrol->personsourcedid) && $status;
+            $status = $enrolmod->restore_user_enrolments($person->personsourcedid) && $status;
             print "<br>\n";
             $i++;
         }
