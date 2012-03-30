@@ -52,6 +52,7 @@ Fixed Buisness hours minute fields not working correctly.
 Fixed defaults in various setting items.
 Defaults now shown for ims role mapping.
 Sets new users default country to whatever the sitewide config is.
+Completed prune raw xml in "Prune LMB Tables" tool.
 
 
 
