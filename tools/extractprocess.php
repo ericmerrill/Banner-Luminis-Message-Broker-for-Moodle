@@ -12,7 +12,7 @@ $term = NULL;
 $matches = array();
 
 $nav[0] = array('name' => 'Admin', 'link' => '../../../'.$CFG->admin.'/index.php', 'type' => '');
-$nav[1] = array('name' => 'LMB', 'link' => '../../../'.$CFG->admin.'/enrol_config.php?enrol=lmb', 'type' => '');
+$nav[1] = array('name' => 'LMB', 'link' => '../../../'.$CFG->admin.'/settings.php?section=enrolsettingslmb', 'type' => '');
 $nav[2] = array('name' => 'Tools', 'link' => './index.php', 'type' => '');
 $nav[3] = array('name' => 'XML Folder Process', 'link' => '', 'type' => 'title');
 
