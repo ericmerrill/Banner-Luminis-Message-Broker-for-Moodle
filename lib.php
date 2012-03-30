@@ -1076,7 +1076,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             //TODO make optional        
             $tmpstatus = enrol_lmb_restore_users_to_course($course->sourcedid);
             if (!$tmpstatus) {
-                $logline .= 'error restore some enrolments:';
+                $logline .= 'error restoring some enrolments:';
             }
         }
         
