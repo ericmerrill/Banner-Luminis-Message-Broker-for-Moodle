@@ -554,7 +554,7 @@ function enrol_lmb_reset_all_term_enrolments($termid) {
  * @return string the generated id
  */
 function enrol_lmb_create_new_crosslistid($term = '') {
-    if (!$count = get_config('enrol/lmb', 'last_internal_crosslist_num')) {
+    if (!$count = get_config('enrol_lmb', 'last_internal_crosslist_num')) {
         $count = 0;
     }
     
@@ -562,7 +562,7 @@ function enrol_lmb_create_new_crosslistid($term = '') {
 
     $did = 'XLSi'.$count.$term;
     
-    set_config('last_internal_crosslist_num', $count, 'enrol/lmb');
+    set_config('last_internal_crosslist_num', $count, 'enrol_lmb');
     
     return $did;
 

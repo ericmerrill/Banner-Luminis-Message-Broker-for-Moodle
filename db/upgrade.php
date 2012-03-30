@@ -708,8 +708,58 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         // lmb savepoint reached
         upgrade_plugin_savepoint(true, 2012032901, 'enrol', 'lmb');
     }
+    
+    if ($oldversion < 2012033001) {
+        $config = get_config('enrol_lmb');
+        
+        if (!isset($config->cathidden)) {
+            set_config('cathidden', 0, 'enrol_lmb');
+        }
+        
+        if (!isset($config->computesections)) {
+            set_config('computesections', 0, 'enrol_lmb');
+        }
+        
+        
+        if (!isset($config->forcecomputesections)) {
+            set_config('forcecomputesections', 0, 'enrol_lmb');
+        }
+        
+        upgrade_plugin_savepoint(true, 2012033001, 'enrol', 'lmb');
+    }
+    
+    if ($oldversion < 2012033004) {
+        $config_bad = get_config('enrol/lmb');
+        
+        
+        $objarray = get_object_vars($config_bad);
+        
+        foreach ($objarray as $key => $val) {
+            if (get_config('enrol_lmb', $key) === false) {
+                set_config($key, $val, 'enrol_lmb');
+            }
+            unset_config($key, 'enrol/lmb');
+        }
+        
+        upgrade_plugin_savepoint(true, 2012033004, 'enrol', 'lmb');
+    }
 
-
+    if ($oldversion < 2012033005) {
+        if (($config = get_config('enrol_lmb', 'enrol_lmb/endbiztimemin')) !== false) {
+            set_config('enrol_lmb/endbiztimemin', $config, 'endbiztimemin');
+            unset_config('enrol_lmb/endbiztimemin', 'enrol_lmb');
+            
+        }
+        
+        if (($config = get_config('enrol_lmb', 'enrol_lmb/startbiztimemin')) !== false) {
+            set_config('enrol_lmb/startbiztimemin', $config, 'startbiztimemin');
+            unset_config('enrol_lmb/startbiztimemin', 'enrol_lmb');
+            
+        }
+        
+        
+        upgrade_plugin_savepoint(true, 2012033005, 'enrol', 'lmb');
+    }
 
     
     return $result;

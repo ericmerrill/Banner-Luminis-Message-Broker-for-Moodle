@@ -31,6 +31,11 @@ Fix errors in tools breadcrumbs.
 Fix set_url() error on tool pages.
 Fixed context errors on tool pages.
 Enrollment processing during course update does not show creation/update error.
+Set some missing defaults in upgrade.php.
+Fixes to some settings using the incorrect enrol/lmb plugin name. Settings migrated to enrol_lmb.
+Fixed Buisness hours minute fields not working correctly.
+
+
 
 
 Since 2.0.1
@@ -87,6 +92,9 @@ Check into term length dependancies
 Load config descriptions
 Filter Terms
 meta sync changes (when to sync)
+Hide merge child courses
+Setup defaults on install
+Select defaults for role assignments
 
 
 

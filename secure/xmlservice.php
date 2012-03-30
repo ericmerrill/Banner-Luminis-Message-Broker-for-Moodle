@@ -32,7 +32,7 @@ $xml = file_get_contents('php://input');
 
 */
 
-set_config('silent', 1, 'enrol/lmb');
+set_config('silent', 1, 'enrol_lmb');
 
 
 //Dont proceed if there is no xml present
@@ -54,7 +54,7 @@ $errormessage = '';
 $enrol = new enrol_lmb_plugin();
 $result = $enrol->process_xml_line_error($xml, $errornum, $errormessage);
 
-set_config('silent', 0, 'enrol/lmb');
+set_config('silent', 0, 'enrol_lmb');
 
 if ($result) {
     //print '1 - received'.$time."\n"; 

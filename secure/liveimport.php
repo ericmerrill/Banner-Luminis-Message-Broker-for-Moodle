@@ -99,7 +99,7 @@ if ($config->storexml != 'never') {
     $xmlstorage->xml = addslashes($xml);
 }
 
-set_config('lastlmbmessagetime', time(), 'enrol/lmb');
+set_config('lastlmbmessagetime', time(), 'enrol_lmb');
 
 $xmlstorage->id = $DB->insert_record('enrol_lmb_raw_xml', $xmlstorage, true);
 

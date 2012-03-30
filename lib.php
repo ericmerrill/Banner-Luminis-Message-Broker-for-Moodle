@@ -62,9 +62,9 @@ class enrol_lmb_plugin extends enrol_plugin {
      * 
      * @param object $frm the form object
      */
-    public function config_form($frm) {
+    /*public function config_form($frm) {
         global $CFG;
-    
+        
         $frm = $this->get_config(true);
         if (!$frm) {
             $this->process_config(new Object());
@@ -73,7 +73,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     
         include ("$CFG->dirroot/enrol/lmb/config.html");    
         
-    }
+    }*/
     
     
     /**
@@ -81,8 +81,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * 
      * @param int $config An array of config variables
      */
-    public function process_config($config) {
-        
+    /*public function process_config($config) {
         
         if (!isset($config->logtolocation)) {
             $config->logtolocation = '';
@@ -477,7 +476,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         return true;
     
-    }
+    }*/
     
     
     /**
@@ -505,7 +504,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 	    	$endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime), 0);
 	    	
 	    	$config->nextunhiderun = $endtoday;
-	    	set_config('nextunhiderun', $endtoday, 'enrol/lmb');
+	    	set_config('nextunhiderun', $endtoday, 'enrol_lmb');
         }
         
         if ($config->cronunhidecourses && (time() > $config->nextunhiderun)) {
@@ -521,8 +520,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         	
         	$this->unhide_courses($starttime, $endtime);
         	
-        	set_config('nextunhiderun', $endtoday, 'enrol/lmb');
-        	set_config('prevunhideendtime', $endtime, 'enrol/lmb');
+        	set_config('nextunhiderun', $endtoday, 'enrol_lmb');
+        	set_config('prevunhideendtime', $endtime, 'enrol_lmb');
         }
         
     }
@@ -650,7 +649,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             @set_time_limit(0);
             $starttime = time(); 
             
-            set_config('processingfile', $starttime, 'enrol/lmb');
+            set_config('processingfile', $starttime, 'enrol_lmb');
             
     
             $this->log_line('Found file '.$filename);
@@ -715,8 +714,8 @@ class enrol_lmb_plugin extends enrol_plugin {
             
             $timeelapsed = time() - $starttime;
             
-            set_config('xmlfiletime', $filetime, 'enrol/lmb');
-            set_config('processingfile', 0, 'enrol/lmb');
+            set_config('xmlfiletime', $filetime, 'enrol_lmb');
+            set_config('processingfile', 0, 'enrol_lmb');
             
             $this->log_line('Process has completed. Time taken: '.$timeelapsed.' seconds.');
     
@@ -2800,7 +2799,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function log_line($string){
         //$config = $this->get_config();
         
-        $silent = get_config('enrol/lmb', 'silent');
+        $silent = get_config('enrol_lmb', 'silent');
         
         $message = '';
         

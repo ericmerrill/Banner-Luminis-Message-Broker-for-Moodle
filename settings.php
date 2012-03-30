@@ -44,9 +44,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('enrol_lmb_lmbcheck', get_string('lmbcheck', 'enrol_lmb'), ''));
     
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/lmbcheck', get_string('lmbcheck', 'enrol_lmb'), get_string('lmbcheckhelp', 'enrol_lmb'), 0));
-    $settings->add(new admin_setting_configtime('enrol_lmb/startbiztimehr', 'enrol_lmb/startbiztimemin', get_string('startbiztime', 'enrol_lmb'), get_string('startbiztimehelp', 'enrol_lmb'), array('h' => 9, 'm' => 0)));//TODO2 Config names are wrong
+    $settings->add(new admin_setting_configtime('enrol_lmb/startbiztimehr', 'startbiztimemin', get_string('startbiztime', 'enrol_lmb'), get_string('startbiztimehelp', 'enrol_lmb'), array('h' => 9, 'm' => 0)));//TODO2 Config names are wrong
     
-    $settings->add(new admin_setting_configtime('enrol_lmb/endbiztimehr', 'enrol_lmb/endbiztimemin', get_string('endbiztime', 'enrol_lmb'), get_string('endbiztimehelp', 'enrol_lmb'), array('h' => 17, 'm' => 0)));
+    $settings->add(new admin_setting_configtime('enrol_lmb/endbiztimehr', 'endbiztimemin', get_string('endbiztime', 'enrol_lmb'), get_string('endbiztimehelp', 'enrol_lmb'), array('h' => 17, 'm' => 0)));
     
     $settings->add(new admin_setting_configtext('enrol_lmb/bizgrace', get_string('bizdowngrace', 'enrol_lmb'), get_string('bizdowngracehelp', 'enrol_lmb'), '30'));
     
