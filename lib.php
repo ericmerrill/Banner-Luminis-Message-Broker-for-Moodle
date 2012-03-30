@@ -967,7 +967,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             $course->depttitle = trim($matches[1]);
         } else {
             $course->depttitle = '';
-            $logline .= 'department title not found:';
+            $logline .= 'org/orgunit not defined:';
         }
         
         
@@ -1073,7 +1073,11 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         
         if ($status) {
-            $status = enrol_lmb_restore_users_to_course($course->sourcedid);
+            //TODO make optional        
+            $tmpstatus = enrol_lmb_restore_users_to_course($course->sourcedid);
+            if (!$tmpstatus) {
+                $logline .= 'error restore some enrolments:';
+            }
         }
         
         
