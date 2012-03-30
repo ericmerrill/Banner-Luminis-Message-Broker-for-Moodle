@@ -3075,7 +3075,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         if ($courseid) {
                             if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                                 if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
-                                    if (!$this->lmb_unassign_role_log($roleid, $courseid, $userid, $logline))
+                                    if (!$this->lmb_unassign_role_log($roleid, $courseid, $userid, $logline)) {
                                         $logline .= 'could not drop user:';
                                         $enrolup->succeeded = 0;
                                         $enrolstatus = false;
