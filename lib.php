@@ -3020,7 +3020,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             
             
             $sqlparams = array('processid' => $this->processid, 'termid' => $termid, 'status' => 1);
-            $termcnt = $DB->count_records_select('enrol_lmb_enrolments', 'extractstatus < :processid AND term = :termid AND status = :status', $sqlparams);
+            $dropcnt = $DB->count_records_select('enrol_lmb_enrolments', 'extractstatus < :processid AND term = :termid AND status = :status', $sqlparams);
             
                         
             $percent = (int)ceil(($dropcnt/$termcnt)*100);
