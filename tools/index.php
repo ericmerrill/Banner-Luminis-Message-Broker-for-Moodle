@@ -18,12 +18,6 @@ print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->full
 
 echo $OUTPUT->box_start();
 
-$config_bad = get_config('enrol/lmb');
-        
-        
-        $keys = get_object_vars($config_bad);
-        print_r($keys);
-
 print '<a href="../importnow.php">Import XML File Now</a> - Import the contents of the XML File now<br>';
 print '<a href="extractprocess.php">Import XML Folder Now</a> - Import the contents of the XML Folder now<br>';
 print '<a href="lmbstatus.php">LMB Status</a> - Information about the last time the LMB interface has received a message<br>';
