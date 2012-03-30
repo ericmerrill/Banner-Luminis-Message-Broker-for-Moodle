@@ -2741,7 +2741,6 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
         }
         
-        //$status = $status && enrol_lmb_process_enrolment_log($enrolment, $logline, $config);
         $status = $status && $this->process_enrolment_log($enrolment, $logline, $config);
         
         
@@ -3061,14 +3060,11 @@ class enrol_lmb_plugin extends enrol_plugin {
                     if ($csourcedid != $enrol->coursesourcedid) {
                         $csourcedid = $enrol->coursesourcedid;
                         $courseid = enrol_lmb_get_course_id($csourcedid);
-                        $rolecontext = get_context_instance(CONTEXT_COURSE, $courseid);
-                        $rolecontext = $rolecontext->id;
                     }
                     
                     
                     
                     
-                    //if !status and succeeded skip
                     if ($enrol->status || !$enrol->succeeded) {
                         $enrolup = new Object();
                         $enrolup->id = $enrol->id;
@@ -3076,10 +3072,10 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $enrolup->status = 0;
                         $enrolup->succeeded = 0;
                         
-                        if ($rolecontext) {
+                        if ($courseid) {
                             if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                                 if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
-                                    if (!role_unassign($roleid, $userid, 0, $rolecontext)) {
+                                    if (!$this->lmb_unassign_role_log($roleid, $courseid, $userid, $logline))
                                         $logline .= 'could not drop user:';
                                         $enrolup->succeeded = 0;
                                         $enrolstatus = false;
@@ -3096,7 +3092,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                                 $logline .= 'user not found:';
                             }
                         } else {
-                            $logline .= 'role context not found:';
+                            $logline .= 'role course not found:';
                         }
                         
                         if (enrol_lmb_compare_objects($enrolup, $enrol)) {
@@ -3156,35 +3152,15 @@ class enrol_lmb_plugin extends enrol_plugin {
     
     
     /**
-     * Used to call process_enrolment_log() without passing a 
-     * logline variable. See process_enrolment_log()
-     * 
-     * @param object $enrol an enrol object representing a record in enrol_lmb_enrolments
-     * @param object $config plugin config object passed optionally passes for caching speed
-     * @param int $rolecontextid role context id passed optionally passes for caching speed. Can cause errors if impropperly set.
-     * @return bool success or failure of the role assignments
-     */
-    public function process_enrolment($enrol, $config=NULL, $rolecontextid=NULL) {
-        $logline = '';
-        
-        $status = $this->process_enrolment_log($enrol, &$logline, $config=NULL, $rolecontextid);
-        
-        unset($logline);
-        
-        return $status;
-    }
-    
-    /**
      * Processes an enrol object, executing the associated assign or
      * unassign and update the lmb entry for success or failure
      * 
      * @param object $enrol an enrol object representing a record in enrol_lmb_enrolments
      * @param string $logline passed logline object to append log entries to
      * @param object $config plugin config object passed optionally passes for caching speed
-     * @param int $rolecontextid role context id passed optionally passes for caching speed. Can cause errors if impropperly set.
      * @return bool success or failure of the role assignments
      */ //TODO2
-    public function process_enrolment_log($enrol, &$logline, $config=NULL, $rolecontextid=NULL) {
+    public function process_enrolment_log($enrol, &$logline, $config=NULL) {
         global $DB;
         $status = true;
         
@@ -3201,20 +3177,15 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
         
         
-        if (!$rolecontextid) {
-            $rolecontextid = enrol_lmb_get_course_contextid($enrol->coursesourcedid);
-        }
         
         $enrolup = new object();
         $enrolup->id = $enrol->id;
         
-        if ($rolecontextid) {
+        if ($newcoursedid) {
             if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                 if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
                     if ($enrol->status) {
-                        //$status = enrol_lmb_assign_role_log($roleid, $rolecontextid, $userid, &$logline);
                         $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, &$logline);
-                        //print $roleid.";".$rolecontextid.';'.$userid;
                         if ($status && $groupid && !groups_is_member($groupid, $userid)) {
                             global $CFG;
                             require_once($CFG->dirroot.'/group/lib.php');
@@ -3222,8 +3193,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $logline .= 'added user to group:';
                         }
                     } else {
-                        //$status = enrol_lmb_unassign_role_log($roleid, $rolecontextid, $userid, &$logline);
-                        $status = $this->lmb_unassign_role_log($newcoursedid, $userid, &$logline);
+                        $status = $this->lmb_unassign_role_log($roleid, $newcoursedid, $userid, &$logline);
                         if ($status && $groupid && groups_is_member($groupid, $userid)) {
                             global $CFG;
                             require_once($CFG->dirroot.'/group/lib.php');
@@ -3240,7 +3210,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $status = false;
             }
         } else {
-            $logline .= 'course/role context not found:';
+            $logline .= 'course not found:';
             $status = false;
         }
         
@@ -3292,37 +3262,16 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $status;
     }
 
-
-    /**
-     * Used to call lmb_assign_role_log() without passing a 
-     * logline variable. See enrol_lmb_assign_role_log()
-     * 
-     * @param int $roleid id of the moodle role to assign
-     * @param int $rolecontextid id of the context to assign
-     * @param int $userid id of the moodle user
-     * @param object $config passed plugin config object
-     * @return bool success or failure of the role assignment
-     */ //TODO2
-    function lmb_assign_role($roleid, $courseid, $userid) {
-        $logline = '';
-        
-        $status = enrol_lmb_assign_role_log($roleid, $courseid, $userid, &$logline);
-        
-        unset($logline);
-        
-        return $status;
-    }
-    
     
     /**
-     * Assigns a moodle role to a user in the provided context
+     * Assigns a moodle role to a user in the provided course
      * 
      * @param int $roleid id of the moodle role to assign
-     * @param int $rolecontextid id of the context to assign
+     * @param int $courseid id of the course to assign
      * @param int $userid id of the moodle user
      * @param string $logline passed logline object to append log entries to
      * @return bool success or failure of the role assignment
-     */ //TODO2
+     */
     function lmb_assign_role_log($roleid, $courseid, $userid, &$logline) {
         if (!$courseid) {
             $logline .= 'missing courseid:';
@@ -3330,52 +3279,24 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         $instance = $this->get_instance($courseid);
         
-        
+        //TODO catch exceptions thrown
         $this->enrol_user($instance, $userid, $roleid);
         
         $logline .= 'enrolled:';
         return true;
-        
-        /*if ($this->enrol_user($instance, $userid, $roleid)) {
-            $logline .= 'enrolled:';
-            return true;
-        }
-        
-        $logline .= 'error enrolling:';*/ //TODO catch error?
-        return false;
-    }
-    
-    /**
-     * Used to call lmb_unassign_role_log() without passing a 
-     * logline variable. See enrol_lmb_unassign_role_log()
-     * 
-     * @param int $roleid id of the moodle role to assign
-     * @param int $rolecontextid id of the context to assign
-     * @param int $userid id of the moodle user
-     * @param object $config passed plugin config object
-     * @return bool success or failure of the role assignment
-     */ //TODO2
-    function lmb_unassign_role($userid) {
-        $logline = '';
-        
-        $status = enrol_lmb_unassign_role_log($courseid, $userid, &$logline);
-        
-        unset($logline);
-        
-        return $status;
     }
     
     
     /**
-     * Unassigns a moodle role to a user in the provided context
+     * Unassigns a moodle role to a user in the provided course
      * 
-     * @param int $roleid id of the moodle role to assign
-     * @param int $rolecontextid id of the context to assign
+     * @param int $roleid id of the moodle role to unassign
+     * @param int $courseid id of the course to unassign
      * @param int $userid id of the moodle user
      * @param string $logline passed logline object to append log entries to
      * @return bool success or failure of the role assignment
-     */ //TODO2
-    function lmb_unassign_role_log($courseid, $userid, &$logline) {
+     */
+    function lmb_unassign_role_log($roleid, $courseid, $userid, &$logline) {
         if (!$courseid) {
             $logline .= 'missing courseid:';
             return false;
@@ -3383,18 +3304,12 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         $instance = $this->get_instance($courseid);
         
-        $this->unenrol_user($instance, $userid);
+        //TODO catch exceptions thrown
+        $this->unenrol_user($instance, $userid, $roleid);
         $logline .= 'unenrolled:';
         return true;
-        
-        /*if ($this->unenrol_user($instance, $userid)) {
-            $logline .= 'unenrolled:';
-            return true;
-        }
-        
-        $logline .= 'error unenrolling:';
-        return false;*/ //TODO2 catch error?
     }
+    
     
     /**
      * Returns enrolment instance in given course.

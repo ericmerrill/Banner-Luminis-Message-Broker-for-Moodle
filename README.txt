@@ -24,6 +24,19 @@ lmb_categories => enrol_lmb_categories
 
 If you use any additional scripts that access these tables, they will need to be updated. You can find them
 by using the regular expression: (?<!enrol_)\b(?:OLDNAME) and then replace with the new name for that table.
+
+Removed unused functions - check code compatibility:
+enrol_lmb->lmb_assign_role
+enrol_lmb->lmb_unassign_role
+enrol_lmb->process_enrolment
+enrol_lmb->lmb_assign_role (use lmb_assign_role_log)
+enrol_lmb->lmb_unassign_role (use lmb_unassign_role_log)
+
+enrol_lmb_assign_role_log
+enrol_lmb_unassign_role
+enrol_lmb_unassign_role_log
+enrol_lmb_get_course_contextid
+
 Fixed Version display and link to tools on LMB settings page.
 Fixed error in drop percent calculation for bulk processing.
 Fix get string errors in tools.
@@ -37,6 +50,7 @@ Fixed Buisness hours minute fields not working correctly.
 Fixed defaults in various setting items.
 Defaults now shown for ims role mapping.
 Sets new users default country to whatever the sitewide config is.
+
 
 
 
