@@ -27,7 +27,8 @@ by using the regular expression: (?<!enrol_)\b(?:OLDNAME) and then replace with 
 Fixed Version display and link to tools on LMB settings page.
 Fixed error in drop percent calculation for bulk processing.
 Fix get string errors in tools.
-Fix errors in tools breadcrumbs
+Fix errors in tools breadcrumbs.
+Fix set_url() error on tool pages.
 
 
 

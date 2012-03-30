@@ -7,6 +7,7 @@ require_login();
 require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM, SITEID));
 
 $PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
+$PAGE->set_url('/enrol/lmb/tools/reprocessenrolments.php');
 
 
 $nav[0] = array('name' => 'Admin', 'link' => '../../../'.$CFG->admin.'/index.php', 'type' => '');

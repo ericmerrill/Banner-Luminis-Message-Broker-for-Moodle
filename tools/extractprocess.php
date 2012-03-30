@@ -1,7 +1,7 @@
 <?php
 require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
 $PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
-
+$PAGE->set_url('/enrol/lmb/tools/extractprocess.php');
 require_once('../lib.php');
 
 

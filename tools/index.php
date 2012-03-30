@@ -6,7 +6,7 @@ require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM, SI
 
 
 $PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
-
+$PAGE->set_url('/enrol/lmb/tools/');
 
 $nav = array();
 $nav[0] = array('name' => 'Admin', 'link' => '../../../'.$CFG->admin.'/index.php', 'type' => '');
