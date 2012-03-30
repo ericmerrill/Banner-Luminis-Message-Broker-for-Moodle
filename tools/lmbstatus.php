@@ -1,7 +1,7 @@
 <?php
 require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
 require_login();
-require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM, SITEID));
+require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM));
 
 $PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
 $PAGE->set_url('/enrol/lmb/tools/lmbstatus.php');

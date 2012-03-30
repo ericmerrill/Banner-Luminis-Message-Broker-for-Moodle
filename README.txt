@@ -29,6 +29,7 @@ Fixed error in drop percent calculation for bulk processing.
 Fix get string errors in tools.
 Fix errors in tools breadcrumbs.
 Fix set_url() error on tool pages.
+Fixed context errors on tool pages.
 
 
 
