@@ -36,7 +36,7 @@ Fixes to some settings using the incorrect enrol/lmb plugin name. Settings migra
 Fixed Buisness hours minute fields not working correctly.
 Fixed defaults in various setting items.
 Defaults now shown for ims role mapping.
-
+Sets new users default country to whatever the sitewide config is.
 
 
 
@@ -97,6 +97,8 @@ meta sync changes (when to sync)
 Hide merge child courses
 Setup defaults on install
 Select defaults for role assignments
+Option to set ENROL_RESTORE_TYPE supported (disable user restores for this plugin)
+
 
 
 

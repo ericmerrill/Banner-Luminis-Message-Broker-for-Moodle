@@ -2422,6 +2422,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $moodleuser->address = '';
                     }
                     
+                    $moodleuser->country = $CFG->country;
+                    
                     if ($config->createnewusers) {
                         if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
                             $logline .= 'username collision, could not create user:';

@@ -238,7 +238,6 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('enrol_lmb_parseenrol', get_string('parseenrol', 'enrol_lmb'), ''));
     
     
-    //TODO Loop rolls
     if (!during_initial_install()) {
         
         $coursecontext = get_context_instance(CONTEXT_COURSE, SITEID);
