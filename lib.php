@@ -2249,7 +2249,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
             
             if(preg_match('{<role.*?roletype *= *"(.*?)".*?\>.*?</role>}is', $member, $matches)){
-                $enrolment->role = trim($matches[1]);
+                $enrolment->role = (int)trim($matches[1]);
             } else {
                 $logline .= 'person role not found:';
                 $status = false;
@@ -2299,6 +2299,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($status) {
             if ($oldenrolment = $DB->get_record('enrol_lmb_enrolments', array('coursesourcedid' => $enrolment->coursesourcedid, 'personsourcedid' => $enrolment->personsourcedid))) {
                 $enrolment->id = $oldenrolment->id;
+                $enrolment->succeeded = $oldenrolment->succeeded;
+                
                 if (enrol_lmb_compare_objects($enrolment, $oldenrolment)) {
                     if (!$DB->update_record('enrol_lmb_enrolments', $enrolment)) {
                         $logline .= 'error updating in enrol_lmb_enrolments:';

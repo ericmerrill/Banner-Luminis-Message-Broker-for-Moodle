@@ -53,6 +53,8 @@ Fixed defaults in various setting items.
 Defaults now shown for ims role mapping.
 Sets new users default country to whatever the sitewide config is.
 Completed prune raw xml in "Prune LMB Tables" tool.
+Decresed insert count on enrolment update.
+Added optional_param to importnow.php to skip filetime check (add ?force=1 to url).
 
 
 
@@ -112,7 +114,6 @@ meta sync changes (when to sync)
 Hide merge child courses
 -Setup defaults on install
 Option to set ENROL_RESTORE_TYPE supported (disable user restores for this plugin)
-
 
 
 
