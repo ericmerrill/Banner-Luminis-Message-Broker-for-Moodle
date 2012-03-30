@@ -196,7 +196,7 @@ if ($ADMIN->fulltree) {
 	foreach ($modules as $module => $path) {
 		$options[$module] = get_string("pluginname", "auth_".$module);
 	}
-	$settings->add(new admin_setting_configselect('enrol_lmb/auth', get_string('authmethod', 'enrol_lmb'), get_string('authmethodhelp', 'enrol_lmb'), '', $options));
+	$settings->add(new admin_setting_configselect('enrol_lmb/auth', get_string('authmethod', 'enrol_lmb'), get_string('authmethodhelp', 'enrol_lmb'), 'manual', $options));
 
     unset($options);
 	$options = array();
@@ -205,7 +205,7 @@ if ($ADMIN->fulltree) {
 	$options['sctid'] = get_string('useridtypesctid', 'enrol_lmb');
 	$options['emailid'] = get_string('useridtypeemail', 'enrol_lmb');
 	$options['other'] = get_string('useridtypeother', 'enrol_lmb');
-    $settings->add(new admin_setting_configselect('enrol_lmb/passwordnamesource', get_string('passwordsource', 'enrol_lmb'), get_string('passwordsourcehelp', 'enrol_lmb'), 'emailname', $options));
+    $settings->add(new admin_setting_configselect('enrol_lmb/passwordnamesource', get_string('passwordsource', 'enrol_lmb'), get_string('passwordsourcehelp', 'enrol_lmb'), 'none', $options));
     
     $settings->add(new admin_setting_configtext('enrol_lmb/passworduseridtypeother', get_string('otherpassword', 'enrol_lmb'), get_string('otherpasswordhelp', 'enrol_lmb'), ''));
     
@@ -226,7 +226,7 @@ if ($ADMIN->fulltree) {
 	$options['xml'] = get_string('locality', 'enrol_lmb');
 	$options['standardxml'] = get_string('usestandardcityxml', 'enrol_lmb');
 	$options['standard'] = get_string('usestandardcity', 'enrol_lmb');
-    $settings->add(new admin_setting_configselect('enrol_lmb/defaultcity', get_string('defaultcity', 'enrol_lmb'), get_string('defaultcityhelp', 'enrol_lmb'), 'emailname', $options));
+    $settings->add(new admin_setting_configselect('enrol_lmb/defaultcity', get_string('defaultcity', 'enrol_lmb'), get_string('defaultcityhelp', 'enrol_lmb'), 'xml', $options));
     
     $settings->add(new admin_setting_configtext('enrol_lmb/standardcity', get_string('standardcity', 'enrol_lmb'), get_string('standardcityhelp', 'enrol_lmb'), ''));
     
@@ -239,26 +239,34 @@ if ($ADMIN->fulltree) {
     
     
     //TODO Loop rolls
-    //if (!during_initial_install()) {
+    if (!during_initial_install()) {
         
-    $coursecontext = get_context_instance(CONTEXT_COURSE, SITEID);
-    $assignableroles = get_assignable_roles($coursecontext);
-    $assignableroles = array('0' => get_string('ignore', 'enrol_imsenterprise')) + $assignableroles;
-    
-    $imsroles = array(
-    '01'=>'Learner',
-    '02'=>'Instructor',
-    );
-    
-    $imsmappings = array(
-    '01'=>'student',
-    '02'=>'editingteacher',
-    );
-    
-    foreach ($imsroles as $imsrolenum => $imsrolename) {
-        $settings->add(new admin_setting_configselect('enrol_lmb/imsrolemap'.$imsrolenum, format_string('"'.$imsrolename.'" ('.$imsrolenum.')'), '', $imsmappings[$imsrolenum], $assignableroles));
+        $coursecontext = get_context_instance(CONTEXT_COURSE, SITEID);
+        $assignableroles = get_assignable_roles($coursecontext);
+        $assignableroles = array('0' => get_string('ignore', 'enrol_imsenterprise')) + $assignableroles;
+        
+        $imsroles = array(
+        '01'=>'Learner',
+        '02'=>'Instructor',
+        );
+        
+        $imsmappings = array(
+        '01'=>'student',
+        '02'=>'editingteacher',
+        );
+        
+        foreach ($imsroles as $imsrolenum => $imsrolename) {
+            $default = false;
+            
+            if ($role = get_archetype_roles($imsmappings[$imsrolenum])) {
+                $role = reset($role);
+                $default = $role->id;
+            }
+            
+        
+            $settings->add(new admin_setting_configselect('enrol_lmb/imsrolemap'.$imsrolenum, format_string('"'.$imsrolename.'" ('.$imsrolenum.')'), '', $default, $assignableroles));
+        }
     }
-    //}
     
     
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/unenrolmember', get_string('unenrolmember', 'enrol_lmb'), get_string('unenrolmemberhelp', 'enrol_lmb'), 0));

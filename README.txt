@@ -34,6 +34,8 @@ Enrollment processing during course update does not show creation/update error.
 Set some missing defaults in upgrade.php.
 Fixes to some settings using the incorrect enrol/lmb plugin name. Settings migrated to enrol_lmb.
 Fixed Buisness hours minute fields not working correctly.
+Fixed defaults in various setting items.
+Defaults now shown for ims role mapping.
 
 
 
