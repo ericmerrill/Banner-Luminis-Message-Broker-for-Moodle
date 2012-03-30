@@ -77,7 +77,7 @@ if ($sem && $conf) {
 <?php
     
 } else if ($sem) {
-    $term = get_record('lmb_terms', 'sourcedid', $sem);
+    $term = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $sem));
     ?>
 	
 	<form action="" METHOD="post">
