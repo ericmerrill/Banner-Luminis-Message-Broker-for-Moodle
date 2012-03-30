@@ -487,39 +487,6 @@ function enrol_lmb_compare_objects($new, $old) {
 
 
 /**
- * For a given person id number, run all enrol and unenrol records in
- * the local lmb database
- * 
- * @param string $idnumber the ims/xml id of a person
- * @return bool success or failure of the enrolments
- */
-function enrol_lmb_restore_user_enrolments($idnumber) {
-    global $DB;
-    $config = enrol_lmb_get_config();
-
-    $status = true;
-    
-    if (!class_exists('enrol_lmb_plugin')) {
-        require_once('./lib.php');
-    }
-    
-    $enrolmod = new enrol_lmb_plugin();
-    
-
-    if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('personsourcedid' => $idnumber))) {
-        foreach ($enrols as $enrol) {
-            //$status = enrol_lmb_process_enrolment($enrol, $config) && $status;
-            $logline = '';
-            $status = $enrolmod->process_enrolment_log($enrol, $logline, $config) && $status;
-        }
-
-    }
-    
-    return $status;
-}
-
-
-/**
  * For a given term, retry all unsuccessful enrolments
  * 
  * @param string $termid the ims/xml id of the term
@@ -532,12 +499,18 @@ function enrol_lmb_reset_all_term_enrolments($termid) {
     $sqlparams = array('termid' => $termid, 'succeeded' => 0);
     $sql = "SELECT personsourcedid FROM {enrol_lmb_enrolments} WHERE term = :termid AND succeeded = :succeeded GROUP BY personsourcedid";
 
-    if ($enrols = $DB->get_records_sql($sql, $sqlparams)) {
+    if ($persons = $DB->get_records_sql($sql, $sqlparams)) {
+        if (!class_exists('enrol_lmb_plugin')) {
+            require_once('./lib.php');
+        }
+        
+        $enrolmod = new enrol_lmb_plugin();
+        
         $count = sizeof($enrols);
         $i = 1;
-        foreach ($enrols as $enrol) {
-            print $i." of ".$count.":".$enrol->personsourcedid;
-            $status = enrol_lmb_restore_user_enrolments($enrol->personsourcedid) && $status;
+        foreach ($persons as $person) {
+            print $i." of ".$count.":".$person->personsourcedid;
+            $status = $enrolmod->restore_user_enrolments($enrol->personsourcedid) && $status;
             print "<br>\n";
             $i++;
         }

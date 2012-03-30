@@ -91,11 +91,10 @@ Use moodle delete functions
 Prune XML table
 -Reprocess enrolments (enrol/unenrol need to be done in plugin now)
 Check into term length dependancies
-Load config descriptions
 Filter Terms
 meta sync changes (when to sync)
 Hide merge child courses
-Setup defaults on install
+-Setup defaults on install
 Select defaults for role assignments
 Option to set ENROL_RESTORE_TYPE supported (disable user restores for this plugin)
 

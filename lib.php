@@ -2306,7 +2306,6 @@ class enrol_lmb_plugin extends enrol_plugin {
             $firstname = $lmbperson->givenname;
         }
     
-        //$status = $status && enrol_lmb_restore_user_enrolments($lmbperson->sourcedid);
         if (isset($lmbperson->email)) {
             if ($emailallow && $lmbperson->recstatus != 3 && trim($lmbperson->username) != '') {
                 unset($moodleuser);
@@ -2433,7 +2432,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                                 $logline .= "created new user:";
                                 $moodleuser->id = $id;
                                 
-                                $status = $status && enrol_lmb_restore_user_enrolments($lmbperson->sourcedid);
+                                $status = $status && $this->restore_user_enrolments($lmbperson->sourcedid);
         
                             } else {
                                 $logline .= 'failed to insert new user:';
@@ -3264,6 +3263,33 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         return $status;
         
+    }
+
+
+    /**
+     * For a given person id number, run all enrol and unenrol records in
+     * the local lmb database
+     * 
+     * @param string $idnumber the ims/xml id of a person
+     * @return bool success or failure of the enrolments
+     */
+    function restore_user_enrolments($idnumber) {
+        global $DB;
+        $config = $this->get_config();
+    
+        $status = true;
+        
+        
+    
+        if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('personsourcedid' => $idnumber))) {
+            foreach ($enrols as $enrol) {
+                $logline = '';
+                $status = $this->process_enrolment_log($enrol, $logline, $config) && $status;
+            }
+    
+        }
+        
+        return $status;
     }
 
 
