@@ -11,13 +11,12 @@ $config = enrol_lmb_get_config();
 $term = NULL;
 $matches = array();
 
-$str = get_strings(array('enrolments', 'users', 'administration', 'settings'));
 $nav[0] = array('name' => 'Admin', 'link' => '../../../'.$CFG->admin.'/index.php', 'type' => '');
 $nav[1] = array('name' => 'LMB', 'link' => '../../../'.$CFG->admin.'/enrol_config.php?enrol=lmb', 'type' => '');
 $nav[2] = array('name' => 'Tools', 'link' => './index.php', 'type' => '');
 $nav[3] = array('name' => 'XML Folder Process', 'link' => '', 'type' => 'title');
 
-print_header("$SITE->shortname: $str->enrolments", $SITE->fullname,
+print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname,
               build_navigation($nav));
 
 echo $OUTPUT->box_start();

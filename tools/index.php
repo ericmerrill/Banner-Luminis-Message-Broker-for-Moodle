@@ -13,8 +13,7 @@ $nav[0] = array('name' => 'Admin', 'link' => '../../../'.$CFG->admin.'/index.php
 $nav[1] = array('name' => 'LMB', 'link' => '../../../'.$CFG->admin.'/settings.php?section=enrolsettingslmb', 'type' => '');
 $nav[2] = array('name' => 'Tools', 'link' => './index.php', 'type' => 'title');
 
-$str = get_strings(array('enrolments', 'users', 'administration', 'settings'));
-print_header("$SITE->shortname: $str->enrolments", $SITE->fullname,
+print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname,
               build_navigation($nav));
 
 echo $OUTPUT->box_start();
