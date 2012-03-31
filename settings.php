@@ -17,7 +17,8 @@ if ($ADMIN->fulltree) {
     // Log Settings --------------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_lmb_logsettings', get_string('logsettings', 'enrol_lmb'), ''));
     
-    $settings->add(new admin_setting_configtext('enrol_lmb/logtolocation', get_string('logtolocation', 'enrol_lmb'), get_string('logtolocationhelp', 'enrol_lmb'), ''));
+
+    $settings->add(new admin_setting_configfile('enrol_lmb/logtolocation', get_string('logtolocation', 'enrol_lmb'), get_string('logtolocationhelp', 'enrol_lmb'), ''));
     
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/logerrors', get_string('logerrors', 'enrol_lmb'), get_string('logerrorshelp', 'enrol_lmb'), 1));
     
@@ -59,11 +60,11 @@ if ($ADMIN->fulltree) {
     // Banner Extract Import -----------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_lmb_bannerextractimport', get_string('bannerextractimport', 'enrol_lmb'), ''));
     
-    $settings->add(new admin_setting_configtext('enrol_lmb/bannerxmllocation', get_string('bannerxmllocation', 'enrol_lmb'), get_string('bannerxmllocationhelp', 'enrol_lmb'), ''));
+    $settings->add(new admin_setting_configfile('enrol_lmb/bannerxmllocation', get_string('bannerxmllocation', 'enrol_lmb'), get_string('bannerxmllocationhelp', 'enrol_lmb'), ''));
     
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/bannerxmllocationcomp', get_string('bannerxmllocationcomp', 'enrol_lmb'), get_string('bannerxmllocationcomphelp', 'enrol_lmb'), 0));
     
-    $settings->add(new admin_setting_configtext('enrol_lmb/bannerxmlfolder', get_string('bannerxmlfolder', 'enrol_lmb'), get_string('bannerxmlfolderhelp', 'enrol_lmb'), ''));
+    $settings->add(new admin_setting_configdirectory('enrol_lmb/bannerxmlfolder', get_string('bannerxmlfolder', 'enrol_lmb'), get_string('bannerxmlfolderhelp', 'enrol_lmb'), ''));
     
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/bannerxmlfoldercomp', get_string('bannerxmlfoldercomp', 'enrol_lmb'), get_string('bannerxmlfoldercomphelp', 'enrol_lmb'), 0));
     
