@@ -1,10 +1,10 @@
 <?PHP // $Id$ 
-      // enrol_lmb.php - created with Moodle 1.7 beta + (2006101003)
+      // enrol_lmb.php
 
 
 $string['pluginname'] = 'Banner/Luminis Message Broker';
 
-$string['description'] = 'This module provides a way to integrate Moodle with Banner. You can either use the Luminis Message Broker to provide realtime updates, in the same way as WebCT, or using Banner export files. <br /><br />This module is not affiliated with, or endorsed by SunGard in any way.';
+$string['description'] = 'This module provides a way to integrate Moodle with Banner. You can either use the Luminis Message Broker to provide realtime updates, in the same way as WebCT, or using Banner export files. <br /><br />This module is not affiliated with, or endorsed by Ellucian in any way.';
 
 $string['header'] = 'You are using Banner/Luminis Message Broker Module version {$a->version}.<br>
 To access the LMB tools, <a href="{$a->toolslink}">click here</a>.';
@@ -27,8 +27,8 @@ $string['lmbcheck'] = 'LMB Downtime Notification';
 $string['performlmbcheck'] = 'Perform LMB downtime check';
 $string['startbiztime'] = 'Start of business hours';
 $string['endbiztime'] = 'End of business hours';
-$string['bizdowngrace'] = 'Message grace time during buisness hours';
-$string['nonbizdowngrace'] = 'Message grace time during non buisness hours';
+$string['bizdowngrace'] = 'Message grace time during business hours';
+$string['nonbizdowngrace'] = 'Message grace time during non business hours';
 $string['lmbnotificationemails'] = 'Notification email addresses';
 $string['commadelimit'] = '(Comma delimited)';
 
@@ -51,6 +51,7 @@ $string['cronunhidecourses'] = 'Unhide Courses';
 $string['cronunhidedays'] = 'Unhide this many days before course start';
 
 $string['parsecourse'] = 'XML Parse - Course';
+$string['parsecoursexml'] = 'Parse Course XML';
 $string['coursetitle'] = 'Course full name';
 $string['forcetitle'] = 'Force course name on update';
 $string['courseshorttitle'] = 'Course short name';
@@ -67,6 +68,7 @@ $string['forcecomputesections'] = 'Force compute sections';
 
 
 $string['parsexls'] = 'XML Parse - Crosslisting';
+$string['parsexlsxml'] = 'Parse Crosslist XML';
 $string['xlstitle'] = 'Crosslisted course full name';
 $string['xlstitlerepeat'] = 'Full name repeater';
 $string['xlstitledivider'] = 'Full name divider';
@@ -87,6 +89,7 @@ $string['selectedcat'] = 'Selected:';
 $string['catselect'] = 'Selected Category';
 
 $string['parseperson'] = 'XML Parse - Person';
+$string['parsepersonxml'] = 'Parse Person XML';
 $string['createnewusers'] = 'Create user accounts for users not yet registered in Moodle';
 $string['createusersemaildomain'] = 'Only create users with email in this domain';
 $string['donterroremail'] = 'Don\'t error on skipped user due to email';
@@ -130,6 +133,7 @@ $string['forceadr'] = 'Force address/city on update';
 
 
 $string['parseenrol'] = 'XML Parse - Enrolment';
+$string['parseenrolxml'] = 'Parse Enrolment XML';
 $string['assignroles'] = 'Assign Roles';
 $string['unenrolmember'] = 'Unenrol members from course when directed';
 
@@ -175,6 +179,7 @@ $string['cronxmlfolderhelp'] = "With this option enabled, each time cron is call
 $string['cronunhidecourseshelp'] = "With this option selected, each night around midnight, the module will automatically unhide and Banner/LMB courses that start within the number of days specified in 'Unhide this many days before course start'. For example, if this option is selected, 'Unhide this many days before course start' is set to 7, and there is a course that starts on 2009-06-14, then it will automatically be made visible on the morning of 2009-06-07. The start date of the course is determined by the timeframe->begin date supplied with the course by Banner/LMB.";
 $string['cronunhidedayshelp'] = 'This is the number of days before the start of a course to unhide it. Set to 0 for the course to unhide on the day it starts.';
 
+$string['parsecoursexmlhelp'] = 'Process course XML records. When unchecked, records will be completely skipped.';
 $string['coursetitlehelp'] = "This contains the template for creating the full course name. 
 <p>You can dictate how you would like the course full and short names formatted using the following flags. Any occurrence of these flags in the setting will
 be replaced with the appropriate information about the course. Any text that is not apart of a flag will be left as is.</p>
@@ -210,12 +215,14 @@ $string['categorytypehelp'] = 'This allows you select what categories you would 
 <li>Selected: With this setting, select the existing category you would like courses to be placed in from the second drop down menu.
 </ul>';
 $string['catselecthelp'] = '';
-$string['cathiddenhelp'] = 'Create new cateogories as hidden.';
+$string['cathiddenhelp'] = 'Create new categories as hidden.';
 $string['forcecathelp'] = 'This option will cause the category to changed to the above setting whenever a LMB/Banner update occurs, even if it has been manually changed.';
 $string['usemoodlecoursesettingshelp'] = 'When creating a new course, use the default course setting options found in the Moodle admin settings, instead of the settings hard-coded in this module.';
 $string['computesectionshelp'] = 'Compute the number of sections/topics to display, based on the number of weeks in a course.';
 $string['forcecomputesectionshelp'] = 'Force section count on update.';
 
+
+$string['parsexlsxmlhelp'] = 'When checked, Crosslist XML will be processed. Course XML parsing must be on. When unchecked, records will be completely skipped.';
 $string['xlstitlehelp'] = "This contains the template for creating the full course name for crosslisted courses.
 <p>The crosslisted name template works in the same way, as the 'Course full name' setting, with a few differences, as outlined here.</p>
 <p>The crosslisted name template can contain the same flags as 'Course full name<?php helpbutton('coursetitle', 'More detail about this option', 'enrol-lmb'); ?>'. If any of these flags are found, they will be replaced with the corresponding data from the first course to join the crosslist</p>
@@ -226,7 +233,7 @@ $string['xlstitlehelp'] = "This contains the template for creating the full cour
 </ul></p>
 <p>Example: Say you have two courses, 12345.200710 and 54321.200710, and they are crosslisted with the crosslist code XLSAA200710. If you set 'Crosslisted course full name' to '[XLSID] - [REPEAT]', 'Full name repeater' to '[CRN]', and 'Full name divider' to ' / ', the resulting full title of the crosslisted course would be 'XLSAA200710 - 12345 / 54321.</p>";
 $string['xlstitlerepeathelp'] = "This contains the template for [REPEAT] section of the course full name, and will be repeated for each member course in the crosslist.
-<p>The 'name repeater' value works the same way as the 'Course full name' setting, except that it will be repeated for each member course in the crosslist, and the 'name divider' will be placed in between subsequent repititions.</p>
+<p>The 'name repeater' value works the same way as the 'Course full name' setting, except that it will be repeated for each member course in the crosslist, and the 'name divider' will be placed in between subsequent repetitions.</p>
 <p>The name repeaters can contain the same flags as 'Course full name<?php helpbutton('coursetitle', 'More detail about this option', 'enrol/lmb'); ?>'.</p>
 <p>In addition to the standard flags, 1 new flags is added:
 <ul>
@@ -248,6 +255,8 @@ $string['xlstypehelp'] = 'This determines how crosslisted courses will be handle
 </ul>';
 $string['xlsmergegroupshelp'] = 'If this option is selected, then users will be placed into groups with a merged course based on their original course number.';
 
+
+$string['parsepersonxmlhelp'] = 'Process person XML records. When unchecked, records will be completely skipped.';
 $string['createnewusershelp'] = 'This setting will allow the LMB module to create new Moodle users as directed by Banner/LMB.';
 $string['createusersemaildomainhelp'] = 'If this setting has a value, only users who have an email address in the given domain will have an account generated for them by the LMB module.';
 $string['donterroremailhelp'] = 'If selected, a user missing an email address will not produce a log error.';
@@ -291,5 +300,6 @@ $string['defaultcityhelp'] = "What to use as the city.
 $string['standardcityhelp'] = '';
 $string['forceadrhelp'] = 'Always force the users address/city to match the XML, even if it has been manually changed.';
 
+$string['parseenrolxmlhelp'] = 'Process enrolment records. Parse Course and Parse Person must be on. When unchecked, records will be completely skipped.';
 $string['unenrolmemberhelp'] = "Unenrol (or 'drop') members from a course when an appropriate XML message is received.";
 

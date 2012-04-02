@@ -93,6 +93,8 @@ if ($ADMIN->fulltree) {
     // Parse Course --------------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_lmb_parsecourse', get_string('parsecourse', 'enrol_lmb'), ''));
     
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/parsecoursexml', get_string('parsecoursexml', 'enrol_lmb'), get_string('parsecoursexmlhelp', 'enrol_lmb'), 1));
+    
     $settings->add(new admin_setting_configtext('enrol_lmb/coursetitle', get_string('coursetitle', 'enrol_lmb'), get_string('coursetitlehelp', 'enrol_lmb'), '[RUBRIC]-[CRN]-[FULL]'));
     
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/forcetitle', get_string('forcetitle', 'enrol_lmb'), get_string('forcetitlehelp', 'enrol_lmb'), 1));
@@ -142,6 +144,8 @@ if ($ADMIN->fulltree) {
     // Parse XLS -----------------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_lmb_parsexls', get_string('parsexls', 'enrol_lmb'), ''));
     
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/parsexlsxml', get_string('parsexlsxml', 'enrol_lmb'), get_string('parsexlsxmlhelp', 'enrol_lmb'), 1));
+    
     $settings->add(new admin_setting_configtext('enrol_lmb/xlstitle', get_string('xlstitle', 'enrol_lmb'), get_string('xlstitlehelp', 'enrol_lmb'), '[XLSID] - [REPEAT]'));
     
     $settings->add(new admin_setting_configtext('enrol_lmb/xlstitlerepeat', get_string('xlstitlerepeat', 'enrol_lmb'), get_string('xlstitlerepeathelp', 'enrol_lmb'), '[CRN]'));
@@ -164,6 +168,8 @@ if ($ADMIN->fulltree) {
     
     // Parse Person --------------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_lmb_parseperson', get_string('parseperson', 'enrol_lmb'), ''));
+    
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/parsepersonxml', get_string('parsepersonxml', 'enrol_lmb'), get_string('parsepersonxmlhelp', 'enrol_lmb'), 1));
     
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/createnewusers', get_string('createnewusers', 'enrol_lmb'), get_string('createnewusershelp', 'enrol_lmb'), 1));
     
@@ -238,6 +244,7 @@ if ($ADMIN->fulltree) {
     // Parse Enrollments ---------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_lmb_parseenrol', get_string('parseenrol', 'enrol_lmb'), ''));
     
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/parseenrolxml', get_string('parseenrolxml', 'enrol_lmb'), get_string('parseenrolxmlhelp', 'enrol_lmb'), 1));
     
     if (!during_initial_install()) {
         

@@ -55,6 +55,7 @@ Sets new users default country to whatever the sitewide config is.
 Completed prune raw xml in "Prune LMB Tables" tool.
 Decresed insert count on enrolment update.
 Added optional_param to importnow.php to skip filetime check (add ?force=1 to url).
+Added options to skip parsing of different types (person, course, crosslist, enrolments)
 
 
 

@@ -761,6 +761,28 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2012033005, 'enrol', 'lmb');
     }
 
+	if ($oldversion < 2012040101) {
+		$config = get_config('enrol_lmb');
+	
+        if (!isset($config->parsecoursexml)) {
+            set_config('parsecoursexml', 1, 'enrol_lmb');
+        }
+        
+        if (!isset($config->parsexlsxml)) {
+            set_config('parsexlsxml', 1, 'enrol_lmb');
+        }
+        
+        if (!isset($config->parsepersonxml)) {
+            set_config('parsepersonxml', 1, 'enrol_lmb');
+        }
+        
+        if (!isset($config->parseenrolxml)) {
+            set_config('parseenrolxml', 1, 'enrol_lmb');
+        }
+        
+        
+        upgrade_plugin_savepoint(true, 2012040101, 'enrol', 'lmb');
+    }
     
     return $result;
 }

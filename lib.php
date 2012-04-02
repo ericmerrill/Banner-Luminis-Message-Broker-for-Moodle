@@ -484,6 +484,11 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         $config = $this->get_config();
         
+        if (!$config->parsecoursexml) {
+        	$this->log_line('Course:skipping.');
+        	return true;
+        }
+        
         unset($course);
         
         
@@ -1020,6 +1025,11 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_crosslisted_group_tag($tagcontents) {
         $config = $this->get_config();
     
+    	if ((!$config->parsexlsxml) || (!$config->parsecoursexml)) {
+        	$this->log_line('Crosslist Group:skipping.');
+        	return true;
+        }
+    
         $status = true;
         $deleted = false;
         $logline = 'Crosslist Group:';
@@ -1028,7 +1038,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         
     
         
-        
+        //TODO remove this?
         
         
         if ($status && !$deleted) {
@@ -1071,6 +1081,11 @@ class enrol_lmb_plugin extends enrol_plugin {
         global $DB;
         
         $config = $this->get_config();
+        
+        if ((!$config->parsexlsxml) || (!$config->processcoursexml)) {
+        	$this->log_line('Crosslist Group:skipping.');
+        	return true;
+        }
     
         $status = true;
         $deleted = false;
@@ -1595,6 +1610,11 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_person_tag($tagcontents){
         global $CFG, $DB;
         $config = $this->get_config();
+        
+        if (!$config->parsepersonxml) {
+        	$this->log_line('Person:skipping.');
+        	return true;
+        }
         
         $status = true;
         $deleted = false;
@@ -2215,8 +2235,13 @@ class enrol_lmb_plugin extends enrol_plugin {
         
         $config = $this->get_config();
         
+        if ((!$config->parsepersonxml) || (!$config->parsecoursexml) || (!$config->parsepersonxml)) {
+        	$this->log_line('Enrolment:skipping.');
+        	return true;
+        }
+        
         $status = true;
-        $logline = 'enrolment:';
+        $logline = 'Enrolment:';
         unset($enrolment);
         
         if(preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)){
