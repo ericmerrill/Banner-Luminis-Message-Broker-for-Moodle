@@ -1,6 +1,18 @@
-<?PHP // $Id$ 
-      // enrol_lmb.php
-
+<?PHP
+// This file is part of the Banner/LMB plugin for Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $string['pluginname'] = 'Banner/Luminis Message Broker';
 
@@ -180,7 +192,7 @@ $string['cronunhidecourseshelp'] = "With this option selected, each night around
 $string['cronunhidedayshelp'] = 'This is the number of days before the start of a course to unhide it. Set to 0 for the course to unhide on the day it starts.';
 
 $string['parsecoursexmlhelp'] = 'Process course XML records. When unchecked, records will be completely skipped.';
-$string['coursetitlehelp'] = "This contains the template for creating the full course name. 
+$string['coursetitlehelp'] = "This contains the template for creating the full course name.
 <p>You can dictate how you would like the course full and short names formatted using the following flags. Any occurrence of these flags in the setting will
 be replaced with the appropriate information about the course. Any text that is not apart of a flag will be left as is.</p>
 <p><ul>
