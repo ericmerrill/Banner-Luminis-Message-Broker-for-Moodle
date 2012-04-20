@@ -92,7 +92,7 @@ if (!function_exists('getallheaders')) {
 
 
 
-$headers = serialize((getallheaders());
+$headers = serialize(getallheaders());
 $xml = file_get_contents('php://input');
 
 
