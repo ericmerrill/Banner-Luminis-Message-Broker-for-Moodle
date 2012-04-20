@@ -11,6 +11,11 @@ Maintainer: Eric Merrill (merrill@oakland.edu)
 
 CHANGES
 -------
+Since 2.1.0
+Changed code to match moodle style guidelines.
+Changed storage of raw XML to serialize format instead of print_r
+
+
 Since 2.0.5
 IMPORTANT!:
 Renamed tables to match Moodle conventions, adding enrol_ to the front of table names:

@@ -28,7 +28,7 @@ require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
 require_once('../lib.php');
 
 
-$headers = print_r(getallheaders(), true);
+$headers = serialize((getallheaders());
 $xml = file_get_contents('php://input');
 
 /*
