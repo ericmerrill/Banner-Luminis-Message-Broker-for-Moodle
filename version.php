@@ -21,3 +21,6 @@ $plugin->release = "2.1.0+";
 
 $plugin->requires = 2011070100;
 
+$plugin->component = 'enrol_lmb';
+$plugin->maturity = MATURITY_RC;
+$plugin->cron = 600;
