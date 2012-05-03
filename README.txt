@@ -7,7 +7,7 @@ Maintainer: Eric Merrill (merrill@oakland.edu)
 
 Project Maintained at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/
 
-
+Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki
 
 
 RECENT CHANGES
@@ -26,7 +26,7 @@ Logging made more efficient.
 Added tools to process folders and files from the command line. See enrol/lmb/cli.
 
 
-Since 2.0.5
+Release 2.1.0
 IMPORTANT!:
 Renamed tables to match Moodle conventions, adding enrol_ to the front of table names:
 lmb_courses    => enrol_lmb_courses
@@ -75,23 +75,6 @@ Added options to skip parsing of different types (person, course, crosslist, enr
 
 
 
-
-
-
-
-
-
-TODO
-----
-Catch exceptions for update_course and similar
-Use moodle delete functions
--Reprocess enrolments (enrol/unenrol need to be done in plugin now)
-Check into term length dependancies
-Filter Terms
-meta sync changes (when to sync)
-Hide merge child courses
--Setup defaults on install
-Option to set ENROL_RESTORE_TYPE supported (disable user restores for this plugin)
 
 
 
@@ -173,32 +156,8 @@ _______
 View github for newly changed items
 https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/commits/Release
 
-Changes since 0.8.0
--------
-Now displays the module version number on the config page.
-LMB import security can now be applied in the module, instead of needing to modify server settings.
-New option for setting a course as enrollable or not.
-LMB Check grace period is now a text field to allow an arbitrary number of minutes.
-All lang and help files moved into the module directory.
-Added [TERMNAME] option to course title options, which uses the full name of the term.
-Tracking categories in a table now. Because of this, a categories can be renamed once they are created.
 
 
 
 
 
-
-
-TODO
-----
-
-Coding:
-Term id code may not be an int?
-Use Moodle logging system instead of text file?
-
-
-Config:
-Default settings
-Required settings
-Verify config inputs
-Delete courses when directed
