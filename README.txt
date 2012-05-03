@@ -14,6 +14,7 @@ CHANGES
 Since 2.1.0
 Changed code to match moodle style guidelines.
 Changed storage of raw XML to serialize format instead of print_r
+Fixed possible fetal error with add and drop. Fixed bug that cause skipping of cross lists.
 
 
 Since 2.0.5

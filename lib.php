@@ -1038,7 +1038,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $config = $this->get_config();
 
-        if ((!$config->parsexlsxml) || (!$config->processcoursexml)) {
+        if ((!$config->parsexlsxml) || (!$config->parsecoursexml)) {
             $this->log_line('Crosslist Group:skipping.');
             return true;
         }
@@ -2789,13 +2789,15 @@ class enrol_lmb_plugin extends enrol_plugin {
             $logline .= 'missing courseid:';
         }
 
-        $instance = $this->get_instance($courseid);
-
-        // TODO catch exceptions thrown.
-        $this->enrol_user($instance, $userid, $roleid);
-
-        $logline .= 'enrolled:';
-        return true;
+        if ($instance = $this->get_instance($courseid)) {
+            // TODO catch exceptions thrown.
+            $this->enrol_user($instance, $userid, $roleid);
+            $logline .= 'enrolled:';
+            return true;
+        } else {
+            $logline .= 'course lmb instance not found:';
+            return false;
+        }
     }
 
 
@@ -2814,12 +2816,15 @@ class enrol_lmb_plugin extends enrol_plugin {
             return false;
         }
 
-        $instance = $this->get_instance($courseid);
-
-        // TODO catch exceptions thrown.
-        $this->unenrol_user($instance, $userid, $roleid);
-        $logline .= 'unenrolled:';
-        return true;
+        if ($instance = $this->get_instance($courseid)) {
+            //TODO catch exceptions thrown
+            $this->unenrol_user($instance, $userid, $roleid);
+            $logline .= 'unenrolled:';
+            return true;
+        } else {
+            $logline .= 'course lmb instance not found:';
+            return false;
+        }
     }
 
 
