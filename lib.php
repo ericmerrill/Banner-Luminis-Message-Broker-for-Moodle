@@ -770,7 +770,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             if ($length < 1) {
                 $length = $moodlecourse->numsections;
-            } else if ((isset($moodlecourseconfig->maxsections) && ($length > $moodlecourseconfig->maxsections)) {
+            } else if ((isset($moodlecourseconfig->maxsections)) && ($length > $moodlecourseconfig->maxsections)) {
                 $length = $moodlecourseconfig->maxsections;
             }
 
@@ -2837,8 +2837,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function get_instance($courseid) {
         global $DB;
 
-        $instance = $DB->get_record('enrol',
-                                array('courseid' => $courseid, 'enrol' => 'lmb'));
+        $instance = $DB->get_record('enrol', array('courseid' => $courseid, 'enrol' => 'lmb'));
 
         return $instance;
     }
