@@ -26,6 +26,7 @@ $string['removelangs'] = '<b><font color=red>Notice:</font> It appears that old 
 $string['logsettings'] = 'Log settings';
 $string['logtolocation'] = 'Log file output location (blank for no logging)';
 $string['logerrors'] = 'Only log errors';
+$string['logpercent'] = 'Log % complete when running batch processes.';
 $string['storexml'] = 'Store raw XML from LMB in table';
 $string['never'] = 'Never';
 $string['onerror'] = 'Only on error';

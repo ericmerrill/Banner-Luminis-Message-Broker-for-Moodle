@@ -38,6 +38,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/logerrors', get_string('logerrors', 'enrol_lmb'),
             get_string('logerrorshelp', 'enrol_lmb'), 1));
 
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/logpercent', get_string('logpercent', 'enrol_lmb'),
+        '', 1));
+
     unset($options);
     $options = array();
     $options['never'] = get_string('never', 'enrol_lmb');

@@ -18,6 +18,7 @@ Fixed possible fetal error with add and drop. Fixed bug that cause skipping of c
 Fixed error with handeling of course section count calculation.
 Adds lmb instance to courses found without it.
 Added code to process folder on cron.
+Add option to disable % logging for batch operations.
 
 
 Since 2.0.5

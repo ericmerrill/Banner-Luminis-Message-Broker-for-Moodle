@@ -267,7 +267,9 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $cperc = (int)floor(($csize/$fsize)*100);
                     if ($cperc > $percent) {
                         $percent = $cperc;
-                        $this->log_line($percent.'% complete');
+                        if (isset($config->logpercent) && $config->logpercent) {
+                            $this->log_line($percent.'% complete');
+                        }
                     }
 
                     while (true) {
@@ -2574,7 +2576,9 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $cperc = (int)floor(($curr/$count)*100);
                     if ($cperc > $percent) {
                         $percent = $cperc;
-                        $this->log_line($percent.'% complete');
+                        if (isset($config->logpercent) && $config->logpercent) {
+                            $this->log_line($percent.'% complete');
+                        }
                     }
                     $curr++;
 
