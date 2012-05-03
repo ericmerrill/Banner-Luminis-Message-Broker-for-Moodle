@@ -19,7 +19,7 @@ $plugin->version  = 2012040101;
 
 $plugin->release = "2.1.0+";
 
-$plugin->requires = 2011070100;
+$plugin->requires = 2011033006.00;
 
 $plugin->component = 'enrol_lmb';
 $plugin->maturity = MATURITY_RC;
