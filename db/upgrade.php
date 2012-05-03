@@ -706,12 +706,12 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
 
     if ($oldversion < 2012033005) {
         if (($config = get_config('enrol_lmb', 'enrol_lmb/endbiztimemin')) !== false) {
-            set_config('enrol_lmb/endbiztimemin', $config, 'endbiztimemin');
+            set_config('endbiztimemin', $config, 'enrol_lmb');
             unset_config('enrol_lmb/endbiztimemin', 'enrol_lmb');
         }
 
         if (($config = get_config('enrol_lmb', 'enrol_lmb/startbiztimemin')) !== false) {
-            set_config('enrol_lmb/startbiztimemin', $config, 'startbiztimemin');
+            set_config('startbiztimemin', $config, 'enrol_lmb');
             unset_config('enrol_lmb/startbiztimemin', 'enrol_lmb');
         }
 
