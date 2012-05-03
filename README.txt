@@ -5,12 +5,15 @@ Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
 
+Project Maintained at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/
 
 
 
 
-CHANGES
--------
+RECENT CHANGES
+--------------
+View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
 Since 2.1.0
 Changed code to match moodle style guidelines.
 Changed storage of raw XML to serialize format instead of print_r
@@ -69,44 +72,6 @@ Decresed insert count on enrolment update.
 Added optional_param to importnow.php to skip filetime check (add ?force=1 to url).
 Added options to skip parsing of different types (person, course, crosslist, enrolments)
 
-
-
-
-Since 2.0.1
-Added option to compute number of sections based on course duration.
-Removed make enrollable option - not supported in Moodle 2.
-Use Moodle's internal course creation tool, enrollment methods added based on default settings.
-Now uses new Moodle 2 meta course system and should work properly.
-Fixed problem with auth names throwing errors and not loading and setting pages.
-
-
-Since 2.0.0
-Changes of sourcedidsource and dept columns in lmb_categories to char(128) and char(255) respectively.
-Fixes problem could cause failure when included in a new Moodle install.
-Added nickname processing
-
-
-Since 2.0.0b1
-Minor fix to email domain limitation
-
-
-Since 2.0.0a5
-Minor fix to xmlservice file
-
-
-Since 2.0.0a3
-Fixes to errors when use has no password
-Fixes to errors when use has no email
-Fixes to enrol/unenroll errors
-Tools fixes
-Fix error when no department found
-Fixed error when no username
-Help strings added to config page
-
-
-Since 2.0.0a2
-No email address now caught
-term sourcedid converted to 128 varchar
 
 
 
