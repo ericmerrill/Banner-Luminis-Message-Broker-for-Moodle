@@ -2838,7 +2838,15 @@ class enrol_lmb_plugin extends enrol_plugin {
         global $DB;
 
         $instance = $DB->get_record('enrol', array('courseid' => $courseid, 'enrol' => 'lmb'));
-
+        
+        // TODO add option to disable this.
+        if (!$instance) {
+            if ($course = $DB->get_record('course', array('id' => $courseid))) {
+                $this->add_instance($course);
+                $instance = $DB->get_record('enrol', array('courseid' => $courseid, 'enrol' => 'lmb'));
+            }
+        }
+        
         return $instance;
     }
 
