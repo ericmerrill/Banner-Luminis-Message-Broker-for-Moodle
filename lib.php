@@ -40,7 +40,8 @@ class enrol_lmb_plugin extends enrol_plugin {
     );
 
     public $configcache; // Use this!!
-
+    
+    public $silent = false;
     public $islmb = false;
 
     public $processid = 0;
@@ -2326,17 +2327,13 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param string $string Text to write
      */
     public function log_line($string) {
-        // TODO $config = $this->get_config();.
-
-        $silent = get_config('enrol_lmb', 'silent');
-
         $message = '';
 
         if ($this->islmb) {
             $message = 'LMB Message:';
         }
 
-        if (!$silent) {
+        if (!$this->silent) {
             mtrace($string);
         }
 

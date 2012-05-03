@@ -45,7 +45,6 @@ $xml = file_get_contents('php://input');
  *  10 - Error adding or removing course memebers
 */
 
-set_config('silent', 1, 'enrol_lmb');
 
 
 // Dont proceed if there is no xml present.
@@ -65,9 +64,9 @@ $errornum = 0;
 $errormessage = '';
 
 $enrol = new enrol_lmb_plugin();
+$enrol->silent = true;
 $result = $enrol->process_xml_line_error($xml, $errornum, $errormessage);
 
-set_config('silent', 0, 'enrol_lmb');
 
 if ($result) {
     print '1 - '.$errormessage;
