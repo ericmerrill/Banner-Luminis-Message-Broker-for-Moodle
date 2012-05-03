@@ -97,7 +97,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         if (!isset($config->nextunhiderun)) {
             $curtime = time();
-            $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime), 0);
+            $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime));
 
             $config->nextunhiderun = $endtoday;
             set_config('nextunhiderun', $endtoday, 'enrol_lmb');
@@ -110,7 +110,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             $starttime = $config->prevunhideendtime;
             $curtime = time();
-            $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime), 0);
+            $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime));
 
             $endtime = $endtoday + ($config->cronunhidedays*86400);
 
@@ -725,7 +725,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             $moodlecourse->visible = 1;
         } else if ($config->coursehidden == 'cron') {
             $curtime = time();
-            $todaytime = mktime(0, 0, 0, date('n', $curtime), date('j', $curtime), date('Y', $curtime), 0);
+            $todaytime = mktime(0, 0, 0, date('n', $curtime), date('j', $curtime), date('Y', $curtime));
             $time = $todaytime + ($config->cronunhidedays * 86400);
 
             if ($startdate > $time) {

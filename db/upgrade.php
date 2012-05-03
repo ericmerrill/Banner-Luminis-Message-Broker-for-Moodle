@@ -452,12 +452,12 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         $config = get_config('enrol/lmb');
 
         $curtime = time();
-        $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime), 0);
+        $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime));
 
         set_config('nextunhiderun', $endtoday, 'enrol/lmb');
 
         if (isset($config->lastunhidetime) && ($lasttime = $config->lastunhidetime)) {
-            $lastdaytime = mktime(23, 59, 59, date('n', $lasttime), date('j', $lasttime), date('Y', $lasttime), 0);
+            $lastdaytime = mktime(23, 59, 59, date('n', $lasttime), date('j', $lasttime), date('Y', $lasttime));
             $lastendtime = $lastdaytime + ($config->cronunhidedays * 86400);
 
             set_config('prevunhideendtime', $lastendtime, 'enrol/lmb');
