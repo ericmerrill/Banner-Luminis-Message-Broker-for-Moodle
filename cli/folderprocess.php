@@ -62,7 +62,7 @@ Example:
 
 
 $silent = (bool)$options['silent'];
-$folderpath = (bool)$options['folderpath'];
+$folderpath = $options['folderpath'];
 
 
 $enrol = new enrol_lmb_plugin();
