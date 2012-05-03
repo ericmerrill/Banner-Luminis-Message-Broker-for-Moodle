@@ -89,9 +89,9 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         // TODO.
-        /*if ($config->cronxmlfolder) {
-
-        }*/
+        if ($config->cronxmlfolder) {
+            $this->process_folder();
+        }
 
         if (!isset($config->nextunhiderun)) {
             $curtime = time();
