@@ -16,6 +16,7 @@ Changed code to match moodle style guidelines.
 Changed storage of raw XML to serialize format instead of print_r
 Fixed possible fetal error with add and drop. Fixed bug that cause skipping of cross lists.
 Fixed error with handeling of course section count calculation.
+Adds lmb instance to courses found without it.
 
 
 Since 2.0.5

@@ -2818,7 +2818,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         if ($instance = $this->get_instance($courseid)) {
-            //TODO catch exceptions thrown
+            // TODO catch exceptions thrown.
             $this->unenrol_user($instance, $userid, $roleid);
             $logline .= 'unenrolled:';
             return true;
@@ -2838,7 +2838,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         global $DB;
 
         $instance = $DB->get_record('enrol', array('courseid' => $courseid, 'enrol' => 'lmb'));
-        
+
         // TODO add option to disable this.
         if (!$instance) {
             if ($course = $DB->get_record('course', array('id' => $courseid))) {
@@ -2846,7 +2846,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $instance = $DB->get_record('enrol', array('courseid' => $courseid, 'enrol' => 'lmb'));
             }
         }
-        
+
         return $instance;
     }
 
