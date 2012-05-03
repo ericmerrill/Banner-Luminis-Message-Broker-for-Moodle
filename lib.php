@@ -737,7 +737,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         $moodlecourse->category = $catid;
 
         // Set some preferences.
-        if ($config->usemoodlecoursesettings && ($moodlecourseconfig = get_config('moodlecourse'))) {
+        $moodlecourseconfig = get_config('moodlecourse');
+        if ($config->usemoodlecoursesettings && ($moodlecourseconfig)) {
             $logline .= 'Using default Moodle settings:';
             $moodlecourse->format                   = $moodlecourseconfig->format;
             $moodlecourse->numsections              = $moodlecourseconfig->numsections;
@@ -769,7 +770,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             if ($length < 1) {
                 $length = $moodlecourse->numsections;
-            } else if ($length > $moodlecourseconfig->maxsections) {
+            } else if ((isset($moodlecourseconfig->maxsections) && ($length > $moodlecourseconfig->maxsections)) {
                 $length = $moodlecourseconfig->maxsections;
             }
 
