@@ -25,6 +25,7 @@
  * Based on enrol_imsenterprise from Dan Stowell.
  */
 require_once('enrollib.php');
+require_once($CFG->dirroot.'/course/lib.php');
 
 
 
@@ -40,7 +41,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     );
 
     public $configcache; // Use this!!
-    
+
     public $silent = false;
     public $islmb = false;
 

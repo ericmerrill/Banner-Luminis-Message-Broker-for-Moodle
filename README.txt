@@ -20,6 +20,7 @@ Adds lmb instance to courses found without it.
 Added code to process folder on cron.
 Add option to disable % logging for batch operations.
 Logging made more efficient.
+Added tools to process folders and files from the command line. See enrol/lmb/cli.
 
 
 Since 2.0.5
