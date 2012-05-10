@@ -236,6 +236,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('enrol_lmb/createusersemaildomain',
             get_string('createusersemaildomain', 'enrol_lmb'), get_string('createusersemaildomainhelp', 'enrol_lmb'), ''));
 
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/ignoredomaincase', get_string('ignoredomaincase', 'enrol_lmb'),
+            get_string('ignoredomaincasehelp', 'enrol_lmb'), 0));
+
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/donterroremail', get_string('donterroremail', 'enrol_lmb'),
             get_string('donterroremailhelp', 'enrol_lmb'), 1));
 
@@ -258,6 +261,9 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/ignoreusernamecase', get_string('ignoreusernamecase', 'enrol_lmb'),
             get_string('ignoreusernamecasehelp', 'enrol_lmb'), 1));
+
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/ignoreemailcase', get_string('ignoreemailcase', 'enrol_lmb'),
+            get_string('ignoreemailcasehelp', 'enrol_lmb'), 0));
 
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/sourcedidfallback', get_string('sourdidfallback', 'enrol_lmb'),
             get_string('sourdidfallbackhelp', 'enrol_lmb'), 1));

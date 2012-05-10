@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.1.1
+Version: 2.1.1+
 Moodle version: 2.0.6 throught 2.3.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -13,6 +13,11 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Since 2.1.1
+Option to set domain comparison to case-insensitive.
+Added option to ignore capitalization for email domains. (Thanks to Charles Fulton)
+
 
 Release 2.1.1
 Changed code to match moodle style guidelines.

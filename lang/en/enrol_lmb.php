@@ -105,6 +105,7 @@ $string['parseperson'] = 'XML Parse - Person';
 $string['parsepersonxml'] = 'Parse Person XML';
 $string['createnewusers'] = 'Create user accounts for users not yet registered in Moodle';
 $string['createusersemaildomain'] = 'Only create users with email in this domain';
+$string['ignoredomaincase'] = 'Ignore domain capitalization';
 $string['donterroremail'] = 'Don\'t error on skipped user due to email';
 $string['deleteusers'] = 'Delete user accounts when specified in XML';
 $string['usernamesource'] = 'Username source';
@@ -117,9 +118,8 @@ $string['useridtypeother'] = 'useridtype - Other:';
 $string['otheruserid'] = 'Other User ID Source';
 $string['otherpassword'] = 'Other Password Source';
 
-
 $string['ignoreusernamecase'] = 'Ignore username capitalization';
-
+$string['ignoreemailcase'] = 'Ignore email address capitalization';
 
 $string['sourdidfallback'] = 'Fallback to sourcedid if username not found';
 $string['consolidateusers'] = 'Consolidate existing usernames';
@@ -272,6 +272,8 @@ $string['xlsmergegroupshelp'] = 'If this option is selected, then users will be 
 $string['parsepersonxmlhelp'] = 'Process person XML records. When unchecked, records will be completely skipped.';
 $string['createnewusershelp'] = 'This setting will allow the LMB module to create new Moodle users as directed by Banner/LMB.';
 $string['createusersemaildomainhelp'] = 'If this setting has a value, only users who have an email address in the given domain will have an account generated for them by the LMB module.';
+$string['ignoredomaincasehelp'] = 'Set the domain comparison to case insensitive.';
+
 $string['donterroremailhelp'] = 'If selected, a user missing an email address will not produce a log error.';
 $string['deleteusershelp'] = 'If this setting it checked, LMB module will delete user records from Moodle when directed.';
 $string['usernamesourcehelp'] = "This determines what will be the username of created users
@@ -285,6 +287,7 @@ $string['usernamesourcehelp'] = "This determines what will be the username of cr
 </ul>";
 $string['otheruseridhelp'] = '';
 $string['ignoreusernamecasehelp'] = 'All usernames will be converted to lowercase when this option is selected.';
+$string['ignoreemailcasehelp'] = 'All email addresses will be converted to lowercase when this option is selected.';
 $string['sourdidfallbackhelp'] = 'Set the userid to the persons sourcedid if a username is not found. In general users will not know this number, so will not be able to login, but it will create the account as a placeholder until more complete data is received.';
 $string['consolidateusershelp'] = 'If user cannot be found with the expected sourcedid(idnumber), but a username match is found, the accounts will be consolidated. Only use this option if you know that usernames are unique and will not collide.';
 $string['authmethodhelp'] = 'Select what authorization method the LMB module should set accounts to.';
