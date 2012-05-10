@@ -119,7 +119,7 @@ $string['otherpassword'] = 'Other Password Source';
 
 
 $string['ignoreusernamecase'] = 'Ignore username capitalization';
-
+$string['ignoreemailcase'] = 'Ignore email address capitalization';
 
 $string['sourdidfallback'] = 'Fallback to sourcedid if username not found';
 $string['consolidateusers'] = 'Consolidate existing usernames';
@@ -285,6 +285,7 @@ $string['usernamesourcehelp'] = "This determines what will be the username of cr
 </ul>";
 $string['otheruseridhelp'] = '';
 $string['ignoreusernamecasehelp'] = 'All usernames will be converted to lowercase when this option is selected.';
+$string['ignoreemailcasehelp'] = 'All email addresses will be converted to lowercase when this option is selected.';
 $string['sourdidfallbackhelp'] = 'Set the userid to the persons sourcedid if a username is not found. In general users will not know this number, so will not be able to login, but it will create the account as a placeholder until more complete data is received.';
 $string['consolidateusershelp'] = 'If user cannot be found with the expected sourcedid(idnumber), but a username match is found, the accounts will be consolidated. Only use this option if you know that usernames are unique and will not collide.';
 $string['authmethodhelp'] = 'Select what authorization method the LMB module should set accounts to.';

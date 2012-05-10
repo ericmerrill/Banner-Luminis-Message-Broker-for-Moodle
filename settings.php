@@ -259,6 +259,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/ignoreusernamecase', get_string('ignoreusernamecase', 'enrol_lmb'),
             get_string('ignoreusernamecasehelp', 'enrol_lmb'), 1));
 
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/ignoreemailcase', get_string('ignoreemailcase', 'enrol_lmb'),
+            get_string('ignoreemailcasehelp', 'enrol_lmb'), 1));
+
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/sourcedidfallback', get_string('sourdidfallback', 'enrol_lmb'),
             get_string('sourdidfallbackhelp', 'enrol_lmb'), 1));
 
