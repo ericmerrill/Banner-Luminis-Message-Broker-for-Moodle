@@ -1806,7 +1806,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                 $domain = trim($domain[1]);
 
-                if (!preg_match('/^'.trim($config->createusersemaildomain).'$/', $domain)) {
+                if (!stristr(trim($config->createusersemaildomain), $domain)) {
                     $logline .= 'no in domain email:';
                     $emailallow = false;
                     if (!$config->donterroremail) {
@@ -1851,6 +1851,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 } else {
                     $moodleuser->username = $lmbperson->username;
                 }
+
                 $moodleuser->auth = $config->auth;
                 $moodleuser->timemodified = time();
 
@@ -1927,7 +1928,12 @@ class enrol_lmb_plugin extends enrol_plugin {
                     // The user appears to not exist at all yet.
                     $moodleuser->firstname = $firstname;
                     $moodleuser->lastname = $lmbperson->familyname;
-                    $moodleuser->email = $lmbperson->email;
+
+		    if ($config->ignoreemailcase) {
+		        $moodleuser->email = strtolower($lmbperson->email);
+		    } else {
+			$moodleuser->email = $lmbperson->email;
+		    }
                     $moodleuser->auth = $config->auth;
                     if ($config->includetelephone) {
                         $moodleuser->phone1 = $lmbperson->telephone;
