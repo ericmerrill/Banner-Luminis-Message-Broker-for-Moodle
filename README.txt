@@ -17,6 +17,7 @@ View full change log at https://github.com/merrill-oakland/Banner-Luminis-Messag
 Since 2.1.1
 Option to set domain comparison to case-insensitive.
 Added option to ignore capitalization for email domains. (Thanks to Charles Fulton)
+Option to disable enrolments instead of deleting them.
 
 
 Release 2.1.1

@@ -2806,7 +2806,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         if ($instance = $this->get_instance($courseid)) {
             // TODO catch exceptions thrown.
-            $this->enrol_user($instance, $userid, $roleid);
+            $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
             $logline .= 'enrolled:';
             return true;
         } else {
@@ -2826,6 +2826,8 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success or failure of the role assignment
      */
     public function lmb_unassign_role_log($roleid, $courseid, $userid, &$logline) {
+        $config = $this->get_config();
+
         if (!$courseid) {
             $logline .= 'missing courseid:';
             return false;
@@ -2833,7 +2835,11 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         if ($instance = $this->get_instance($courseid)) {
             // TODO catch exceptions thrown.
-            $this->unenrol_user($instance, $userid, $roleid);
+            if (isset($config->disableenrol) && $config->disableenrol) {
+                $this->update_user_enrol($instance, $userid, ENROL_USER_SUSPENDED);
+            } else {
+                $this->unenrol_user($instance, $userid, $roleid);
+            }
             $logline .= 'unenrolled:';
             return true;
         } else {

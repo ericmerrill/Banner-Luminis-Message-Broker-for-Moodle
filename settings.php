@@ -367,6 +367,8 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configcheckbox('enrol_lmb/unenrolmember', get_string('unenrolmember', 'enrol_lmb'),
             get_string('unenrolmemberhelp', 'enrol_lmb'), 0));
 
+    $settings->add(new admin_setting_configcheckbox('enrol_lmb/disableenrol', get_string('disableenrol', 'enrol_lmb'),
+            get_string('disableenrolhelp', 'enrol_lmb'), 1));
 
 
 }
