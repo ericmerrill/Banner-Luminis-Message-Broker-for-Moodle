@@ -2833,6 +2833,11 @@ class enrol_lmb_plugin extends enrol_plugin {
             return false;
         }
 
+        if (enrol_lmb_check_enrolled_in_xls_merged($userid, $courseid)) {
+            $logline .= 'xls still enroled:';
+            return true;
+        }
+
         if ($instance = $this->get_instance($courseid)) {
             // TODO catch exceptions thrown.
             if (isset($config->disableenrol) && $config->disableenrol) {

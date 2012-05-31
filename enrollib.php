@@ -50,7 +50,40 @@ function enrol_lmb_get_roleid($imsrole, $config=null) {
 
 
 
+function enrol_lmb_get_crosslist_children($xlsid, $merged = true) {
+    global $DB;
 
+    $params = array('crosslistsourcedid' => $xlsid);
+    if ($merged) {
+        $params['type'] = 'merge';
+    }
+
+    return $DB->get_records('enrol_lmb_crosslists', $params);
+}
+
+function enrol_lmb_check_enrolled_in_xls_merged($userid, $courseid) {
+    global $DB;
+
+    if (!$xlsid = $DB->get_field('course', 'idnumber', array('id' => $courseid))) {
+        return false;
+    }
+
+    if (!$personsourcedid = $DB->get_field('user', 'idnumber', array('id' => $userid))) {
+        return false;
+    }
+
+    $subsql = "SELECT coursesourcedid FROM {enrol_lmb_crosslists} WHERE crosslistsourcedid = :xlsid AND type = 'merge'";
+    $sql = "SELECT * FROM {enrol_lmb_enrolments} WHERE status = 1 "
+            ."AND personsourcedid = :personsourcedid AND coursesourcedid IN (".$subsql.")";
+
+    $params = array('personsourcedid' => $personsourcedid, 'xlsid' => $xlsid);
+
+    if ($enrols = $DB->get_records_sql($sql, $params)) {
+        return true;
+    }
+
+    return false;
+}
 
 function enrol_lmb_get_crosslist_groupid($coursesourcedid, $crosslistsourcedid = null) {
     global $DB;
