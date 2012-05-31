@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
+$hidden = $settings->hidden;
+
+$ADMIN->add('enrolments', new admin_category('enrolsettingscat',
+        get_string('pluginname', 'enrol_lmb'), $hidden));
+
+$settings = new admin_settingpage('enrolsettingslmb', get_string('settings'), 'moodle/site:config');
 
 if ($ADMIN->fulltree) {
 
@@ -373,3 +381,23 @@ if ($ADMIN->fulltree) {
 
 }
 
+
+$ADMIN->add('enrolsettingscat', $settings);
+
+$ADMIN->add('enrolsettingscat', new admin_category('enroltoolsscat',
+        get_string('tools', 'enrol_lmb'), false));
+
+$ADMIN->add("enroltoolsscat", new admin_externalpage('enroltoollmbstatus', get_string('page_lmbstatus', 'enrol_lmb'),
+        "$CFG->wwwroot/enrol/lmb/tools/lmbstatus.php", "moodle/role:manage"));
+
+$ADMIN->add("enroltoolsscat", new admin_externalpage('enroltoolimportfile', get_string('page_importnow', 'enrol_lmb'),
+        "$CFG->wwwroot/enrol/lmb/importnow.php", "moodle/role:manage"));
+
+$ADMIN->add("enroltoolsscat", new admin_externalpage('enroltoolimportextract', get_string('page_extractprocess', 'enrol_lmb'),
+        "$CFG->wwwroot/enrol/lmb/tools/extractprocess.php", "moodle/role:manage"));
+
+$ADMIN->add("enroltoolsscat", new admin_externalpage('enroltoolreprocess', get_string('page_reprocessenrolments', 'enrol_lmb'),
+        "$CFG->wwwroot/enrol/lmb/tools/reprocessenrolments.php", "moodle/role:manage"));
+
+$ADMIN->add("enroltoolsscat", new admin_externalpage('enroltoolprune', get_string('page_prunelmbtables', 'enrol_lmb'),
+        "$CFG->wwwroot/enrol/lmb/tools/prunelmbtables.php", "moodle/role:manage"));

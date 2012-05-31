@@ -18,6 +18,7 @@ Since 2.1.1
 Option to set domain comparison to case-insensitive.
 Added option to ignore capitalization for email domains. (Thanks to Charles Fulton)
 Option to disable enrolments instead of deleting them.
+Tools moved into the settings block hierarchy (Site Administration>Plugins>Enrolments>Banner/Luminis Message Broker>Tools).
 
 
 Release 2.1.1
@@ -161,9 +162,3 @@ CHANGES
 _______
 View github for newly changed items
 https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/commits/Release
-
-
-
-
-
-

@@ -15,22 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
+require_once($CFG->libdir.'/adminlib.php');
 require_login();
 require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM));
 
-$PAGE->set_context(get_context_instance(CONTEXT_SYSTEM));
-$PAGE->set_url('/enrol/lmb/tools/prunelmbtables.php');
-
-$nav[0] = array('name' => 'Admin', 'link' => '../../../'.$CFG->admin.'/index.php', 'type' => '');
-$nav[1] = array('name' => 'LMB', 'link' => '../../../'.$CFG->admin.'/settings.php?section=enrolsettingslmb', 'type' => '');
-$nav[2] = array('name' => 'Tools', 'link' => './index.php', 'type' => '');
-$nav[3] = array('name' => 'Prune Banner LMB Module Tables', 'link' => '', 'type' => 'title');
-
-print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname,
-              build_navigation($nav));
-
 require_once('../lib.php');
 
+admin_externalpage_setup('enroltoolprune');
+
+print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname);
 
 @set_time_limit(0);
 

@@ -19,7 +19,7 @@ $string['pluginname'] = 'Banner/Luminis Message Broker';
 $string['description'] = 'This module provides a way to integrate Moodle with Banner. You can either use the Luminis Message Broker to provide realtime updates, in the same way as WebCT, or using Banner export files. <br /><br />This module is not affiliated with, or endorsed by Ellucian in any way.';
 
 $string['header'] = 'You are using Banner/Luminis Message Broker Module version {$a->version}.<br>
-To access the LMB tools, <a href="{$a->toolslink}">click here</a>.';
+LMB Tools have moved to the setting block, under Site Administration>Plugins>Enrolments>Banner/Luminis Message Broker>Tools</a>.';
 
 $string['removelangs'] = '<b><font color=red>Notice:</font> It appears that old Banner/Luminis Message Broker language files are still installed. Please remove the file \'$a/enrol_lmb.php\' and the folder \'$a/help/enrol/lmb\'.</b>';
 
@@ -319,3 +319,11 @@ $string['forceadrhelp'] = 'Always force the users address/city to match the XML,
 $string['parseenrolxmlhelp'] = 'Process enrolment records. Parse Course and Parse Person must be on. When unchecked, records will be completely skipped.';
 $string['unenrolmemberhelp'] = "Unenrol (or 'drop') members from a course when an appropriate XML message is received.";
 $string['disableenrolhelp'] = 'Disable enrolments instead of unenroling them. Prevents possible data loss in some versions and configurations of Moodle when users are dropped and re-added to a course.';
+
+
+$string['page_lmbstatus'] = 'LMB Status';
+$string['page_importnow'] = 'Process File';
+$string['page_extractprocess'] = 'Process Extract';
+$string['page_reprocessenrolments'] = 'Reprocess Enrolments';
+$string['page_prunelmbtables'] = 'Prune Tables';
+$string['tools'] = 'Tools';
