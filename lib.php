@@ -34,6 +34,9 @@ require_once($CFG->libdir.'/gradelib.php');
 class enrol_lmb_plugin extends enrol_plugin {
 
     private $log;
+    private $logline = '';
+    private $logerror = false;
+    private $logonlyerrors = true;
 
     // The "roles" hard-coded in the Banner XML specification are.
     private $imsroles = array(
@@ -49,6 +52,10 @@ class enrol_lmb_plugin extends enrol_plugin {
     public $processid = 0;
     private $terms = array();
 
+    public function __construct() {
+        $this->load_config();
+        $this->logonlyerrors = $this->config->logerrors;
+    }
 
     /**
      * This public function is only used when first setting up the plugin, to
@@ -80,7 +87,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * Preform any cron tasks for the module.
      */
     public function cron() {
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         // If enabled, before a LMB time check.
         if ($config->performlmbcheck) {
@@ -213,7 +220,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success or failure of the processing
      */
     public function process_file($filename = null, $force = false, $folderprocess = false, $processid = null) {
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         if (!$this->processid) {
             $this->processid = time();
@@ -328,7 +335,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success or failure of the processing
      */
     public function process_folder($folder = null, $term = null, $force = false) {
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
         $this->processid = time();
 
         if (isset($config->processingfolder) && $config->processingfolder && !$force) {
@@ -488,7 +495,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_course_section_tag($tagcontents) {
         global $DB;
 
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         if (!$config->parsecoursexml) {
             $this->log_line('Course:skipping.');
@@ -710,7 +717,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function create_shell_course($idnumber, $name, $shortname, $catid, &$logline, &$status,
             $meta=false, $startdate = 0, $enddate = 0) {
 
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
         global $CFG, $DB;
         $status = true;
 
@@ -824,7 +831,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function get_category_id($term, $depttitle, $deptcode, &$logline, &$status) {
         global $DB;
 
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         $cat = new Object();
 
@@ -936,7 +943,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function get_term_category_id($term, &$logline, &$status) {
         global $DB;
 
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         if ($lmbcat = $DB->get_record('enrol_lmb_categories', array('termsourcedid' => $term, 'cattype' => 'term'))) {
             return $lmbcat->categoryid;
@@ -992,7 +999,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success or failure of the processing
      */
     public function process_crosslisted_group_tag($tagcontents) {
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         if ((!$config->parsexlsxml) || (!$config->parsecoursexml)) {
             $this->log_line('Crosslist Group:skipping.');
@@ -1046,7 +1053,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_crosslist_membership_tag_error($tagcontents, &$errorcode, &$errormessage) {
         global $DB;
 
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         if ((!$config->parsexlsxml) || (!$config->parsecoursexml)) {
             $this->log_line('Crosslist Group:skipping.');
@@ -1544,7 +1551,178 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     }
 
+    public function xml_to_person($xml) {
+        $config = $this->lmb_get_config();
+        
+        $person = new stdClass();
+        
+        $xmlarray = enrol_lmb_xml_to_array($xml);
 
+        if (!is_array($xmlarray) || !isset($xmlarray['person']) || !isset($xmlarray['person']['#'])) {
+            $this->log_error('Not valid person XML');
+            return false;
+        }
+        
+        $xmlperson = $xmlarray['person']['#'];
+        
+        if (!isset($xmlperson['sourcedid'][0]['#']['source'][0]['#'])) {
+            $this->log_error('Sourcedid source not found');
+            return false;
+        }
+        $person->sourcedidsource = $xmlperson['sourcedid'][0]['#']['source'][0]['#'];
+        
+        if (!isset($xmlperson['sourcedid'][0]['#']['id'][0]['#'])) {
+            $this->log_error('Sourcedid not found');
+            return false;
+        }
+        $person->sourcedid = $xmlperson['sourcedid'][0]['#']['id'][0]['#'];
+        
+        // Full Name.
+        if (isset($xmlperson['name'][0]['#']['fn'][0]['#'])) {
+            $person->fullname = $xmlperson['name'][0]['#']['fn'][0]['#'];
+        }
+        
+        // Nickname.
+        if (isset($xmlperson['name'][0]['#']['nickname'][0]['#'])) {
+            $person->nickname = $xmlperson['name'][0]['#']['nickname'][0]['#'];
+        }
+        
+        // Given Name.
+        if (isset($xmlperson['name'][0]['#']['n'][0]['#']['given'][0]['#'])) {
+            $person->givenname = $xmlperson['name'][0]['#']['n'][0]['#']['given'][0]['#'];
+        }
+        
+        // Family Name.
+        if (isset($xmlperson['name'][0]['#']['n'][0]['#']['family'][0]['#'])) {
+            $person->familyname = $xmlperson['name'][0]['#']['n'][0]['#']['family'][0]['#'];
+        }
+        
+        // Email.
+        if (isset($xmlperson['email'][0]['#'])) {
+            $person->email = $xmlperson['email'][0]['#'];
+        }
+        
+        // Telephone.
+        if (isset($xmlperson['tel'][0]['#'])) {
+            $person->telephone = $xmlperson['tel'][0]['#'];
+        }
+        
+        // Street.
+        if (isset($xmlperson['adr'][0]['#']['street'][0]['#'])) {
+            $person->street = $xmlperson['adr'][0]['#']['street'][0]['#'];
+        }
+        
+        // Locality.
+        if (isset($xmlperson['adr'][0]['#']['locality'][0]['#'])) {
+            $person->locality = $xmlperson['adr'][0]['#']['locality'][0]['#'];
+        }
+        
+        // Region.
+        if (isset($xmlperson['adr'][0]['#']['region'][0]['#'])) {
+            $person->region = $xmlperson['adr'][0]['#']['region'][0]['#'];
+        }
+        
+        // Country.
+        if (isset($xmlperson['adr'][0]['#']['country'][0]['#'])) {
+            $person->country = $xmlperson['adr'][0]['#']['country'][0]['#'];
+        }
+        
+        // Academic Major.
+        if (isset($xmlperson['extension'][0]['#']['luminisperson'][0]['#']['academicmajor'][0]['#'])) {
+            $person->academicmajor = $xmlperson['extension'][0]['#']['luminisperson'][0]['#']['academicmajor'][0]['#'];
+        }
+        
+        // Select the username.
+        $person->username = '';
+        switch ($config->usernamesource) {
+            case "email":
+                $person->username = $person->email;
+                break;
+
+            case "emailname":
+                if (isset($person->email) && preg_match('{(.+?)@.*?}is', $person->email, $matches)) {
+                    $person->username = trim($matches[1]);
+                }
+                break;
+            
+            case "other":
+                $type = $config->useridtypeother;
+            case "loginid":
+                if (!isset($type)) {
+                    $type = 'Logon ID';
+                }
+            case "sctid":
+                if (!isset($type)) {
+                    $type = 'SCTID';
+                }
+            case "emailid":
+                if (!isset($type)) {
+                    $type = 'Email ID';
+                }
+                
+                if (isset($xmlperson['userid'])) {
+                    foreach ($xmlperson['userid'] as $row) {
+                        if (isset($row['@']['useridtype'])) {
+                            if ($row['@']['useridtype'] === $type) {
+                                $person->username = $row['#'];
+                            }
+                        }
+                    }
+                }
+                
+                break;
+
+            default:
+                $status = false;
+                $logline .= 'bad enrol_lmb_usernamesource setting:';
+
+        }
+        
+        if ($config->sourcedidfallback && trim($person->username)=='') {
+            // This is the point where we can fall back to useing the "sourcedid" if "userid" is not supplied...
+            $person->username = $person->sourcedid.'';
+        }
+        
+        switch ($config->passwordnamesource) {
+            case "none":
+                break;
+
+            case "other":
+                $type = $config->passworduseridtypeother;
+            case "loginid":
+                if (!isset($type)) {
+                    $type = 'Logon ID';
+                }
+            case "sctid":
+                if (!isset($type)) {
+                    $type = 'SCTID';
+                }
+            case "emailid":
+                if (!isset($type)) {
+                    $type = 'Email ID';
+                }
+                
+                if (isset($xmlperson['userid'])) {
+                    foreach ($xmlperson['userid'] as $row) {
+                        if (isset($row['@']['useridtype'])) {
+                            if ($row['@']['useridtype'] === $type) {
+                                $person->password = $row['@']['password'];
+                            }
+                        }
+                    }
+                }
+                
+                break;
+
+            default:
+                $status = false;
+                $logline .= 'bad enrol_lmb_passwordnamesource setting:';
+
+        }
+
+        
+        return $person;
+    }
 
     /**
      * Processes a given person tag, updating or creating a moodle user as
@@ -1554,8 +1732,10 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success of failure of processing the tag
      */
     public function process_person_tag($tagcontents) {
+    $this->xml_to_person($tagcontents);//temp
+    return false;
         global $CFG, $DB;
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         if (!$config->parsepersonxml) {
             $this->log_line('Person:skipping.');
@@ -1568,6 +1748,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $person = new stdClass();
 
+/*
         // Sourcedid Source.
         if (preg_match('{<sourcedid>.*?<source>(.+?)</source>.*?</sourcedid>}is', $tagcontents, $matches)) {
             $person->sourcedidsource = trim($matches[1]);
@@ -1687,7 +1868,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             // This is the point where we can fall back to useing the "sourcedid" if "userid" is not supplied...
             // ...NB We don't use an "else if" because the tag may be supplied-but-empty.
             $person->username = $person->sourcedid.'';
-        }
+        }*/
 
         if (!isset($person->username) || (trim($person->username)=='')) {
             if (!$config->createusersemaildomain) {
@@ -2075,7 +2256,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_term_tag($tagcontents) {
         global $DB;
 
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         $status = true;
         $logline = 'Term:';
@@ -2193,7 +2374,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_person_membership_tag($tagcontents) {
         global $DB;
 
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         if ((!$config->parsepersonxml) || (!$config->parsecoursexml) || (!$config->parsepersonxml)) {
             $this->log_line('Enrolment:skipping.');
@@ -2352,6 +2533,39 @@ class enrol_lmb_plugin extends enrol_plugin {
         return true;
     }
 
+    public function append_log_line($string) {
+        $this->logline .= $string.':';
+    }
+    
+    public function log_error($string) {
+        $this->append_log_line($string);
+        $this->logerror = true;
+        $this->log_line_new();
+    }
+
+    public function log_line_new() {
+        $message = '';
+
+        if ($this->logonlyerrors && (!$this->logerror)) {
+            $this->logline = '';
+            $this->logerror = false;
+        }
+
+        if ($this->islmb) {
+            $message = 'LMB Message:';
+        }
+
+        if (!$this->silent) {
+            mtrace($this->logline);
+        }
+
+        if (isset($this->logfp) && $this->logfp) {
+            fwrite($this->logfp, date('Y-m-d\TH:i:s - ') . $message . $this->logline . "\n");
+        }
+
+        $this->logline = '';
+        $this->logerror = false;
+    }
 
     /**
      * Write the provided string out to the logfile and to the screen.
@@ -2380,7 +2594,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * Open the lof file and store the pointer in this object.
      */
     public function open_log_file () {
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         $this->logfp = false; // File pointer for writing log data to.
         if (!empty($config->logtolocation)) {
@@ -2396,7 +2610,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * error messages.
      */
     public function check_last_luminis_event() {
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
         global $CFG;
 
         $this->log_line("Checking LMB last message sent time.");
@@ -2451,7 +2665,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success of failure of the email send
      */
     public function email_luminis_error($minutes, $emailaddress) {
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
         global $CFG, $FULLME;
         include_once($CFG->libdir .'/phpmailer/class.phpmailer.php');
 
@@ -2543,7 +2757,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function process_extract_drops() {
         global $CFG, $DB;
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
         $status = true;
 
         foreach ($this->terms as $termid => $count) {
@@ -2666,7 +2880,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param bool $flush if true, flush and reload the cache from the db
      * @return object an object that contains all of the plugin config options
      */
-    public function get_config($flush = false) {
+    public function lmb_get_config($flush = false) {
         if ($flush || (!isset($configcache) || !$configcache)) {
             if (isset($configcache)) {
                 unset($configcache);
@@ -2692,7 +2906,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         $status = true;
 
         if (!$config) {
-            $config = $this->get_config();
+            $config = $this->lmb_get_config();
         }
 
         $newcoursedid = enrol_lmb_get_course_id($enrol->coursesourcedid);
@@ -2771,7 +2985,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function restore_user_enrolments($idnumber) {
         global $DB;
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         $status = true;
 
@@ -2827,7 +3041,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success or failure of the role assignment
      */
     public function lmb_unassign_role_log($roleid, $courseid, $userid, &$logline) {
-        $config = $this->get_config();
+        $config = $this->lmb_get_config();
 
         if (!$courseid) {
             $logline .= 'missing courseid:';
