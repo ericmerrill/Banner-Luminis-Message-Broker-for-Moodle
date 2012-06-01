@@ -185,7 +185,6 @@ function enrol_lmb_expand_course_title($lmbcourse, $titledef) {
  */
 function enrol_lmb_restore_users_to_course($idnumber) {
     global $DB, $CFG;
-    $config = enrol_lmb_get_config();
     $status = true;
 
     if (!class_exists('enrol_lmb_plugin')) {
@@ -198,7 +197,7 @@ function enrol_lmb_restore_users_to_course($idnumber) {
 
         foreach ($enrols as $enrol) {
             $logline = '';
-            $status = $enrolmod->process_enrolment_log($enrol, $logline, $config) && $status;
+            $status = $enrolmod->process_enrolment_log($enrol, $logline) && $status;
         }
 
         unset($enrols);
