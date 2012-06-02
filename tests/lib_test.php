@@ -78,9 +78,12 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected->email = 'test@example.edu';
         $expected->academicmajor = 'Undeclared';
         $expected->username = 'test';
+        $expected->auth = 'manual';
+
+        $lmb = new enrol_lmb_plugin();
+        $lmb->set_config('auth', 'manual');
 
         // Password settings.
-        $lmb = new enrol_lmb_plugin();
         $lmb->set_config('passwordnamesource', 'none');
         $this->assertEquals($lmb->xml_to_person($xml), $expected);
 

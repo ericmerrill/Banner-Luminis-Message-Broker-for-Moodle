@@ -1699,6 +1699,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         }
 
+        $person->auth = $this->get_config('auth');
         
         return $person;
     }
@@ -1855,7 +1856,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             $logline .= 'no username:';
         }
 
-        $person->auth = $this->get_config('auth');
+        /*$person->auth = $this->get_config('auth');
 
         // Select the password.
         switch ($this->get_config('passwordnamesource')) {
@@ -1894,7 +1895,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $logline .= 'bad enrol_lmb_passwordnamesource setting:';
                 $status = false;
 
-        }
+        }*/
 
         $recstatus = ($this->get_recstatus($tagcontents, 'person'));
 
