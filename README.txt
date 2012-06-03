@@ -14,6 +14,10 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
+Since 2.1.7
+Fixes to address and city logic.
+
+
 Release 2.1.7
 Significant performance increase when processing on large site. Added indexes to common columns.
 Add option force password, or set it only on user creation.
