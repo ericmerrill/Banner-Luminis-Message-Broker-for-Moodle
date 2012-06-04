@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.1.1+
+Version: 2.1.5
 Moodle version: 2.0.6 throught 2.3.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -14,7 +14,7 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
-Since 2.1.1
+Release 2.1.5
 Fixed problem where users may be dropped from cross lists when dropped from one member course (CONTRIB-1728).
 Option to set domain comparison to case-insensitive.
 Added option to ignore capitalization for email domains. (Thanks to Charles Fulton)
