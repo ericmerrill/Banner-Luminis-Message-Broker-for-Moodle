@@ -1933,19 +1933,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                 }
 
-<<<<<<< HEAD
-                    if ($this->get_config('createnewusers')) {
-                        if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
-                            $this->append_log_line('username collision, could not create user');
-                            $this->linestatus = false;
-                        } else {
-                            if ($id = $DB->insert_record('user', $moodleuser, true)) {
-                                $this->append_log_line("created new user");
-                                $moodleuser->id = $id;
-                                $newuser = true;
-=======
                 $moodleuser->country = $CFG->country;
->>>>>>> Person processing mostly converted.
 
                 if ($this->get_config('createnewusers')) {
                     if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
@@ -1955,6 +1943,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         if ($id = $DB->insert_record('user', $moodleuser, true)) {
                             $this->append_log_line("created new user");
                             $moodleuser->id = $id;
+                            $newuser = true;
 
                             $this->linestatus = $this->linestatus && $this->restore_user_enrolments($lmbperson->sourcedid);
 
@@ -1968,30 +1957,17 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
             }
 
-<<<<<<< HEAD
-                if ($this->get_config('passwordnamesource') != 'none') {
-                    if ($this->get_config('forcepassword', 1) || $newuser) {
-                        if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
-                            $userauth = get_auth_plugin($user->auth);
-                            if ($userauth->can_change_password() && (!$userauth->change_password_url())) {
-                                // TODO2 - what happens if password is blank?
-                                if (isset($person->password) && ($person->password != '')) {
-                                    if (!$userauth->user_update_password($user, $person->password)) {
-                                        $this->append_log_line('error setting password');
-                                        $this->linestatus = false;
-                                    }
-                                }
-=======
             if ($this->get_config('passwordnamesource') != 'none') {
-                if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
-                    $userauth = get_auth_plugin($user->auth);
-                    if ($userauth->can_change_password() && (!$userauth->change_password_url())) {
-                        // TODO2 - what happens if password is blank?
-                        if (isset($person->password) && ($person->password != '')) {
-                            if (!$userauth->user_update_password($user, $person->password)) {
-                                $this->append_log_line('error setting password');
-                                $this->linestatus = false;
->>>>>>> Person processing mostly converted.
+                if ($this->get_config('forcepassword', 1) || $newuser) {
+                    if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
+                        $userauth = get_auth_plugin($user->auth);
+                        if ($userauth->can_change_password() && (!$userauth->change_password_url())) {
+                            // TODO2 - what happens if password is blank?
+                            if (isset($person->password) && ($person->password != '')) {
+                                if (!$userauth->user_update_password($user, $person->password)) {
+                                    $this->append_log_line('error setting password');
+                                    $this->linestatus = false;
+                                }
                             }
                         }
                     }
