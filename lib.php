@@ -37,6 +37,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     private $logline = '';
     private $logerror = false;
     private $linestatus = true;
+    private $forcelogline = false;
     private $logonlyerrors = true;
 
     // The "roles" hard-coded in the Banner XML specification are.
@@ -204,6 +205,15 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
         // TODO.
         /* else */
+
+        if ($this->linestatus) {
+            if (!$this->get_config('logerrors') || $this->forcelogline) {
+                $this->log_line_new('complete');
+            }
+        } else {
+            $this->log_line_new('error');
+        }
+
 
         return $status;
     }
@@ -1534,7 +1544,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     }
 
-    public function xml_to_person($xml) {        
+    public function xml_to_person($xml) {
+        global $DB;
         $person = new stdClass();
         
         $xmlarray = enrol_lmb_xml_to_array($xml);
@@ -1714,17 +1725,55 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $person->timemodified = time();
 
+        if ($oldlmbperson = $DB->get_record('enrol_lmb_people', array('sourcedid' => $person->sourcedid))) {
+            $person->id = $oldlmbperson->id;
+            if (enrol_lmb_compare_objects($person, $oldlmbperson)) {
+                if (!$DB->update_record('enrol_lmb_people', $person)) {
+                    $this->append_log_line('error updating enrol_lmb_people');
+                    $this->linestatus = false;
+                } else {
+                    $this->append_log_line('updated lmb table');
+                }
+            } else {
+                $this->append_log_line('no lmb changes to make');
+            }
+        } else {
+            if ($id = $DB->insert_record('enrol_lmb_people', $person)) {
+                $this->append_log_line('inserted into lmb table');
+                $person->id = $id;
+            } else {
+                $this->append_log_line('error inserting enrol_lmb_people');
+                $this->linestatus = false;
+            }
+        }
+
         return $person;
     }
 
     public function person_to_moodleuser($lmbperson) {
         global $DB, $CFG;
         $emailallow = true;
+
+        if (!isset($lmbperson->username) || (trim($lmbperson->username)=='')) {
+            if (!$this->get_config('createusersemaildomain')) {
+                $this->linestatus = false;
+            }
+            $this->append_log_line('no username');
+
+            return false;
+        }
+
+        if (!isset($lmbperson->email) || (trim($lmbperson->email)=='')) {
+            if (!$this->get_config('donterroremail')) {
+                $this->linestatus = false;
+            }
+            $this->append_log_line('no email address');
+
+            return false;
+        }
+
         if ($this->get_config('createusersemaildomain')) {
-
-            if (isset($lmbperson->email) && ($lmbperson->email) && ($domain = explode('@', $lmbperson->email))
-                    && (count($domain) > 1)) {
-
+            if ($domain = explode('@', $lmbperson->email) && (count($domain) > 1)) {
                 $domain = trim($domain[1]);
 
                 if (isset($CFG->ignoredomaincase) && $CFG->ignoredomaincase) {
@@ -1747,7 +1796,6 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $this->linestatus = false;
                 }
             }
-
         }
 
         if ($this->get_config('nickname') && isset($lmbperson->nickname) && !empty($lmbperson->nickname)) {
@@ -1769,124 +1817,123 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $newuser = false;
 
-        if (isset($lmbperson->email)) {
-            if ($emailallow && $lmbperson->recstatus != 3 && trim($lmbperson->username) != '') {
-                $moodleuser = new stdClass();
+        if ($emailallow && $lmbperson->recstatus != 3) {
+            $moodleuser = new stdClass();
 
-                $moodleuser->idnumber = $lmbperson->sourcedid;
+            $moodleuser->idnumber = $lmbperson->sourcedid;
+
+            if ($this->get_config('ignoreusernamecase')) {
+                $moodleuser->username = strtolower($lmbperson->username);
+            } else {
+                $moodleuser->username = $lmbperson->username;
+            }
+
+            $moodleuser->auth = $this->get_config('auth');
+            $moodleuser->timemodified = time();
+
+            if (($oldmoodleuser = $DB->get_record('user', array('idnumber' => $moodleuser->idnumber)))
+                    || (($this->get_config('consolidateusernames'))
+                    && ($oldmoodleuser = $DB->get_record('user', array('username' => $moodleuser->username))))) {
+                // If we have an existing user in moodle (using idnumber) or...
+                // ...if we can match by username (but not idnumber) and the consolidation is on.
 
                 if ($this->get_config('ignoreusernamecase')) {
-                    $moodleuser->username = strtolower($lmbperson->username);
-                } else {
-                    $moodleuser->username = $lmbperson->username;
+                    $oldmoodleuser->username = strtolower($oldmoodleuser->username);
                 }
-                $moodleuser->auth = $this->get_config('auth');
-                $moodleuser->timemodified = time();
 
-                if (($oldmoodleuser = $DB->get_record('user', array('idnumber' => $moodleuser->idnumber)))
-                        || (($this->get_config('consolidateusernames'))
-                        && ($oldmoodleuser = $DB->get_record('user', array('username' => $moodleuser->username))))) {
-                    // If we have an existing user in moodle (using idnumber) or...
-                    // ...if we can match by username (but not idnumber) and the consolidation is on.
+                $moodleuser->id = $oldmoodleuser->id;
 
-                    if ($this->get_config('ignoreusernamecase')) {
-                        $oldmoodleuser->username = strtolower($oldmoodleuser->username);
-                    }
-
-                    $moodleuser->id = $oldmoodleuser->id;
-
-                    if ($this->get_config('forcename')) {
-                        $moodleuser->firstname = $firstname;
-                        $moodleuser->lastname = $lmbperson->familyname;
-                    }
-
-                    if ($this->get_config('forceemail')) {
-                        $moodleuser->email = $lmbperson->email;
-                    }
-
-                    if ($this->get_config('includetelephone') && $this->get_config('forcetelephone')) {
-                        $moodleuser->phone1 = $lmbperson->telephone;
-                    }
-
-                    if ($this->get_config('includeaddress') && $this->get_config('forceaddress')) {
-                        $moodleuser->address = $lmbperson->adrstreet;
-
-                        if ($this->get_config('defaultcity') == 'standardxml') {
-                            if ($lmbperson->locality) {
-                                $moodleuser->city = $lmbperson->locality;
-                            } else {
-                                $moodleuser->city = $this->get_config('standardcity');
-                            }
-                        } else if ($this->get_config('defaultcity') == 'xml') {
-                            $moodleuser->city = $lmbperson->locality;
-                        } else if ($this->get_config('defaultcity') == 'standard') {
-                            $moodleuser->city = $this->get_config('standardcity');
-                        }
-                    }
-
-                    if (enrol_lmb_compare_objects($moodleuser, $oldmoodleuser)) {
-                        if (($oldmoodleuser->username != $moodleuser->username)
-                                && ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username)))) {
-                            $this->append_log_line('username collision while trying to update');
-                            $this->linestatus = false;
-                        } else {
-                            if ($id = $DB->update_record('user', $moodleuser)) {
-                                $this->append_log_line('updated user');
-                            } else {
-                                $this->append_log_line('failed to update user');
-                                $this->linestatus = false;
-                            }
-                        }
-                    } else {
-                        $this->append_log_line('no changes to make');
-                    }
-                } else {
-                    // Set some default prefs.
-                    if (!isset($CFG->mnet_localhost_id)) {
-                        include_once($CFG->dirroot . '/mnet/lib.php');
-                        $env = new mnet_environment();
-                        $env->init();
-                        unset($env);
-                    }
-                    $moodleuser->mnethostid = $CFG->mnet_localhost_id;
-                    $moodleuser->confirmed = 1;
-
-                    // The user appears to not exist at all yet.
+                if ($this->get_config('forcename')) {
                     $moodleuser->firstname = $firstname;
                     $moodleuser->lastname = $lmbperson->familyname;
+                }
 
-                    if ($this->get_config('ignoreemailcase')) {
-                        $moodleuser->email = strtolower($lmbperson->email);
-                    } else {
-                        $moodleuser->email = $lmbperson->email;
-                    }
+                if ($this->get_config('forceemail')) {
+                    $moodleuser->email = $lmbperson->email;
+                }
 
-                    $moodleuser->auth = $this->get_config('auth');
-                    if ($this->get_config('includetelephone')) {
-                        $moodleuser->phone1 = $lmbperson->telephone;
-                    }
+                if ($this->get_config('includetelephone') && $this->get_config('forcetelephone')) {
+                    $moodleuser->phone1 = $lmbperson->telephone;
+                }
 
-                    if ($this->get_config('includeaddress')) {
-                        if (isset ($lmbperson->adrstreet)) {
-                            $moodleuser->address = $lmbperson->adrstreet;
-                        }
+                if ($this->get_config('includeaddress') && $this->get_config('forceaddress')) {
+                    $moodleuser->address = $lmbperson->adrstreet;
 
-                        if ($this->get_config('defaultcity') == 'standardxml') {
-                            if ($lmbperson->locality) {
-                                $moodleuser->city = $lmbperson->locality;
-                            } else {
-                                $moodleuser->city = $this->get_config('standardcity');
-                            }
-                        } else if ($this->get_config('defaultcity') == 'xml') {
+                    if ($this->get_config('defaultcity') == 'standardxml') {
+                        if ($lmbperson->locality) {
                             $moodleuser->city = $lmbperson->locality;
-                        } else if ($this->get_config('defaultcity') == 'standard') {
+                        } else {
                             $moodleuser->city = $this->get_config('standardcity');
                         }
+                    } else if ($this->get_config('defaultcity') == 'xml') {
+                        $moodleuser->city = $lmbperson->locality;
+                    } else if ($this->get_config('defaultcity') == 'standard') {
+                        $moodleuser->city = $this->get_config('standardcity');
+                    }
+                }
 
+                if (enrol_lmb_compare_objects($moodleuser, $oldmoodleuser)) {
+                    if (($oldmoodleuser->username != $moodleuser->username)
+                            && ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username)))) {
+                        $this->append_log_line('username collision while trying to update');
+                        $this->linestatus = false;
+                    } else {
+                        if ($id = $DB->update_record('user', $moodleuser)) {
+                            $this->append_log_line('updated user');
+                        } else {
+                            $this->append_log_line('failed to update user');
+                            $this->linestatus = false;
+                        }
+                    }
+                } else {
+                    $this->append_log_line('no changes to make');
+                }
+            } else {
+                // Set some default prefs.
+                if (!isset($CFG->mnet_localhost_id)) {
+                    include_once($CFG->dirroot . '/mnet/lib.php');
+                    $env = new mnet_environment();
+                    $env->init();
+                    unset($env);
+                }
+                $moodleuser->mnethostid = $CFG->mnet_localhost_id;
+                $moodleuser->confirmed = 1;
+
+                // The user appears to not exist at all yet.
+                $moodleuser->firstname = $firstname;
+                $moodleuser->lastname = $lmbperson->familyname;
+
+                if ($this->get_config('ignoreemailcase')) {
+                    $moodleuser->email = strtolower($lmbperson->email);
+                } else {
+                    $moodleuser->email = $lmbperson->email;
+                }
+
+                $moodleuser->auth = $this->get_config('auth');
+                if ($this->get_config('includetelephone')) {
+                    $moodleuser->phone1 = $lmbperson->telephone;
+                }
+
+                if ($this->get_config('includeaddress')) {
+                    if (isset ($lmbperson->adrstreet)) {
+                        $moodleuser->address = $lmbperson->adrstreet;
                     }
 
-                    $moodleuser->country = $CFG->country;
+                    if ($this->get_config('defaultcity') == 'standardxml') {
+                        if ($lmbperson->locality) {
+                            $moodleuser->city = $lmbperson->locality;
+                        } else {
+                            $moodleuser->city = $this->get_config('standardcity');
+                        }
+                    } else if ($this->get_config('defaultcity') == 'xml') {
+                        $moodleuser->city = $lmbperson->locality;
+                    } else if ($this->get_config('defaultcity') == 'standard') {
+                        $moodleuser->city = $this->get_config('standardcity');
+                    }
 
+                }
+
+<<<<<<< HEAD
                     if ($this->get_config('createnewusers')) {
                         if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
                             $this->append_log_line('username collision, could not create user');
@@ -1896,19 +1943,32 @@ class enrol_lmb_plugin extends enrol_plugin {
                                 $this->append_log_line("created new user");
                                 $moodleuser->id = $id;
                                 $newuser = true;
+=======
+                $moodleuser->country = $CFG->country;
+>>>>>>> Person processing mostly converted.
 
-                                $this->linestatus = $this->linestatus && $this->restore_user_enrolments($lmbperson->sourcedid);
-
-                            } else {
-                                $this->append_log_line('failed to insert new user');
-                                $this->linestatus = false;
-                            }
-                        }
+                if ($this->get_config('createnewusers')) {
+                    if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
+                        $this->append_log_line('username collision, could not create user');
+                        $this->linestatus = false;
                     } else {
-                        $this->append_log_line('did not create new user');
-                    }
-                }
+                        if ($id = $DB->insert_record('user', $moodleuser, true)) {
+                            $this->append_log_line("created new user");
+                            $moodleuser->id = $id;
 
+                            $this->linestatus = $this->linestatus && $this->restore_user_enrolments($lmbperson->sourcedid);
+
+                        } else {
+                            $this->append_log_line('failed to insert new user');
+                            $this->linestatus = false;
+                        }
+                    }
+                } else {
+                    $this->append_log_line('did not create new user');
+                }
+            }
+
+<<<<<<< HEAD
                 if ($this->get_config('passwordnamesource') != 'none') {
                     if ($this->get_config('forcepassword', 1) || $newuser) {
                         if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
@@ -1921,35 +1981,40 @@ class enrol_lmb_plugin extends enrol_plugin {
                                         $this->linestatus = false;
                                     }
                                 }
+=======
+            if ($this->get_config('passwordnamesource') != 'none') {
+                if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
+                    $userauth = get_auth_plugin($user->auth);
+                    if ($userauth->can_change_password() && (!$userauth->change_password_url())) {
+                        // TODO2 - what happens if password is blank?
+                        if (isset($person->password) && ($person->password != '')) {
+                            if (!$userauth->user_update_password($user, $person->password)) {
+                                $this->append_log_line('error setting password');
+                                $this->linestatus = false;
+>>>>>>> Person processing mostly converted.
                             }
                         }
                     }
                 }
-
-            } else if (($this->get_config('imsdeleteusers')) && ($lmbperson->recstatus == 3)
-                    && ($moodleuser = $DB->get_record('user', array('idnumber' => $lmbperson->idnumber)))) {
-                $deleteuser = new object();
-                $deleteuser->id           = $moodleuser->id;
-                $deleteuser->deleted      = 1;
-                // TODO2 $deleteuser->username     = addslashes("$moodleuser->email.".time());  // Remember it just in case.
-                $deleteuser->username     = "$moodleuser->email.".time();  // Remember it just in case
-                $deleteuser->email        = '';               // Clear this field to free it up.
-                $deleteuser->idnumber     = '';               // Clear this field to free it up.
-                $deleteuser->timemodified = time();
-
-                if ($id = $DB->update_record('user', $deleteuser)) {
-                    $this->append_log_line('deleted user');
-                    $deleted = true;
-                } else {
-                    $this->append_log_line('failed to delete user');
-                    $this->linestatus = false;
-                }
             }
-        } else {
-            $this->append_log_line('no email address found');
-            if (!$this->get_config('donterroremail')) {
+
+        } else if (($this->get_config('imsdeleteusers')) && ($lmbperson->recstatus == 3)
+                && ($moodleuser = $DB->get_record('user', array('idnumber' => $lmbperson->idnumber)))) {
+            $deleteuser = new object();
+            $deleteuser->id           = $moodleuser->id;
+            $deleteuser->deleted      = 1;
+            // TODO2 $deleteuser->username     = addslashes("$moodleuser->email.".time());  // Remember it just in case.
+            $deleteuser->username     = "$moodleuser->email.".time();  // Remember it just in case
+            $deleteuser->email        = '';               // Clear this field to free it up.
+            $deleteuser->idnumber     = '';               // Clear this field to free it up.
+            $deleteuser->timemodified = time();
+
+            if ($id = $DB->update_record('user', $deleteuser)) {
+                $this->append_log_line('deleted user');
+                $deleted = true;
+            } else {
+                $this->append_log_line('failed to delete user');
                 $this->linestatus = false;
-                return false;
             }
         }
 
@@ -1966,60 +2031,17 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_person_tag($tagcontents) {
         //TODO check for error
         //TODO status flags?
-        global $CFG, $DB;
 
         if (!$this->get_config('parsepersonxml')) {
-            $this->log_line('Person:skipping.');
+            $this->log_line_new('Person:skipping.');
             return true;
         }
 
-        $this->linestatus = true;
-        $deleted = false;
         $this->append_log_line('Person');
 
         $lmbperson = $this->xml_to_person($tagcontents);//temp
 
-        if (!isset($lmbperson->username) || (trim($lmbperson->username)=='')) {
-            if (!$this->get_config('createusersemaildomain')) {
-                $this->linestatus = false;
-            }
-            $this->append_log_line('no username');
-        }
-
-        // Check to see if we have an existing record for this person.
-        if ($oldlmbperson = $DB->get_record('enrol_lmb_people', array('sourcedid' => $lmbperson->sourcedid))) {
-            $lmbperson->id = $oldlmbperson->id;
-            if (enrol_lmb_compare_objects($lmbperson, $oldlmbperson)) {
-                if (!$DB->update_record('enrol_lmb_people', $lmbperson)) {
-                    $this->append_log_line('error updating enrol_lmb_people');
-                    $this->linestatus = false;
-                } else {
-                    $this->append_log_line('updated lmb table');
-                }
-            } else {
-                $this->append_log_line('no lmb changes to make');
-            }
-        } else {
-            if (!$DB->insert_record('enrol_lmb_people', $lmbperson)) {
-                $this->append_log_line('error inserting enrol_lmb_people');
-                $this->linestatus = false;
-            } else {
-                $this->append_log_line('inserted into lmb table');
-            }
-        }
-
         $moodleuser = $this->person_to_moodleuser($lmbperson);
-        $status = $this->linestatus;
-
-        if ($this->linestatus && !$deleted) {
-            if (!$this->get_config('logerrors')) {
-                $this->log_line_new('complete');
-            }
-        } else if ($deleted) {
-            $this->log_line_new('complete');
-        } else {
-            $this->log_line_new('error');
-        }
 
         return $this->linestatus;
 
@@ -2345,6 +2367,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $this->logline = '';
         $this->logerror = false;
+        $this->forcelogline = false;
     }
 
     /**

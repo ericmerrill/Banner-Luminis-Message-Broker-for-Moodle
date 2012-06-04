@@ -82,7 +82,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected = new stdClass();
         $expected->sourcedidsource = 'Test SCT Banner';
         $expected->sourcedid = 'usersourcedid';
-        $expected->recstatus = 0;
+        $expected->recstatus = '0';
         $expected->fullname = 'First M Last';
         $expected->familyname = 'Last';
         $expected->givenname = 'First';
@@ -97,6 +97,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected->region = 'MI';
         $expected->country = 'USA';
         $expected->timemodified = 1;
+        $expected->id = 1;
 
         $lmb = new enrol_lmb_plugin();
         $lmb->set_config('auth', 'manual');
