@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.1.5
+Version: 2.1.6
 Moodle version: 2.0.6 throught 2.3.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -13,6 +13,11 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 2.1.6
+Option to restore old user grades during re-enrollements.
+Fixed problem where settings may be lost during upgrade from Moodle 1.9.x and below to Moodle 2.x (CONTRIB-3626).
+
 
 Release 2.1.5
 Fixed problem where users may be dropped from cross lists when dropped from one member course (CONTRIB-1728).

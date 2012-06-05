@@ -26,6 +26,7 @@
  */
 require_once('enrollib.php');
 require_once($CFG->dirroot.'/course/lib.php');
+require_once($CFG->libdir.'/gradelib.php');
 
 
 
@@ -2807,6 +2808,9 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($instance = $this->get_instance($courseid)) {
             // TODO catch exceptions thrown.
             $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
+            if ($this->get_config('recovergrades')) {
+                grade_recover_history_grades($userid, $courseid);
+            }
             $logline .= 'enrolled:';
             return true;
         } else {

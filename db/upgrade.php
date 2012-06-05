@@ -467,6 +467,17 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
     }
 
     if ($oldversion < 2011012501) {
+        $config_bad = get_config('enrol/lmb');
+
+        $objarray = get_object_vars($config_bad);
+
+        foreach ($objarray as $key => $val) {
+            if (get_config('enrol_lmb', $key) === false) {
+                set_config($key, $val, 'enrol_lmb');
+            }
+            unset_config($key, 'enrol/lmb');
+        }
+
         // Changing type of field sourcedidsource on table lmb_terms to char.
         $table = new xmldb_table('lmb_terms');
         $field = new xmldb_field('sourcedidsource', XMLDB_TYPE_CHAR, '128', null, null, null, null, 'sourcedid');

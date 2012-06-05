@@ -150,6 +150,7 @@ $string['parseenrolxml'] = 'Parse Enrolment XML';
 $string['assignroles'] = 'Assign Roles';
 $string['unenrolmember'] = 'Unenrol members from course when directed';
 $string['disableenrol'] = 'Disable Enrolments on Drop';
+$string['recovergrades'] = 'Recover olds grades for re-enrolled users';
 
 
 $string['nomessage'] ='No messages received from Luminis Message Broker';
@@ -319,7 +320,7 @@ $string['forceadrhelp'] = 'Always force the users address/city to match the XML,
 $string['parseenrolxmlhelp'] = 'Process enrolment records. Parse Course and Parse Person must be on. When unchecked, records will be completely skipped.';
 $string['unenrolmemberhelp'] = "Unenrol (or 'drop') members from a course when an appropriate XML message is received.";
 $string['disableenrolhelp'] = 'Disable enrolments instead of unenroling them. Prevents possible data loss in some versions and configurations of Moodle when users are dropped and re-added to a course.';
-
+$string['recovergradeshelp'] = 'If users are being re-enrolled in a course, try and recover old grades. This was the standard behaviour in Moodle 1.9.x and below.';
 
 $string['page_lmbstatus'] = 'LMB Status';
 $string['page_importnow'] = 'Process File';

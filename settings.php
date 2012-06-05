@@ -376,8 +376,10 @@ if ($ADMIN->fulltree) {
             get_string('unenrolmemberhelp', 'enrol_lmb'), 0));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/disableenrol', get_string('disableenrol', 'enrol_lmb'),
-            get_string('disableenrolhelp', 'enrol_lmb'), 1));
+            get_string('disableenrolhelp', 'enrol_lmb'), 0));
 
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/recovergrades', get_string('recovergrades', 'enrol_lmb'),
+            get_string('recovergradeshelp', 'enrol_lmb'), 1));
 
 }
 
