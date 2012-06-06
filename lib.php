@@ -2801,6 +2801,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success or failure of the role assignment
      */
     public function lmb_assign_role_log($roleid, $courseid, $userid, &$logline) {
+        $config = $this->get_config();
         if (!$courseid) {
             $logline .= 'missing courseid:';
         }
@@ -2808,7 +2809,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($instance = $this->get_instance($courseid)) {
             // TODO catch exceptions thrown.
             $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
-            if ($this->get_config('recovergrades')) {
+            if ($config->recovergrades) {
                 grade_recover_history_grades($userid, $courseid);
             }
             $logline .= 'enrolled:';
