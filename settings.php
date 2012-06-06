@@ -182,7 +182,7 @@ if ($ADMIN->fulltree) {
     }
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/cathidden', get_string('cathidden', 'enrol_lmb'),
-            get_string('cathiddenhelp', 'enrol_lmb'), 1));
+            get_string('cathiddenhelp', 'enrol_lmb'), 0));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/forcecat', get_string('forcecat', 'enrol_lmb'),
             get_string('forcecathelp', 'enrol_lmb'), 1));

@@ -682,24 +682,6 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2012032901, 'enrol', 'lmb');
     }
 
-    if ($oldversion < 2012033001) {
-        $config = get_config('enrol_lmb');
-
-        if (!isset($config->cathidden)) {
-            set_config('cathidden', 0, 'enrol_lmb');
-        }
-
-        if (!isset($config->computesections)) {
-            set_config('computesections', 0, 'enrol_lmb');
-        }
-
-        if (!isset($config->forcecomputesections)) {
-            set_config('forcecomputesections', 0, 'enrol_lmb');
-        }
-
-        upgrade_plugin_savepoint(true, 2012033001, 'enrol', 'lmb');
-    }
-
     if ($oldversion < 2012033004) {
         $config_bad = get_config('enrol/lmb');
 
