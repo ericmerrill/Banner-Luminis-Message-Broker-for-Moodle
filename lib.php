@@ -495,7 +495,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             return true;
         }
 
-        unset($course);
+        $course = new stdClass();
 
         $status = true;
         $deleted = false;
@@ -554,6 +554,8 @@ class enrol_lmb_plugin extends enrol_plugin {
             $logline .= 'org/orgunit not defined:';
         }
 
+        $cat = new stdClass();
+
         $cat->id = $this->get_category_id($course->term, $course->depttitle, $course->dept, $logline, $status);
 
         // Do the LMB tables check/update!
@@ -583,7 +585,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Do the Course check/update!
 
-        unset($moodlecourse);
+        $moodlecourse = new stdClass();
 
         $moodlecourse->idnumber = $course->sourcedid;
         $moodlecourse->timemodified = time();
@@ -712,7 +714,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         global $CFG, $DB;
         $status = true;
 
-        unset($moodlecourse);
+        $moodlecourse = new stdClass();
 
         $moodlecourse->idnumber = $idnumber;
         $moodlecourse->timemodified = time();
@@ -940,6 +942,8 @@ class enrol_lmb_plugin extends enrol_plugin {
             return $lmbcat->categoryid;
         } else {
             if ($lmbterm = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $term))) {
+                $cat = new stdClass();
+
                 $cat->name = $lmbterm->title;
                 if ($config->cathidden) {
                     $cat->visible = 0;
@@ -1055,6 +1059,9 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $xlists = array();
 
+        $crosssourcedidsource = false;
+        $term = false;
+
         if (preg_match('{<sourcedid>(.+?)</sourcedid>}is', $tagcontents, $matches)) {
             $source = $matches[1];
 
@@ -1092,6 +1099,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             $members = $matches[1];
             foreach ($members as $member) {
                 unset($xlist);
+                $xlist = new stdClass();
 
                 if (preg_match('{<sourcedid>.*?<source>(.+?)</source>.*?</sourcedid>}is', $member, $matches)) {
                     $xlist->coursesourcedidsource = trim($matches[1]);
@@ -1232,6 +1240,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             foreach ($xlists as $xlist) {
                 // Setup the course.
                 unset($moodlecourse);
+                $moodlecourse = new stdClass();
 
                 $enddate = $this->get_crosslist_endtime($xlist->crosslistsourcedid);
                 $params = array('idnumber' => $xlist->crosslistsourcedid);
@@ -1556,6 +1565,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         $deleted = false;
         $logline = 'Person:';
 
+        $person = new stdClass();
+
         // Sourcedid Source.
         if (preg_match('{<sourcedid>.*?<source>(.+?)</source>.*?</sourcedid>}is', $tagcontents, $matches)) {
             $person->sourcedidsource = trim($matches[1]);
@@ -1727,7 +1738,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $recstatus = ($this->get_recstatus($tagcontents, 'person'));
 
-        unset($lmbperson);
+        $lmbperson = new stdClass();
 
         if (isset($person->sourcedid)) {
             $lmbperson->sourcedid = $person->sourcedid;
@@ -1849,7 +1860,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         if (isset($lmbperson->email)) {
             if ($emailallow && $lmbperson->recstatus != 3 && trim($lmbperson->username) != '') {
-                unset($moodleuser);
+                $moodleuser = new stdClass();
 
                 $moodleuser->idnumber = $lmbperson->sourcedid;
 
@@ -2063,6 +2074,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         $status = true;
         $logline = 'Term:';
 
+        $term = new stdClass();
+
         // Sourcedid Source.
         if (preg_match('{<sourcedid>.*?<source>(.+?)</source>.*?</sourcedid>}is', $tagcontents, $matches)) {
             $term->sourcedidsource = trim($matches[1]);
@@ -2183,7 +2196,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $status = true;
         $logline = 'Enrolment:';
-        unset($enrolment);
+        $enrolment = new stdClass();
 
         if (preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
             $enrolment->coursesourcedid = trim($matches[1]);
@@ -2473,49 +2486,26 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Make up an email address for handling bounces.
         if (!empty($CFG->handlebounces)) {
-            $modargs = 'B'.base64_encode(pack('V', $user->id)).substr(md5($user->email), 0, 16);
+            $modargs = 'B'.base64_encode(pack('V', $adminuser->id)).substr(md5($adminuser->email), 0, 16);
             $mail->Sender = generate_email_processing_address(0, $modargs);
         } else {
             $mail->Sender   = $adminuser->email;
         }
 
-        if (is_string($from)) { // So we can pass whatever we want if there is need.
-            $mail->From     = $CFG->noreplyaddress;
-            $mail->FromName = $from;
-        } else if ($usetrueaddress and $from->maildisplay) {
-            $mail->From     = $from->email;
-            $mail->FromName = fullname($from);
-        } else {
-            $mail->From     = $CFG->noreplyaddress;
-            $mail->FromName = fullname($from);
-            if (empty($replyto)) {
-                $mail->AddReplyTo($CFG->noreplyaddress, get_string('noreplyname'));
-            }
+        $mail->From     = $CFG->noreplyaddress;
+        if (empty($replyto)) {
+            $mail->AddReplyTo($CFG->noreplyaddress, get_string('noreplyname'));
         }
 
         if (!empty($replyto)) {
-            $mail->AddReplyTo($replyto, $replytoname);
+            $mail->AddReplyTo($replyto);
         }
 
         $mail->Subject = $subject;
 
         $mail->AddAddress($emailaddress, "" );
 
-            $mail->WordWrap = 79;                               // Set word wrap.
-
-        if (!empty($from->customheaders)) {                 // Add custom headers.
-            if (is_array($from->customheaders)) {
-                foreach ($from->customheaders as $customheader) {
-                    $mail->AddCustomHeader($customheader);
-                }
-            } else {
-                $mail->AddCustomHeader($from->customheaders);
-            }
-        }
-
-        if (!empty($from->priority)) {
-            $mail->Priority = $from->priority;
-        }
+        $mail->WordWrap = 79;                               // Set word wrap.
 
         $mail->IsHTML(false);
         $mail->Body =  "\n$messagetext\n";
