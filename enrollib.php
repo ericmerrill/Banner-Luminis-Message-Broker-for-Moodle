@@ -354,7 +354,7 @@ function enrol_lmb_force_course_to_db($idnumber, $print = false) {
         foreach ($enrols as $enrol) {
             $logline = $enrol->personsourcedid.':';
 
-            $status = $enrolmod->process_enrolment_log($enrol, $logline, $config) && $status;
+            $status = $enrolmod->process_enrolment_log($enrol, $logline) && $status;
 
             $logline .= "<br>\n";
             if ($print) {
