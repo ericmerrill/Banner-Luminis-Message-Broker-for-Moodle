@@ -88,7 +88,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         if ($config->cronxmlfile) {
-            $this->process_xml_file(null, false);
+            $this->process_file(null, false);
         }
 
         // TODO.
