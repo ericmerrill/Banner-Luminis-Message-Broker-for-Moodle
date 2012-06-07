@@ -1188,8 +1188,9 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
         }
 
+        $newxlists = array();
+
         if ($status) {
-            $newxlists = array();
             foreach ($xlists as $xlist) {
                 $xlist->type = $type;
                 $params = array('crosslistsourcedid' => $xlist->crosslistsourcedid, 'coursesourcedid' => $xlist->coursesourcedid);

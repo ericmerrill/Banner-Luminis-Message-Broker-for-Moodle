@@ -34,7 +34,8 @@ $PAGE->set_heading($SITE->fullname);
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(false);
 $PAGE->navbar->add('Admin', null, null, navigation_node::TYPE_CUSTOM, new moodle_url('../../../'.$CFG->admin.'/index.php'));
-$PAGE->navbar->add('LMB', null, null, navigation_node::TYPE_CUSTOM, new moodle_url($CFG->admin.'/settings.php?section=enrolsettingslmb'));
+$PAGE->navbar->add('LMB', null, null, navigation_node::TYPE_CUSTOM,
+        new moodle_url($CFG->admin.'/settings.php?section=enrolsettingslmb'));
 $PAGE->navbar->add('Tools', null, null, navigation_node::TYPE_CUSTOM, new moodle_url('/index.php'));
 
 echo $OUTPUT->header();
