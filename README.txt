@@ -14,6 +14,13 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
+Since 2.1.6
+Fix to cron file processing (CONTRIB-3702, thanks Mark Nielsen)
+Possible problem with crosslist groupings. (CONTRIB-3698, thanks Mark Nielsen)
+Problem during call process_enrolment_log in enrol_lmb_force_course_to_db. (CONTRIB-3699, thanks Mark Nielsen)
+Removed calls to print_header (depreciated). (CONTRIB-3701, thanks Mark Nielsen)
+
+
 Release 2.1.6
 Option to restore old user grades during re-enrollements.
 Fixed problem where settings may be lost during upgrade from Moodle 1.9.x and below to Moodle 2.x (CONTRIB-3626).

@@ -25,8 +25,7 @@ require_once('../enrollib.php');
 
 admin_externalpage_setup('enroltoolreprocess');
 
-print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname);
-
+echo $OUTPUT->header();
 
 @set_time_limit(0);
 

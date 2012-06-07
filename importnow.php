@@ -23,8 +23,7 @@ require_once('lib.php');
 
 admin_externalpage_setup('enroltoolimportfile');
 
-print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname);
-
+echo $OUTPUT->header();
 
 $force = optional_param('force', 0, PARAM_INT);
 

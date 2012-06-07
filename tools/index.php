@@ -28,8 +28,16 @@ $nav[0] = array('name' => 'Admin', 'link' => '../../../'.$CFG->admin.'/index.php
 $nav[1] = array('name' => 'LMB', 'link' => '../../../'.$CFG->admin.'/settings.php?section=enrolsettingslmb', 'type' => '');
 $nav[2] = array('name' => 'Tools', 'link' => './index.php', 'type' => 'title');
 
-print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname,
-              build_navigation($nav));
+
+$PAGE->set_title("$SITE->shortname: ".get_string('enrolments', 'enrol'));
+$PAGE->set_heading($SITE->fullname);
+$PAGE->set_focuscontrol('');
+$PAGE->set_cacheable(false);
+$PAGE->navbar->add('Admin', null, null, navigation_node::TYPE_CUSTOM, new moodle_url('../../../'.$CFG->admin.'/index.php'));
+$PAGE->navbar->add('LMB', null, null, navigation_node::TYPE_CUSTOM, new moodle_url($CFG->admin.'/settings.php?section=enrolsettingslmb'));
+$PAGE->navbar->add('Tools', null, null, navigation_node::TYPE_CUSTOM, new moodle_url('/index.php'));
+
+echo $OUTPUT->header();
 
 echo $OUTPUT->box_start();
 

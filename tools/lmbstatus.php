@@ -23,7 +23,7 @@ require_once('../enrollib.php');
 
 admin_externalpage_setup('enroltoollmbstatus');
 
-print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname);
+echo $OUTPUT->header();
 
 $config = enrol_lmb_get_config();
 

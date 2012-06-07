@@ -23,7 +23,7 @@ require_once('../lib.php');
 
 admin_externalpage_setup('enroltoolprune');
 
-print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname);
+echo $OUTPUT->header();
 
 @set_time_limit(0);
 

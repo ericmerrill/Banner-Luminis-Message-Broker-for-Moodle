@@ -28,7 +28,7 @@ $config = enrol_lmb_get_config();
 $term = null;
 $matches = array();
 
-print_header("$SITE->shortname: ".get_string('enrolments', 'enrol'), $SITE->fullname);
+echo $OUTPUT->header();
 
 echo $OUTPUT->box_start();
 
