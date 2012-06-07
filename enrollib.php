@@ -110,7 +110,7 @@ function enrol_lmb_create_crosslist_group($lmbcrosslist) {
     require_once($CFG->dirroot.'/group/lib.php');
 
     if ($lmbcrosslist->crosslistgroupid) {
-        return $crosslist->crosslistgroupid;
+        return $lmbcrosslist->crosslistgroupid;
     }
 
     if (!$mdlcourse = $DB->get_record('course', array('idnumber' => $lmbcrosslist->crosslistsourcedid))) {
