@@ -1859,6 +1859,8 @@ class enrol_lmb_plugin extends enrol_plugin {
             $firstname = $lmbperson->givenname;
         }
 
+        $newuser = false;
+
         if (isset($lmbperson->email)) {
             if ($emailallow && $lmbperson->recstatus != 3 && trim($lmbperson->username) != '') {
                 $moodleuser = new stdClass();
@@ -1991,6 +1993,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                             if ($id = $DB->insert_record('user', $moodleuser, true)) {
                                 $logline .= "created new user:";
                                 $moodleuser->id = $id;
+                                $newuser = true;
 
                                 $status = $status && $this->restore_user_enrolments($lmbperson->sourcedid);
 
@@ -2005,7 +2008,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
 
                 if ($config->passwordnamesource != 'none') {
-                    if ((!isset($config->forcepassword) || $config->forcepassword) || !isset($oldmoodleuser)) {
+                    if ((!isset($config->forcepassword) || $config->forcepassword) || $newuser) {
                         if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
                             $userauth = get_auth_plugin($user->auth);
                             if ($userauth->can_change_password() && (!$userauth->change_password_url())) {

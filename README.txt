@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.1.6
+Version: 2.1.7
 Moodle version: 2.0.6 throught 2.3.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -14,7 +14,7 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
-Since 2.1.6
+Release 2.1.7
 Add option force password, or set it only on user creation.
 Fix to cron file processing (CONTRIB-3702)
 Possible problem with crosslist groupings. (CONTRIB-3698)
