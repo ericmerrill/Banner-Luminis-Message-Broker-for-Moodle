@@ -117,6 +117,7 @@ $string['useridtypeemail'] = 'useridtype - Email ID';
 $string['useridtypeother'] = 'useridtype - Other:';
 $string['otheruserid'] = 'Other User ID Source';
 $string['otherpassword'] = 'Other Password Source';
+$string['forcepassword'] = 'Force password on update';
 
 $string['ignoreusernamecase'] = 'Ignore username capitalization';
 $string['ignoreemailcase'] = 'Ignore email address capitalization';
@@ -301,6 +302,7 @@ $string['passwordsourcehelp'] = "This determines what will be the password of cr
 <li>useridtype - Other: Use the value supplied in the password field of the userid tag marked as indicated in the text box.
 </ul>";
 $string['otherpasswordhelp'] = '';
+$string['forcepasswordhelp'] = 'When set and when a propper auth type and source are set, the users password is set to the LMB password whenever a message is received. If unchecked, the password will only be set on user creation.';
 $string['nicknamehelp'] = 'If the nickname is included XML, use it instead of the propper name first name.';
 $string['forcenamehelp'] = 'Always force the users name to match the XML, even if it has been manually changed.';
 $string['forceemailhelp'] = 'Always force the users email address to match the XML, even if it has been manually changed.';

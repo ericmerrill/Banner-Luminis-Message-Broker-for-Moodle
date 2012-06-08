@@ -2005,14 +2005,16 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
 
                 if ($config->passwordnamesource != 'none') {
-                    if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
-                        $userauth = get_auth_plugin($user->auth);
-                        if ($userauth->can_change_password() && (!$userauth->change_password_url())) {
-                            // TODO2 - what happens if password is blank?
-                            if (isset($person->password) && ($person->password != '')) {
-                                if (!$userauth->user_update_password($user, $person->password)) {
-                                    $logline .= 'error setting password:';
-                                    $status = false;
+                    if ((!isset($config->forcepassword) || $config->forcepassword) || !isset($oldmoodleuser)) {
+                        if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
+                            $userauth = get_auth_plugin($user->auth);
+                            if ($userauth->can_change_password() && (!$userauth->change_password_url())) {
+                                // TODO2 - what happens if password is blank?
+                                if (isset($person->password) && ($person->password != '')) {
+                                    if (!$userauth->user_update_password($user, $person->password)) {
+                                        $logline .= 'error setting password:';
+                                        $status = false;
+                                    }
                                 }
                             }
                         }

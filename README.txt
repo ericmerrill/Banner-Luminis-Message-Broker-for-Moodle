@@ -15,6 +15,7 @@ RECENT CHANGES
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
 Since 2.1.6
+Add option force password, or set it only on user creation.
 Fix to cron file processing (CONTRIB-3702)
 Possible problem with crosslist groupings. (CONTRIB-3698)
 Problem during call process_enrolment_log in enrol_lmb_force_course_to_db. (CONTRIB-3699)

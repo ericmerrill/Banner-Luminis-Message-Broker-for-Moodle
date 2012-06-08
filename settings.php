@@ -301,6 +301,9 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configtext('enrol_lmb/passworduseridtypeother', get_string('otherpassword', 'enrol_lmb'),
             get_string('otherpasswordhelp', 'enrol_lmb'), ''));
 
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/forcepassword', get_string('forcepassword', 'enrol_lmb'),
+            get_string('forcepasswordhelp', 'enrol_lmb'), 1));
+
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/nickname', get_string('nickname', 'enrol_lmb'),
             get_string('nicknamehelp', 'enrol_lmb'), 0));
 
