@@ -2512,7 +2512,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         $mail->Body =  "\n$messagetext\n";
 
         if ($mail->Send()) {
-            set_send_count($user);
+            set_send_count($adminuser);
             return true;
         } else {
             mtrace('ERROR: '. $mail->ErrorInfo);
