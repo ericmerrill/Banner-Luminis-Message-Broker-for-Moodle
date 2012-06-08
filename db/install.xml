@@ -1,84 +1,94 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="enrol/lmb/db" VERSION="20120329" COMMENT="XMLDB file for Moodle enrol/lmb"
+<XMLDB PATH="enrol/lmb/db" VERSION="20120608" COMMENT="XMLDB file for Moodle enrol/lmb"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
     <TABLE NAME="enrol_lmb_courses" COMMENT="Courses that come from LMB/Banner" NEXT="enrol_lmb_people">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="sourcedid"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="sourcedid"/>
         <FIELD NAME="sourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="Unique id number from Banner/LMB" PREVIOUS="id" NEXT="sourcedidsource"/>
         <FIELD NAME="sourcedidsource" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="sourcedid" NEXT="coursenumber"/>
-        <FIELD NAME="coursenumber" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The course number (crn) for the course" PREVIOUS="sourcedidsource" NEXT="term"/>
+        <FIELD NAME="coursenumber" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The course number (crn) for the course" PREVIOUS="sourcedidsource" NEXT="term"/>
         <FIELD NAME="term" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Banner term code for the course" PREVIOUS="coursenumber" NEXT="longtitle"/>
-        <FIELD NAME="longtitle" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="term" NEXT="fulltitle"/>
-        <FIELD NAME="fulltitle" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" COMMENT="Course title as reported by Banner/LMB" PREVIOUS="longtitle" NEXT="rubric"/>
-        <FIELD NAME="rubric" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The rubric for the course" PREVIOUS="fulltitle" NEXT="dept"/>
-        <FIELD NAME="dept" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" COMMENT="The unit name (Department) reported for the course" PREVIOUS="rubric" NEXT="depttitle"/>
-        <FIELD NAME="depttitle" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" COMMENT="The full department title" PREVIOUS="dept" NEXT="num"/>
-        <FIELD NAME="num" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="depttitle" NEXT="section"/>
-        <FIELD NAME="section" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="num" NEXT="startdate"/>
-        <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The start date of the course" PREVIOUS="section" NEXT="enddate"/>
-        <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="End date of the course" PREVIOUS="startdate" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="enddate"/>
+        <FIELD NAME="longtitle" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="term" NEXT="fulltitle"/>
+        <FIELD NAME="fulltitle" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Course title as reported by Banner/LMB" PREVIOUS="longtitle" NEXT="rubric"/>
+        <FIELD NAME="rubric" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The rubric for the course" PREVIOUS="fulltitle" NEXT="dept"/>
+        <FIELD NAME="dept" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The unit name (Department) reported for the course" PREVIOUS="rubric" NEXT="depttitle"/>
+        <FIELD NAME="depttitle" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The full department title" PREVIOUS="dept" NEXT="num"/>
+        <FIELD NAME="num" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="depttitle" NEXT="section"/>
+        <FIELD NAME="section" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="num" NEXT="startdate"/>
+        <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The start date of the course" PREVIOUS="section" NEXT="enddate"/>
+        <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="End date of the course" PREVIOUS="startdate" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="enddate"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="enrolmbcour_sou_ix" UNIQUE="false" FIELDS="sourcedid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="enrol_lmb_people" COMMENT="People as reported by LMB/Banner" PREVIOUS="enrol_lmb_courses" NEXT="enrol_lmb_enrolments">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="sourcedid"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="sourcedid"/>
         <FIELD NAME="sourcedid" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Unique id number from Banner/LMB" PREVIOUS="id" NEXT="sourcedidsource"/>
-        <FIELD NAME="sourcedidsource" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" COMMENT="The sourcedid source, unique form every other banner system" PREVIOUS="sourcedid" NEXT="fullname"/>
-        <FIELD NAME="fullname" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Full name of person" PREVIOUS="sourcedidsource" NEXT="familyname"/>
-        <FIELD NAME="familyname" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Familty name of person" PREVIOUS="fullname" NEXT="givenname"/>
-        <FIELD NAME="givenname" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Given name of the person" PREVIOUS="familyname" NEXT="nickname"/>
-        <FIELD NAME="nickname" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="givenname" NEXT="email"/>
-        <FIELD NAME="email" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="email address reported" PREVIOUS="nickname" NEXT="username"/>
-        <FIELD NAME="username" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The username to use" PREVIOUS="email" NEXT="telephone"/>
-        <FIELD NAME="telephone" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="telephone number reported" PREVIOUS="username" NEXT="adrstreet"/>
-        <FIELD NAME="adrstreet" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The street address reported" PREVIOUS="telephone" NEXT="locality"/>
-        <FIELD NAME="locality" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="adrstreet" NEXT="region"/>
-        <FIELD NAME="region" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="State/Province" PREVIOUS="locality" NEXT="country"/>
-        <FIELD NAME="country" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="region" NEXT="academicmajor"/>
-        <FIELD NAME="academicmajor" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The users academic major as reported by LMB/Banner" PREVIOUS="country" NEXT="recstatus"/>
-        <FIELD NAME="recstatus" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="The recstatus (3 = delete)" PREVIOUS="academicmajor" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="recstatus"/>
+        <FIELD NAME="sourcedidsource" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The sourcedid source, unique form every other banner system" PREVIOUS="sourcedid" NEXT="fullname"/>
+        <FIELD NAME="fullname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Full name of person" PREVIOUS="sourcedidsource" NEXT="familyname"/>
+        <FIELD NAME="familyname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Familty name of person" PREVIOUS="fullname" NEXT="givenname"/>
+        <FIELD NAME="givenname" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Given name of the person" PREVIOUS="familyname" NEXT="nickname"/>
+        <FIELD NAME="nickname" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="givenname" NEXT="email"/>
+        <FIELD NAME="email" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="email address reported" PREVIOUS="nickname" NEXT="username"/>
+        <FIELD NAME="username" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The username to use" PREVIOUS="email" NEXT="telephone"/>
+        <FIELD NAME="telephone" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="telephone number reported" PREVIOUS="username" NEXT="adrstreet"/>
+        <FIELD NAME="adrstreet" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The street address reported" PREVIOUS="telephone" NEXT="locality"/>
+        <FIELD NAME="locality" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="adrstreet" NEXT="region"/>
+        <FIELD NAME="region" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="State/Province" PREVIOUS="locality" NEXT="country"/>
+        <FIELD NAME="country" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="region" NEXT="academicmajor"/>
+        <FIELD NAME="academicmajor" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The users academic major as reported by LMB/Banner" PREVIOUS="country" NEXT="recstatus"/>
+        <FIELD NAME="recstatus" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The recstatus (3 = delete)" PREVIOUS="academicmajor" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="recstatus"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="enrolmbpeop_sou_ix" UNIQUE="false" FIELDS="sourcedid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="enrol_lmb_enrolments" COMMENT="Enrolments from LMB/Banner" PREVIOUS="enrol_lmb_people" NEXT="enrol_lmb_raw_xml">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="coursesourcedid"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="coursesourcedid"/>
         <FIELD NAME="coursesourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The courses unique identifier" PREVIOUS="id" NEXT="personsourcedid"/>
         <FIELD NAME="personsourcedid" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The persons unique id number" PREVIOUS="coursesourcedid" NEXT="term"/>
         <FIELD NAME="term" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Banner term code for which this enrolment applies" PREVIOUS="personsourcedid" NEXT="role"/>
-        <FIELD NAME="role" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="false" DEFAULT="-1" SEQUENCE="false" COMMENT="The role code for the enrolment" PREVIOUS="term" NEXT="status"/>
-        <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="false" DEFAULT="-1" SEQUENCE="false" COMMENT="The current status of the enrolment" PREVIOUS="role" NEXT="extractstatus"/>
-        <FIELD NAME="extractstatus" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="A status field used to track enrolments from an extract" PREVIOUS="status" NEXT="succeeded"/>
-        <FIELD NAME="succeeded" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="If the enrolment was added to the moodle db properly" PREVIOUS="extractstatus" NEXT="gradable"/>
-        <FIELD NAME="gradable" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if this membership is gradable" PREVIOUS="succeeded" NEXT="midtermgrademode"/>
-        <FIELD NAME="midtermgrademode" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The grade mode for the midterm result" PREVIOUS="gradable" NEXT="midtermsubmitted"/>
-        <FIELD NAME="midtermsubmitted" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if the midterm grade has been submitted" PREVIOUS="midtermgrademode" NEXT="finalgrademode"/>
-        <FIELD NAME="finalgrademode" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The grade mode for the final grade" PREVIOUS="midtermsubmitted" NEXT="finalsubmitted"/>
-        <FIELD NAME="finalsubmitted" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if the final grade has been submitted" PREVIOUS="finalgrademode" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="finalsubmitted"/>
+        <FIELD NAME="role" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="The role code for the enrolment" PREVIOUS="term" NEXT="status"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="The current status of the enrolment" PREVIOUS="role" NEXT="extractstatus"/>
+        <FIELD NAME="extractstatus" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A status field used to track enrolments from an extract" PREVIOUS="status" NEXT="succeeded"/>
+        <FIELD NAME="succeeded" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If the enrolment was added to the moodle db properly" PREVIOUS="extractstatus" NEXT="gradable"/>
+        <FIELD NAME="gradable" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if this membership is gradable" PREVIOUS="succeeded" NEXT="midtermgrademode"/>
+        <FIELD NAME="midtermgrademode" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The grade mode for the midterm result" PREVIOUS="gradable" NEXT="midtermsubmitted"/>
+        <FIELD NAME="midtermsubmitted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if the midterm grade has been submitted" PREVIOUS="midtermgrademode" NEXT="finalgrademode"/>
+        <FIELD NAME="finalgrademode" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The grade mode for the final grade" PREVIOUS="midtermsubmitted" NEXT="finalsubmitted"/>
+        <FIELD NAME="finalsubmitted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if the final grade has been submitted" PREVIOUS="finalgrademode" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="finalsubmitted"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="enrolmbenro_per_ix" UNIQUE="false" FIELDS="personsourcedid" NEXT="enrolmbenro_cou_ix"/>
+        <INDEX NAME="enrolmbenro_cou_ix" UNIQUE="false" FIELDS="coursesourcedid" PREVIOUS="enrolmbenro_per_ix"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="enrol_lmb_raw_xml" COMMENT="A table the stores xml as it was received from LMB" PREVIOUS="enrol_lmb_enrolments" NEXT="enrol_lmb_crosslists">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="headers"/>
-        <FIELD NAME="headers" TYPE="text" LENGTH="medium" NOTNULL="false" SEQUENCE="false" COMMENT="The headers that arrived with the message" PREVIOUS="id" NEXT="xml"/>
-        <FIELD NAME="xml" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" COMMENT="The raw xml" PREVIOUS="headers" NEXT="timereceived"/>
-        <FIELD NAME="timereceived" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time the xml was received" PREVIOUS="xml" NEXT="xmltype"/>
-        <FIELD NAME="xmltype" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The type the xml is (group, person, membership)" PREVIOUS="timereceived" NEXT="processed"/>
-        <FIELD NAME="processed" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="If the xml was process successfully." PREVIOUS="xmltype"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="headers"/>
+        <FIELD NAME="headers" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The headers that arrived with the message" PREVIOUS="id" NEXT="xml"/>
+        <FIELD NAME="xml" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The raw xml" PREVIOUS="headers" NEXT="timereceived"/>
+        <FIELD NAME="timereceived" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time the xml was received" PREVIOUS="xml" NEXT="xmltype"/>
+        <FIELD NAME="xmltype" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The type the xml is (group, person, membership)" PREVIOUS="timereceived" NEXT="processed"/>
+        <FIELD NAME="processed" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If the xml was process successfully." PREVIOUS="xmltype"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
@@ -86,49 +96,60 @@
     </TABLE>
     <TABLE NAME="enrol_lmb_crosslists" COMMENT="A crosslisting lookup table" PREVIOUS="enrol_lmb_raw_xml" NEXT="enrol_lmb_terms">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="coursesourcedidsource"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="coursesourcedidsource"/>
         <FIELD NAME="coursesourcedidsource" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The sourcedid source, unique form every other banner system" PREVIOUS="id" NEXT="coursesourcedid"/>
         <FIELD NAME="coursesourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The course sourcedid" PREVIOUS="coursesourcedidsource" NEXT="crosssourcedidsource"/>
         <FIELD NAME="crosssourcedidsource" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The sourcedid source, unique form every other banner system" PREVIOUS="coursesourcedid" NEXT="crosslistsourcedid"/>
         <FIELD NAME="crosslistsourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The crosslists sourcedid for the course" PREVIOUS="crosssourcedidsource" NEXT="crosslistgroupid"/>
-        <FIELD NAME="crosslistgroupid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="The group id in the crosslisted course" PREVIOUS="crosslistsourcedid" NEXT="status"/>
-        <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="false" DEFAULT="-1" SEQUENCE="false" COMMENT="The current status of the enrolment" PREVIOUS="crosslistgroupid" NEXT="manual"/>
-        <FIELD NAME="manual" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Is a manual XLS" PREVIOUS="status" NEXT="type"/>
+        <FIELD NAME="crosslistgroupid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The group id in the crosslisted course" PREVIOUS="crosslistsourcedid" NEXT="status"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="The current status of the enrolment" PREVIOUS="crosslistgroupid" NEXT="manual"/>
+        <FIELD NAME="manual" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Is a manual XLS" PREVIOUS="status" NEXT="type"/>
         <FIELD NAME="type" TYPE="char" LENGTH="8" NOTNULL="false" SEQUENCE="false" COMMENT="Is this a merged or meta crosslist?" PREVIOUS="manual" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="type"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="type"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="enrolmbcros_cou_ix" UNIQUE="false" FIELDS="coursesourcedid" NEXT="enrolmbcros_cro_ix"/>
+        <INDEX NAME="enrolmbcros_cro_ix" UNIQUE="false" FIELDS="crosslistsourcedid" PREVIOUS="enrolmbcros_cou_ix"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="enrol_lmb_terms" COMMENT="Terms as reported by LMB/Banner" PREVIOUS="enrol_lmb_crosslists" NEXT="enrol_lmb_categories">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="sourcedid"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="sourcedid"/>
         <FIELD NAME="sourcedid" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Banner unique id for the term" PREVIOUS="id" NEXT="sourcedidsource"/>
         <FIELD NAME="sourcedidsource" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="sourcedid" NEXT="title"/>
-        <FIELD NAME="title" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="The title of the term" PREVIOUS="sourcedidsource" NEXT="starttime"/>
-        <FIELD NAME="starttime" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The start time of the term" PREVIOUS="title" NEXT="endtime"/>
-        <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The end time of the term" PREVIOUS="starttime" NEXT="studentshowtime"/>
-        <FIELD NAME="studentshowtime" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time at which the courses for this term should be un-hidden" PREVIOUS="endtime" NEXT="active"/>
-        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 if we should actively listen to this term" PREVIOUS="studentshowtime" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="active"/>
+        <FIELD NAME="title" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The title of the term" PREVIOUS="sourcedidsource" NEXT="starttime"/>
+        <FIELD NAME="starttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The start time of the term" PREVIOUS="title" NEXT="endtime"/>
+        <FIELD NAME="endtime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The end time of the term" PREVIOUS="starttime" NEXT="studentshowtime"/>
+        <FIELD NAME="studentshowtime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time at which the courses for this term should be un-hidden" PREVIOUS="endtime" NEXT="active"/>
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 if we should actively listen to this term" PREVIOUS="studentshowtime" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Default comment for the field, please edit me" PREVIOUS="active"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="enrolmbterm_sou_ix" UNIQUE="false" FIELDS="sourcedid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="enrol_lmb_categories" COMMENT="A table to track categories" PREVIOUS="enrol_lmb_terms">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="termsourcedid"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="termsourcedid"/>
         <FIELD NAME="termsourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="sourcedidsource"/>
         <FIELD NAME="sourcedidsource" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" PREVIOUS="termsourcedid" NEXT="dept"/>
         <FIELD NAME="dept" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="sourcedidsource" NEXT="categoryid"/>
-        <FIELD NAME="categoryid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="dept" NEXT="cattype"/>
+        <FIELD NAME="categoryid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="dept" NEXT="cattype"/>
         <FIELD NAME="cattype" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false" PREVIOUS="categoryid"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="enrolmbcate_ter_ix" UNIQUE="false" FIELDS="termsourcedid" NEXT="enrolmbcate_dep_ix"/>
+        <INDEX NAME="enrolmbcate_dep_ix" UNIQUE="false" FIELDS="dept" PREVIOUS="enrolmbcate_ter_ix"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>

@@ -15,6 +15,7 @@ RECENT CHANGES
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
 Release 2.1.7
+Significant performance increase when processing on large site. Added indexes to common columns.
 Add option force password, or set it only on user creation.
 Fix to cron file processing (CONTRIB-3702)
 Possible problem with crosslist groupings. (CONTRIB-3698)
