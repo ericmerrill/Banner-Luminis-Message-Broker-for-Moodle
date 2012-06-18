@@ -215,6 +215,13 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $this->assertEquals($expected, $result, 'Error in do-not-force user tests');
     }
 
+    public function test_membershiparray_to_xlsmembers() {
+        global $CFG;
+        $this->resetAfterTest(true);
+
+        
+    }
+
     private function clean_user_result($user) {
         if (isset($user->id)) {
             $user->id = 1;

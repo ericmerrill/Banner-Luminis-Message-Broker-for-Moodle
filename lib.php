@@ -42,9 +42,8 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     // The "roles" hard-coded in the Banner XML specification are.
     private $imsroles = array(
-    '01'=>'Learner',
-    '02'=>'Instructor',
-    );
+        '01'=>'Learner',
+        '02'=>'Instructor');
 
     public $silent = false;
     public $islmb = false;
@@ -54,7 +53,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     public function __construct() {
         $this->load_config();
-        $this->logonlyerrors = $this->config->logerrors;
+        $this->logonlyerrors = $this->get_config('logerrors');
     }
 
     /**
@@ -1028,13 +1027,12 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param string $tagcontent the xml contents to process
      * @return bool success or failure of the processing
      */
-    public function process_crosslist_membership_tag($tagcontents) {
+    /*public function process_crosslist_membership_tag($tagcontents) {
         $errorcode = 0;
         $errormessage = '';
 
         return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
-    }
-
+    }*/
 
     /**
      * Processes tags that join courses to a crosslist. Creates the crosslist
@@ -1057,7 +1055,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         $deleted = false;
         $logline = 'Crosslist membership:';
 
-        $xlists = array();
+        /*$xlists = array();
 
         $crosssourcedidsource = false;
         $term = false;
@@ -1082,9 +1080,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $crosslistsourcedid = trim($matches[1]);
                 $logline .= $crosslistsourcedid.':';
 
-                /*if (preg_match('{XLS..?(.{6})$}is', $xlist->crosslistsourcedid, $matches)) {
-                    $term = trim($matches[1]);
-                }*/
+
             }
         }
 
@@ -1224,7 +1220,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                 array_push($newxlists, $xlist);
             }
-        }
+        }*/
 
         $xlists = $newxlists;
 
@@ -1544,10 +1540,36 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     }
 
+    /**
+     * Processes a given person tag, updating or creating a moodle user as
+     * needed.
+     *
+     * @param string $tagconents The raw contents of the XML element
+     * @return bool success of failure of processing the tag
+     */
+    public function process_person_tag($tagcontents) {
+        //TODO check for error
+        //TODO status flags?
+
+        if (!$this->get_config('parsepersonxml')) {
+            $this->log_line_new('Person:skipping.');
+            return true;
+        }
+
+        $this->append_log_line('Person');
+
+        $lmbperson = $this->xml_to_person($tagcontents);//temp
+
+        $moodleuser = $this->person_to_moodleuser($lmbperson);
+
+        return $this->linestatus;
+
+    } // End process_person_tag().
+
     public function xml_to_person($xml) {
         global $DB;
         $person = new stdClass();
-        
+
         $xmlarray = enrol_lmb_xml_to_array($xml);
 
         if (!is_array($xmlarray) || !isset($xmlarray['person']) || !isset($xmlarray['person']['#'])) {
@@ -1889,6 +1911,11 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $this->append_log_line('no changes to make');
                 }
             } else {
+                if ($this->get_config('createnewusers')) {
+                    $this->append_log_line('did not create new user');
+                    return false;
+                }
+
                 // Set some default prefs.
                 if (!isset($CFG->mnet_localhost_id)) {
                     include_once($CFG->dirroot . '/mnet/lib.php');
@@ -1935,26 +1962,23 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                 $moodleuser->country = $CFG->country;
 
-                if ($this->get_config('createnewusers')) {
-                    if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
-                        $this->append_log_line('username collision, could not create user');
-                        $this->linestatus = false;
-                    } else {
-                        if ($id = $DB->insert_record('user', $moodleuser, true)) {
-                            $this->append_log_line("created new user");
-                            $moodleuser->id = $id;
-                            $newuser = true;
-
-                            $this->linestatus = $this->linestatus && $this->restore_user_enrolments($lmbperson->sourcedid);
-
-                        } else {
-                            $this->append_log_line('failed to insert new user');
-                            $this->linestatus = false;
-                        }
-                    }
+                if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
+                    $this->append_log_line('username collision, could not create user');
+                    $this->linestatus = false;
                 } else {
-                    $this->append_log_line('did not create new user');
+                    if ($id = $DB->insert_record('user', $moodleuser, true)) {
+                        $this->append_log_line("created new user");
+                        $moodleuser->id = $id;
+                        $newuser = true;
+
+                        $this->linestatus = $this->linestatus && $this->restore_user_enrolments($lmbperson->sourcedid);
+
+                    } else {
+                        $this->append_log_line('failed to insert new user');
+                        $this->linestatus = false;
+                    }
                 }
+
             }
 
             if ($this->get_config('passwordnamesource') != 'none') {
@@ -1996,33 +2020,6 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         return $moodleuser;
     }
-
-    /**
-     * Processes a given person tag, updating or creating a moodle user as
-     * needed.
-     *
-     * @param string $tagconents The raw contents of the XML element
-     * @return bool success of failure of processing the tag
-     */
-    public function process_person_tag($tagcontents) {
-        //TODO check for error
-        //TODO status flags?
-
-        if (!$this->get_config('parsepersonxml')) {
-            $this->log_line_new('Person:skipping.');
-            return true;
-        }
-
-        $this->append_log_line('Person');
-
-        $lmbperson = $this->xml_to_person($tagcontents);//temp
-
-        $moodleuser = $this->person_to_moodleuser($lmbperson);
-
-        return $this->linestatus;
-
-    } // End process_person_tag().
-
 
     /**
      * Processes a given term tag. Basically just inserting the info
@@ -2112,13 +2109,350 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param string $tagcontents the xml string to process
      * @return bool success or failure of the processing
      */
-    public function process_membership_tag($tagcontents) {
-        $errorcode = 0;
-        $errormessage = '';
+    public function process_membership_tag($xml) {
+        if (!($xmlarray = $this->xml_to_membership($xml))) {
+            return false;
+        }
 
-        return $this->process_membership_tag_error($tagcontents, $errorcode, $errormessage);
+        if (!is_array($xmlarray['membership']['#']['member'])) {
+            return false;
+        }
+
+
+        $sourcedid = $xmlarray['membership']['#']['sourcedid']['0']['#']['id']['0']['#'];
+        $source = $xmlarray['membership']['#']['sourcedid']['0']['#']['source']['0']['#'];
+
+        if ((stripos($sourcedid, 'XLS') === 0) || ($source == 'Plugin Internal')) {
+            if ((!$this->get_config('parsexlsxml')) || (!$this->get_config('parsecoursexml'))) {
+                $this->log_line('Crosslist Group:skipping.');
+                return true;
+            }
+
+            if ($xlsmembers = $this->membershiparray_to_xlsmembers($xmlarray, $sourcedid, $source)) {
+                $this->xlsmembers_to_course($xlsmembers);
+            }
+        } else {
+            if ($members = $this->membershiparray_to_members($xmlarray)) {
+                
+            }
+        }
+
+        /*$members = $xmlarray['membership']['#']['member'];
+
+        foreach ($members as $member) {
+            if ($crosslist) {
+                if ($xlsmember = $this->membership_to_xlsmembers($sourceid, $source, $xmlarray)) {
+                    $this->member_to_crosslist($xlsmember);
+                }
+            } else {
+                if ($member = $this->membership_to_member($sourceid, $source, $xmlarray)) {
+                    $this->member_to_enrol($member);
+                }
+            }
+        }*/
+
     }
 
+    public function membershiparray_to_xlsmembers($xmlarray, $sourcedid = null, $source = null) {
+        global $DB;
+
+        $this->append_log_line('Crosslist membership');
+
+        if (!$source) {
+            if (!isset($xmlarray['membership']['#']['sourcedid']['0']['#']['source']['0']['#'])) {
+                $this->append_log_line('No source found');
+                $this->status = false;
+                return false;
+            }
+            $source = $xmlarray['membership']['#']['sourcedid']['0']['#']['source']['0']['#'];
+        }
+
+        if (!$sourcedid) {
+            if (isset($xmlarray['membership']['#']['sourcedid']['0']['#']['id']['0']['#'])) {
+                $sourcedid = $xmlarray['membership']['#']['sourcedid']['0']['#']['id']['0']['#'];
+            } else if ($source == 'Plugin Internal') {
+                // TODO Get and append term...
+                $sourcedid = enrol_lmb_create_new_crosslistid();
+                $this->append_log_line('Generated '.$sourcedid);
+            } else {
+                $this->append_log_line('No sourcedid found');
+                $this->status = false;
+                return false;
+            }
+        }
+
+        if (isset($xmlarray['membership']['#']['type']['0']['#'])) {
+            $type = $xmlarray['membership']['#']['type']['0']['#'];
+        } else {
+            $type = $this->get_config('xlstype');
+        }
+
+        $params = array('crosslistsourcedid' => $sourcedid);
+        if ($existing_xlists = $DB->get_records('enrol_lmb_crosslists', $params)) {
+            foreach ($existing_xlists as $existing_xlist) {
+                if (isset($existing_type)) {
+                    if ($existing_type != $existing_xlist->type) {
+                        $logline .= 'type mismatch with existing members:';
+                        $errormessage = 'Other existing members of this xlist are of a different type';
+                        $errorcode = 4;
+                        $status = false;
+                    }
+                } else {
+                    $existing_type = $existing_xlist->type;
+                }
+            }
+        }
+
+        if (isset($existing_type) && $existing_type != $type) {
+            $this->append_log_line('xlist type '.$existing_type.' already in use:');
+            $type = $existing_type;
+        }
+
+        if (!isset($xmlarray['membership']['#']['member']) || !is_array($xmlarray['membership']['#']['member'])) {
+            $this->append_log_line('No members found');
+            $this->status = false;
+            return false;
+        }
+
+        $memberships = $xmlarray['membership']['#']['member'];
+
+        $members = array();
+        foreach ($memberships as $membership) {
+            if ($member = $this->membership_to_xlsmember($membership['#'], $sourcedid, $source, $type)) {
+                $members[] = $member;
+            }
+        }
+        
+        print_r($members); // TODO.
+        return $members;
+    }
+
+    // TODO special error messages.
+    public function membership_to_xlsmember($xmlarray, $sourcedid, $source, $type = false) {
+        global $DB;
+
+        $this->append_log_line('Crosslist member');
+
+        if (!$type) {
+            $type = $this->get_config('xlstype');
+        }
+
+        $member = new stdClass();
+        $member->crosslistsourcedid = $sourcedid;
+        $member->crosssourcedidsource = $source;
+        $member->type = $type;
+
+        if (isset($xmlarray['sourcedid']['0']['#']['source']['0']['#'])) {
+            $member->coursesourcedidsource = $xmlarray['sourcedid']['0']['#']['source']['0']['#'];
+        } else {
+            $this->append_log_line('Course source not found');
+            return false;
+        }
+
+        if (isset($xmlarray['sourcedid']['0']['#']['id']['0']['#'])) {
+            $member->coursesourcedid = $xmlarray['sourcedid']['0']['#']['id']['0']['#'];
+        } else {
+            $this->append_log_line('Course ID not found');
+            return false;
+        }
+
+        if (isset($xmlarray['person']['@']['recstatus'])) {
+            $recstatus = $xmlarray['person']['@']['recstatus'];
+        } else {
+            $recstatus = 0;
+        }
+
+        if ($recstatus == 3) {
+            $member->status = 0;
+        } else {
+            if (isset($xmlarray['role']['0']['#']['status']['0']['#'])) {
+                $member->status = $xmlarray['role']['0']['#']['status']['0']['#'];
+            }
+            $member->status = 1;
+        }
+
+        /*$parts = explode('.', $member->coursesourcedid);
+        $term = $parts[1];*/
+
+        $member->timemodified = time();
+
+        $params = array('status' => 1, 'coursesourcedid' => $member->coursesourcedid, 'type' => 'merge');
+        if ($oldmember = $DB->get_record('enrol_lmb_crosslists', $params)) {
+            if (($oldmember->crosslistsourcedid != $member->crosslistsourcedid) ) {
+                $this->append_log_line($member->coursesourcedid.' is already in xlist '.$oldmember->crosslistsourcedid);
+                return false;
+                $errorcode = 3; // TODO.
+                $errormessage = $member->coursesourcedid.' is already in xlist '.$oldmember->crosslistsourcedid;
+            }
+        }
+        if ($member->type == 'merge') {
+            $params = array('coursesourcedid' => $member->coursesourcedid, 'type' => 'meta');
+            if ($oldmember = $DB->get_record('enrol_lmb_crosslists', $params)) {
+                $this->append_log_line(' is already in xlist '.$oldxlist->crosslistsourcedid);
+                return false;
+                $errormessage = $member->coursesourcedid.' is already in xlist '.$oldmember->crosslistsourcedid;
+                $errorcode = 3; // TODO.
+            }
+        }
+
+        $params = array('crosslistsourcedid' => $member->crosslistsourcedid, 'coursesourcedid' => $member->coursesourcedid);
+        if ($oldmember = $DB->get_record('enrol_lmb_crosslists', $params)) {
+            $member->id = $oldmember->id;
+            if (enrol_lmb_compare_objects($member, $oldmember)) {
+                if ($DB->update_record('enrol_lmb_crosslists', $member)) {
+                    //$xlist->newrecord = 1;
+                    $this->append_log_line('lmb updated');
+                } else {
+                    $status = false;
+                    $this->append_log_line('failed to update lmb');
+                    return false;
+                    $errormessage = 'Failed when updating LMB record';
+                    $errorcode = 6; // TODO.
+                }
+            } else {
+                $this->append_log_line('no lmb changes to make');
+            }
+        } else {
+            if ($member->id = $DB->insert_record('enrol_lmb_crosslists', $member, true)) {
+                $this->append_log_line('lmb inserted');
+                $member->newrecord = 1;
+            } else {
+                $status = false;
+                $this->append_log_line('failed to insert lmb');
+                return false;
+                $errormessage = 'Failed when inserting LMB record';
+                $errorcode = 6; // TODO.
+            }
+        }
+
+        return $member;
+    }
+
+    public function xlsmembers_to_course($xlsmembers) {
+        if (!$xlsmembers) {
+            return false;
+        }
+
+        if (!is_array($xlsmembers)) {
+            $xlsmembers = array($xlsmembers);
+        }
+
+        foreach ($xlsmembers as $xlsmember) {
+            $this->xlsmember_to_course($xlsmember);
+        }
+    }
+
+    public function xlsmember_to_course($xlsmember) {
+        if ($xlsmember->type == 'meta') {
+            $meta = true;
+        } else {
+            $meta = false;
+        }
+
+        // TODO get term.
+        // TODO make new get_cat.
+        $catid = $this->get_category_id($term, 'Crosslisted', 'XLS', $logline, $status);
+
+        $moodlecourse = new stdClass();
+
+        $enddate = $this->get_crosslist_endtime($xlsmember->crosslistsourcedid);
+        $params = array('idnumber' => $xlsmember->crosslistsourcedid);
+        if (!$moodlecourse->id = $DB->get_field('course', 'id', $params)) {
+            $starttime = $this->get_crosslist_starttime($xlsmember->crosslistsourcedid);
+            $moodlecourse->id = $this->create_shell_course($xlist->crosslistsourcedid, 'Crosslisted Course',
+                                        $xlsmember->crosslistsourcedid, $catid,
+                                        $logline, $status, $meta, $starttime, $enddate);
+            if (!$moodlecourse->id) {
+                $this->append_log_line('Could not create course');
+                $this->status = false;
+                return false;
+            }
+        }
+
+        $moodlecourse->fullname = $this->expand_crosslist_title($xlist->crosslistsourcedid, $this->get_config('xlstitle'),
+                $this->get_config('xlstitlerepeat'), $this->get_config('xlstitledivider'));
+
+        $moodlecourse->shortname = $this->expand_crosslist_title($xlist->crosslistsourcedid, $this->get_config('xlsshorttitle'),
+                $this->get_config('xlsshorttitlerepeat'), $this->get_config('xlsshorttitledivider'));
+
+        // TODO We should recompute the hidden status if this changes.
+        $moodlecourse->startdate = $this->get_crosslist_starttime($xlsmember->crosslistsourcedid);
+
+        if ($this->get_config('forcecomputesections') && $this->get_config('computesections')) {
+            $moodlecourseconfig = get_config('moodlecourse');
+
+            $length = $enddate - $moodlecourse->startdate;
+
+            $length = ceil(($length/(24*3600)/7));
+
+            if (($length > 0) && ($length <= $moodlecourseconfig->maxsections)) {
+                $moodlecourse->numsections = $length;
+            }
+        }
+
+        if ($DB->update_record('course', $moodlecourse)) {
+            $this->append_log_line('set course name');
+        } else {
+            $this->append_log_line('error setting course name');
+            $this->status = false;
+            //$errormessage = 'Failed when updating course record';
+            //$errorcode = 7; // TODO.
+            //$status = false;
+        }
+        /*} else if ($status) {
+            $logline .= 'no course id for name update:';
+            $errormessage = 'No moodle course found';
+            $errorcode = 8; // TODO.
+            $status = false;
+        }*/
+
+        if ($meta) {
+            if ($addid = $DB->get_field('course', 'id', array('idnumber' => $xlsmember->coursesourcedid))) {
+                if ($xlist->status) {
+                    if (!$this->add_to_metacourse($moodlecourse->id, $addid)) {
+                        $this->append_log_line('could not join course to meta course');
+                        $this->status = false;
+                        /*$status = false;
+                        $errormessage = 'Error adding course '.$xlist->coursesourcedid.' to metacourse';
+                        $errorcode = 9;*/
+                    }
+                } else {
+                    if (!$this->remove_from_metacourse($moodlecourse->id, $addid)) {
+                        $this->append_log_line('could not unjoin course from meta course');
+                        $this->status = false;
+                        /*$status = false;
+                        $errormessage = 'Error removing course '.$xlist->coursesourcedid.' from metacourse';
+                        $errorcode = 9;*/
+                    }
+                }
+            }
+        } else {
+            if ($newrecord) {
+
+            } else {
+
+            }
+        }
+
+    }
+
+    public function membershiparray_to_members($xmlarray) {
+        
+    }
+
+    public function xml_to_membership($xml) {
+        $xmlarray = enrol_lmb_xml_to_array($xml);
+
+        if (!isset($xmlarray['membership']['#']['sourcedid']['0']['#']['source']['0']['#'])) {
+            return false;
+        }
+
+        if (!isset($xmlarray['membership']['#']['member'])) {
+            return false;
+        }
+
+        return $xmlarray;
+    }
 
     /**
      * Process the membership tag. Sends the tag onto the appropriate tag processor
@@ -2780,7 +3114,6 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success or failure of the role assignment
      */
     public function lmb_assign_role_log($roleid, $courseid, $userid, &$logline) {
-        $config = $this->get_config();
         if (!$courseid) {
             $logline .= 'missing courseid:';
         }
@@ -2788,7 +3121,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($instance = $this->get_instance($courseid)) {
             // TODO catch exceptions thrown.
             $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
-            if ($config->recovergrades) {
+            if ($this->get_config('recovergrades', 1)) {
                 grade_recover_history_grades($userid, $courseid);
             }
             $logline .= 'enrolled:';
