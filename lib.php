@@ -2109,7 +2109,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param string $tagcontents the xml string to process
      * @return bool success or failure of the processing
      */
-    public function process_membership_tag($xml) {
+    public function process_membership_tag($xml) { // NEW.
         if (!($xmlarray = $this->xml_to_membership($xml))) {
             return false;
         }
@@ -2118,11 +2118,10 @@ class enrol_lmb_plugin extends enrol_plugin {
             return false;
         }
 
-
         $sourcedid = $xmlarray['membership']['#']['sourcedid']['0']['#']['id']['0']['#'];
         $source = $xmlarray['membership']['#']['sourcedid']['0']['#']['source']['0']['#'];
 
-        if ((stripos($sourcedid, 'XLS') === 0) || ($source == 'Plugin Internal')) {
+        if ((stripos($sourcedid, 'XLS') === 0) || ($source == 'Plugin Internal')) { // Crosslist.
             if ((!$this->get_config('parsexlsxml')) || (!$this->get_config('parsecoursexml'))) {
                 $this->log_line('Crosslist Group:skipping.');
                 return true;
@@ -2131,7 +2130,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             if ($xlsmembers = $this->membershiparray_to_xlsmembers($xmlarray, $sourcedid, $source)) {
                 $this->xlsmembers_to_course($xlsmembers);
             }
-        } else {
+        } else { // Enrolment.
             if ($members = $this->membershiparray_to_members($xmlarray)) {
                 
             }
@@ -2153,7 +2152,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     }
 
-    public function membershiparray_to_xlsmembers($xmlarray, $sourcedid = null, $source = null) {
+    public function membershiparray_to_xlsmembers($xmlarray, $sourcedid = null, $source = null) { // NEW.
         global $DB;
 
         $this->append_log_line('Crosslist membership');
@@ -2228,7 +2227,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     }
 
     // TODO special error messages.
-    public function membership_to_xlsmember($xmlarray, $sourcedid, $source, $type = false) {
+    public function membership_to_xlsmember($xmlarray, $sourcedid, $source, $type = false) { // NEW.
         global $DB;
 
         $this->append_log_line('Crosslist member');
@@ -2328,7 +2327,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $member;
     }
 
-    public function xlsmembers_to_course($xlsmembers) {
+    public function xlsmembers_to_course($xlsmembers) { // NEW.
         if (!$xlsmembers) {
             return false;
         }
@@ -2342,7 +2341,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     }
 
-    public function xlsmember_to_course($xlsmember) {
+    public function xlsmember_to_course($xlsmember) { // NEW.
         if ($xlsmember->type == 'meta') {
             $meta = true;
         } else {
@@ -2436,11 +2435,12 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     }
 
-    public function membershiparray_to_members($xmlarray) {
+    // Enrollments.
+    public function membershiparray_to_members($xmlarray) { // NEW.
         
     }
 
-    public function xml_to_membership($xml) {
+    public function xml_to_membership($xml) { // NEW.
         $xmlarray = enrol_lmb_xml_to_array($xml);
 
         if (!isset($xmlarray['membership']['#']['sourcedid']['0']['#']['source']['0']['#'])) {
