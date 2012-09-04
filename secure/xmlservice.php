@@ -58,7 +58,7 @@ $xmlstorage = new stdClass();
 $xmlstorage->headers = $headers;
 $xmlstorage->timereceived = time();
 $xmlstorage->xml = $xml;
-$xmlstorage->id = insert_record('enrol_lmb_raw_xml_test', $xmlstorage);
+$xmlstorage->id = $DB->insert_record('enrol_lmb_raw_xml', $xmlstorage);
 
 $errornum = 0;
 $errormessage = '';
