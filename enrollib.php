@@ -99,7 +99,7 @@ function enrol_lmb_get_crosslist_groupid($coursesourcedid, $crosslistsourcedid =
         }
     }
 
-    if ($crosslist->crosslistgroupid) {
+    if ($crosslist->crosslistgroupid && groups_group_exists($crosslist->crosslistgroupid)) {
         return $crosslist->crosslistgroupid;
     }
     return enrol_lmb_create_crosslist_group($crosslist);
@@ -110,7 +110,7 @@ function enrol_lmb_create_crosslist_group($lmbcrosslist) {
     global $CFG, $DB;
     require_once($CFG->dirroot.'/group/lib.php');
 
-    if ($lmbcrosslist->crosslistgroupid) {
+    if ($lmbcrosslist->crosslistgroupid && groups_group_exists($lmbcrosslist->crosslistgroupid)) {
         return $lmbcrosslist->crosslistgroupid;
     }
 

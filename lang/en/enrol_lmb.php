@@ -335,3 +335,8 @@ $string['page_reprocessenrolments'] = 'Reprocess Enrolments';
 $string['page_prunelmbtables'] = 'Prune Tables';
 $string['page_cleanxlsdrops'] = 'Clean XLS Drops';
 $string['tools'] = 'Tools';
+
+$string['lmb:enrol'] = 'Enrol users';
+$string['lmb:unenrol'] = 'Unenrol users from the course';
+$string['lmb:unenrolself'] = 'Unenrol self from the course';
+$string['lmb:manage'] = 'Manage user enrolments';
