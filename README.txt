@@ -19,6 +19,7 @@ Fix enrol_lmb_plugin->get_config to meet E_STRICT requirements.
 Fixed flaw in logic for dropping users from crosslists (and when crosslists are removed) (CONTRIB-3913).
 Added tool to cleanup the incorrectly dropped crosslists.
 Grades are only recovered if the user is not already installed. Significantly improves bulk import times.
+Added custom field mapping. Map XML data to a user custom field. (CONTRIB-3618 - Thanks to Charles Fulton!)
 
 
 Release 2.1.7

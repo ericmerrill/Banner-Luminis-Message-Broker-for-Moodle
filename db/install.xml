@@ -45,8 +45,9 @@
         <FIELD NAME="locality" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="adrstreet" NEXT="region"/>
         <FIELD NAME="region" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="State/Province" PREVIOUS="locality" NEXT="country"/>
         <FIELD NAME="country" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="region" NEXT="academicmajor"/>
-        <FIELD NAME="academicmajor" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The users academic major as reported by LMB/Banner" PREVIOUS="country" NEXT="recstatus"/>
-        <FIELD NAME="recstatus" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The recstatus (3 = delete)" PREVIOUS="academicmajor" NEXT="timemodified"/>
+        <FIELD NAME="academicmajor" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The users academic major as reported by LMB/Banner" PREVIOUS="country" NEXT="customfield1"/>
+        <FIELD NAME="customfield1" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="User-defined custom field" PREVIOUS="academicmajor" NEXT="recstatus"/>
+        <FIELD NAME="recstatus" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The recstatus (3 = delete)" PREVIOUS="customfield1" NEXT="timemodified"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="recstatus"/>
       </FIELDS>
       <KEYS>

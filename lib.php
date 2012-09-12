@@ -47,6 +47,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public $processid = 0;
     private $terms = array();
 
+    private $customfields = array();
 
     /**
      * This public function is only used when first setting up the plugin, to
@@ -226,7 +227,8 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $filetime = filemtime($filename);
 
-        if (!$folderprocess && ($this->get_config('xmlfiletime') !== null) && ($this->get_config('xmlfiletime') >= $filetime) && !$force) {
+        if (!$folderprocess && ($this->get_config('xmlfiletime') !== null)
+                && ($this->get_config('xmlfiletime') >= $filetime) && !$force) {
             return;
         }
 
@@ -1234,11 +1236,13 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
 
                 if ($status && $moodlecourse->id) {
-                    $moodlecourse->fullname = $this->expand_crosslist_title($xlist->crosslistsourcedid, $this->get_config('xlstitle'),
-                            $this->get_config('xlstitlerepeat'), $this->get_config('xlstitledivider'));
+                    $moodlecourse->fullname = $this->expand_crosslist_title($xlist->crosslistsourcedid,
+                            $this->get_config('xlstitle'), $this->get_config('xlstitlerepeat'),
+                            $this->get_config('xlstitledivider'));
 
-                    $moodlecourse->shortname = $this->expand_crosslist_title($xlist->crosslistsourcedid, $this->get_config('xlsshorttitle'),
-                            $this->get_config('xlsshorttitlerepeat'), $this->get_config('xlsshorttitledivider'));
+                    $moodlecourse->shortname = $this->expand_crosslist_title($xlist->crosslistsourcedid,
+                            $this->get_config('xlsshorttitle'), $this->get_config('xlsshorttitlerepeat'),
+                            $this->get_config('xlsshorttitledivider'));
 
                     // TODO We should recompute the hidden status if this changes.
                     $moodlecourse->startdate = $this->get_crosslist_starttime($xlist->crosslistsourcedid);
@@ -1678,6 +1682,27 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $person->auth = $this->get_config('auth');
 
+        // Custom field mapping.
+        if ($this->get_config('customfield1mapping')) {
+            switch($this->get_config('customfield1source')) {
+                case "loginid":
+                    if (preg_match('{<userid.+?useridtype *= *"Logon ID".*?\>(.+?)</userid>}is', $tagcontents, $matches)) {
+                        $person->customfield1 = trim($matches[1]);
+                    }
+                    break;
+                case "sctid":
+                    if (preg_match('{<userid.+?useridtype *= *"SCTID".*?\>(.+?)</userid>}is', $tagcontents, $matches)) {
+                        $person->customfield1 = trim($matches[1]);
+                    }
+                    break;
+                case "emailid":
+                    if (preg_match('{<userid.+?useridtype *= *"Email ID".*?\>(.+?)</userid>}is', $tagcontents, $matches)) {
+                        $person->customfield1 = trim($matches[1]);
+                    }
+                    break;
+            }
+        }
+
         // Select the password.
         switch ($this->get_config('passwordnamesource')) {
             case "none":
@@ -1705,7 +1730,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                 break;
 
             case "other":
-                $exp = '{<userid.+?useridtype *= *"'.$this->get_config('useridtypeother').'".+?password *= *"(.*?)">.+?</userid>}is';
+                $exp = '{<userid.+?useridtype *= *"'.$this->get_config('useridtypeother')
+                        .'".+?password *= *"(.*?)">.+?</userid>}is';
                 if (preg_match($exp, $tagcontents, $matches)) {
                     $person->password = trim($matches[1]);
                 }
@@ -1762,6 +1788,11 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
         if (isset($person->academicmajor)) {
             $lmbperson->academicmajor = $person->academicmajor;
+        }
+        if (isset($person->customfield1)) {
+            $lmbperson->customfield1 = $person->customfield1;
+        } else {
+            $lmbperson->customfield1 = null;
         }
         $lmbperson->recstatus = $recstatus;
 
@@ -1898,14 +1929,22 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $moodleuser->address = '';
                     }
 
-                    if (enrol_lmb_compare_objects($moodleuser, $oldmoodleuser)) {
+                    if (enrol_lmb_compare_objects($moodleuser, $oldmoodleuser) || ($this->get_config('customfield1mapping')
+                            && ($this->compare_custom_mapping($moodleuser->id, $lmbperson->customfield1,
+                            $this->get_config('customfield1mapping'))))) {
+
                         if (($oldmoodleuser->username != $moodleuser->username)
                                 && ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username)))) {
                             $logline .= 'username collision while trying to update:';
                             $status = false;
                         } else {
-                            if ($id = $DB->update_record('user', $moodleuser)) {
+                            if ($DB->update_record('user', $moodleuser)) {
                                 $logline .= 'updated user:';
+                                // Update custom fields.
+                                if ($this->get_config('customfield1mapping')) {
+                                    $this->update_custom_mapping($moodleuser->id, $lmbperson->customfield1,
+                                        $this->get_config('customfield1mapping'));
+                                }
                             } else {
                                 $logline .= 'failed to update user:';
                                 $status = false;
@@ -1972,6 +2011,10 @@ class enrol_lmb_plugin extends enrol_plugin {
                         } else {
                             if ($id = $DB->insert_record('user', $moodleuser, true)) {
                                 $logline .= "created new user:";
+                                if (isset($lmbperson->customfield1)) {
+                                    $this->update_custom_mapping($id, $lmbperson->customfield1,
+                                            $this->get_config('customfield1mapping'));
+                                }
                                 $moodleuser->id = $id;
                                 $newuser = true;
 
@@ -2171,7 +2214,8 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_person_membership_tag($tagcontents) {
         global $DB;
 
-        if ((!$this->get_config('parsepersonxml')) || (!$this->get_config('parsecoursexml')) || (!$this->get_config('parsepersonxml'))) {
+        if ((!$this->get_config('parsepersonxml')) || (!$this->get_config('parsecoursexml'))
+                || (!$this->get_config('parsepersonxml'))) {
             $this->log_line('Enrolment:skipping.');
             return true;
         }
@@ -2357,7 +2401,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function open_log_file () {
         $this->logfp = false; // File pointer for writing log data to.
-        if ($this->get_config('logtolocation') === NULL) {
+        if ($this->get_config('logtolocation') === null) {
             $this->logfp = fopen($this->get_config('logtolocation'), 'a');
         }
     }
@@ -2378,9 +2422,11 @@ class enrol_lmb_plugin extends enrol_plugin {
             $lasttime = $this->get_config('lastlmbmessagetime');
 
             $starttime = make_timestamp(date("Y"), date("m"), date("d"),
-                    ( $this->get_config('startbiztimehr') ? $this->get_config('startbiztimehr') : 9), $this->get_config('startbiztimemin'));
+                    ( $this->get_config('startbiztimehr') ? $this->get_config('startbiztimehr') : 9),
+                    $this->get_config('startbiztimemin'));
             $endtime = make_timestamp(date("Y"), date("m"), date("d"),
-                    ( $this->get_config('endbiztimehr') ? $this->get_config('endbiztimehr') : 9), $this->get_config('endbiztimemin'));
+                    ( $this->get_config('endbiztimehr') ? $this->get_config('endbiztimehr') : 9),
+                    $this->get_config('endbiztimemin'));
 
             $currenttime = time();
 
@@ -2629,28 +2675,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $status;
     }
 
-
-    /**
-     * Returns the config object. Uses a cache so that the object only has to
-     * be loaded from the database once.
-     *
-     * @param bool $flush if true, flush and reload the cache from the db
-     * @return object an object that contains all of the plugin config options
-     */
-/*
-    public function get_config($flush = false) {
-        if ($flush || (!isset($configcache) || !$configcache)) {
-            if (isset($configcache)) {
-                unset($configcache);
-            }
-            $configcache = enrol_lmb_get_config();
-        }
-
-        return $configcache;
-    }
-*/
-
-
     /**
      * Processes an enrol object, executing the associated assign or
      * unassign and update the lmb entry for success or failure
@@ -2772,7 +2796,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             if ($this->get_config('recovergrades')) {
                 $wasenrolled = is_enrolled(context_course::instance($courseid), $userid);
             }
-            
+
             // TODO catch exceptions thrown.
             $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
             if ($this->get_config('recovergrades') && !$wasenrolled) {
@@ -2845,5 +2869,74 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $instance;
     }
 
+    /**
+     * Loads the custom user profile field from the database.
+     * This is cached.
+     * Returns stdClass on success or false on failure.
+     *
+     * @param string $shortname
+     * @param boolean $flush
+     * @return mixed
+     */
+    private function load_custom_mapping($shortname, $flush=false) {
+        global $DB;
+        if (!isset($this->customfields[$shortname]) || $flush) {
+            $this->customfields[$shortname] = $DB->get_record('user_info_field', array('shortname' => $shortname));
+        }
+        return $this->customfields[$shortname];
+    }
+
+    /**
+     * This is a stripped down version of edit_save_data() from /user/profile/lib.php
+     *
+     * @param int userid
+     * @param string custom field value
+     * @param string custom field shortname
+     * @return void
+     */
+    private function update_custom_mapping($userid, $value, $mapping) {
+        global $DB;
+
+        $profile = $this->load_custom_mapping($mapping);
+        if ($profile === false) {
+            return;
+        }
+
+        $data = new stdClass();
+        $data->userid  = $userid;
+        $data->fieldid = $profile->id;
+        if ($value) {
+            $data->data = $value;
+        } else {
+            $data->data = '';
+        }
+
+        if ($dataid = $DB->get_field('user_info_data', 'id', array('userid' => $data->userid, 'fieldid' => $data->fieldid))) {
+            $data->id = $dataid;
+            $DB->update_record('user_info_data', $data);
+        } else {
+            $DB->insert_record('user_info_data', $data);
+        }
+    }
+
+    /**
+     * Compares the custfield value with the one stored.
+     *
+     * @param int $userid The matching userid
+     * @param string $value The new custom field value
+     * @param string $mapping custom field shortname
+     * @return bool True for mismatch, false for match
+     */
+    private function compare_custom_mapping($userid, $value, $mapping) {
+        global $DB;
+
+        $profile = $this->load_custom_mapping($mapping);
+        if ($profile === false) {
+            return false;
+        }
+
+        $data = $DB->get_field('user_info_data', 'data', array('userid' => $userid, 'fieldid' => $profile->id));
+        return (!($data == $value));
+    }
 } // End of class.
 

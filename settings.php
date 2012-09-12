@@ -279,6 +279,12 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/consolidateusernames',
             get_string('consolidateusers', 'enrol_lmb'), get_string('consolidateusershelp', 'enrol_lmb'), 1));
 
+    $settingslmb->add(new admin_setting_configtext('enrol_lmb/customfield1mapping', get_string('customfield1mapping', 'enrol_lmb'),
+            get_string('customfield1help', 'enrol_lmb'), ''));
+
+    $settingslmb->add(new admin_setting_configselect('enrol_lmb/customfield1source', get_string('customfield1source', 'enrol_lmb'),
+            get_string('customfield1sourcehelp', 'enrol_lmb'), '', $options));
+
     unset($options);
     $modules = get_plugin_list('auth');
     $options = array();
