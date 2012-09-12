@@ -642,7 +642,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         if ($status && !$deleted) {
-            if (!$config->logerrors) {
+            if (!$this->get_config('logerrors')) {
                 $this->log_line($logline.'complete');
             }
         } else {
@@ -734,7 +734,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Set some preferences.
         $moodlecourseconfig = get_config('moodlecourse');
-        if ($config->usemoodlecoursesettings && ($moodlecourseconfig)) {
+        if ($this->get_config('usemoodlecoursesettings') && ($moodlecourseconfig)) {
             $logline .= 'Using default Moodle settings:';
             $moodlecourse->format                   = $moodlecourseconfig->format;
             $moodlecourse->numsections              = $moodlecourseconfig->numsections;
@@ -2357,7 +2357,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function open_log_file () {
         $this->logfp = false; // File pointer for writing log data to.
-        if (!empty($this->get_config('logtolocation'))) {
+        if ($this->get_config('logtolocation') === NULL) {
             $this->logfp = fopen($this->get_config('logtolocation'), 'a');
         }
     }
@@ -2554,7 +2554,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $cperc = (int)floor(($curr/$count)*100);
                     if ($cperc > $percent) {
                         $percent = $cperc;
-                        if (isset($this->get_config('logpercent')) && $this->get_config('logpercent')) {
+                        if ($this->get_config('logpercent')) {
                             $this->log_line($percent.'% complete');
                         }
                     }

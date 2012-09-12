@@ -329,4 +329,5 @@ $string['page_importnow'] = 'Process File';
 $string['page_extractprocess'] = 'Process Extract';
 $string['page_reprocessenrolments'] = 'Reprocess Enrolments';
 $string['page_prunelmbtables'] = 'Prune Tables';
+$string['page_cleanxlsdrops'] = 'Clean XLS Drops';
 $string['tools'] = 'Tools';

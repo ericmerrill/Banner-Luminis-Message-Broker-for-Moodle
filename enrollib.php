@@ -72,7 +72,8 @@ function enrol_lmb_check_enrolled_in_xls_merged($userid, $courseid) {
         return false;
     }
 
-    $subsql = "SELECT coursesourcedid FROM {enrol_lmb_crosslists} WHERE crosslistsourcedid = :xlsid AND type = 'merge'";
+    $subsql = "SELECT coursesourcedid FROM {enrol_lmb_crosslists} "
+            ."WHERE crosslistsourcedid = :xlsid AND type = 'merge' AND status = 1";
     $sql = "SELECT * FROM {enrol_lmb_enrolments} WHERE status = 1 "
             ."AND personsourcedid = :personsourcedid AND coursesourcedid IN (".$subsql.")";
 

@@ -406,3 +406,6 @@ $settings->add("enroltoolsscat", new admin_externalpage('enroltoolreprocess', ge
 
 $settings->add("enroltoolsscat", new admin_externalpage('enroltoolprune', get_string('page_prunelmbtables', 'enrol_lmb'),
         "$CFG->wwwroot/enrol/lmb/tools/prunelmbtables.php", "moodle/role:manage"));
+
+$settings->add("enroltoolsscat", new admin_externalpage('enrolcleanxlsdrops', get_string('page_cleanxlsdrops', 'enrol_lmb'),
+        "$CFG->wwwroot/enrol/lmb/tools/cleanxlsdrops.php", "moodle/role:manage"));
