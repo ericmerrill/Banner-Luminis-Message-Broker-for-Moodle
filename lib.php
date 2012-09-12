@@ -2769,9 +2769,14 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         if ($instance = $this->get_instance($courseid)) {
+            if ($this->get_config('recovergrades')) {
+                $wasenrolled = is_enrolled(context_course::instance($courseid), $userid);
+            }
+            
             // TODO catch exceptions thrown.
             $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
-            if ($this->get_config('recovergrades')) {
+            if ($this->get_config('recovergrades') && !$wasenrolled) {
+                $logline .= 'recovering grades:';
                 grade_recover_history_grades($userid, $courseid);
             }
             $logline .= 'enrolled:';

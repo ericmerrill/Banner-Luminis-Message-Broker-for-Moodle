@@ -17,6 +17,8 @@ View full change log at https://github.com/merrill-oakland/Banner-Luminis-Messag
 Release 2.1.8
 Fix enrol_lmb_plugin->get_config to meet E_STRICT requirements.
 Fixed flaw in logic for dropping users from crosslists (and when crosslists are removed) (CONTRIB-3913).
+Added tool to cleanup the incorrectly dropped crosslists.
+Grades are only recovered if the user is not already installed. Significantly improves bulk import times.
 
 
 Release 2.1.7
