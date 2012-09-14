@@ -1527,6 +1527,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 return $startdates[0];
             }
         }
+        return 0;
     }
 
 

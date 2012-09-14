@@ -212,7 +212,7 @@ function enrol_lmb_drop_crosslist_users($xlist) {
     global $DB, $CFG;
     $status = true;
 
-    if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('status' => 1, 'coursesourcedid' => $xlist->coursesourcedid))) {
+    if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('coursesourcedid' => $xlist->coursesourcedid))) {
         if (!class_exists('enrol_lmb_plugin')) {
             require_once($CFG->dirroot.'/enrol/lmb/lib.php');
         }
