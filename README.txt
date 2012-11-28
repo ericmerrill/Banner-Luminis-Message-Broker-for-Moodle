@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.1.8
+Version: 2.1.9
 Moodle version: 2.0.6 throught 2.3.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -14,7 +14,8 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
-Since 2.1.8
+Release 2.1.9
+Fix for logging to a file. (Thanks to Charles Fulton - CONTRIB-3941)
 Improve drop for crosslisted courses when crosslist is removed. Rerun XLS Drop Tool.
 Fixed DB error in some crosslist cases.
 

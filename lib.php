@@ -2402,7 +2402,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function open_log_file () {
         $this->logfp = false; // File pointer for writing log data to.
-        if ($this->get_config('logtolocation') === null) {
+        if ($this->get_config('logtolocation') !== null) {
             $this->logfp = fopen($this->get_config('logtolocation'), 'a');
         }
     }
