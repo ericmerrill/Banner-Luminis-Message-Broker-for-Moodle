@@ -23,6 +23,8 @@
  * Based on enrol_imsenterprise from Dan Stowell.
  */
 
+require_once($CFG->libdir.'/xmlize.php');
+
 /**
  * Returns the id of the moodle role for a provided ims/xml role
  *
@@ -105,6 +107,9 @@ function enrol_lmb_get_crosslist_groupid($coursesourcedid, $crosslistsourcedid =
     return enrol_lmb_create_crosslist_group($crosslist);
 }
 
+function enrol_lmb_xml_to_array($xml) {
+    return xmlize($xml);
+}
 
 function enrol_lmb_create_crosslist_group($lmbcrosslist) {
     global $CFG, $DB;
