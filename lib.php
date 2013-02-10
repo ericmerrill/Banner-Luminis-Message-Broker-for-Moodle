@@ -459,22 +459,26 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool the status as returned from the tag processor
      */
     public function process_group_tag($tagcontents) {
-        if (preg_match('{<group>.*?<grouptype>.*?<typevalue.*?\>(.+?)</typevalue>.*?</grouptype>.*?</group>}is',
-                $tagcontents, $matches)) {
-            switch (trim($matches[1])) {
-                case 'Term':
-                    return $this->process_term_tag($tagcontents);
-                    break;
+        $xmlarray = enrol_lmb_xml_to_array($tagcontents);
+        if (!is_array($xmlarray) || !isset($xmlarray['group']) || !isset($xmlarray['group']['#'])) {
+            $this->log_error('Not valid group XML');
+            $this->linestatus = false;
+            return false;
+        }
 
-                case 'CourseSection':
-                    return $this->process_course_section_tag($tagcontents);
-                    break;
+        switch ($xmlarray['group']['#']['grouptype'][0]['#']['typevalue'][0]['#']) {
+            case 'Term':
+                return $this->xml_to_term($xmlarray);
+                break;
 
-                case 'CrossListedSection':
-                    return $this->process_crosslisted_group_tag($tagcontents);
-                    break;
+            case 'CourseSection':
+                return $this->process_course_section_tag($tagcontents);
+                break;
 
-            }
+            case 'CrossListedSection':
+                return $this->process_crosslisted_group_tag($tagcontents);
+                break;
+
         }
     }
 
@@ -1553,8 +1557,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         $this->append_log_line('Person');
-
-        $lmbperson = $this->xml_to_person($tagcontents);
+        $xmlarray = enrol_lmb_xml_to_array($tagcontents);
+        $lmbperson = $this->xml_to_person($xmlarray);
 
         $moodleuser = $this->person_to_moodleuser($lmbperson);
 
@@ -1562,17 +1566,17 @@ class enrol_lmb_plugin extends enrol_plugin {
     }
 
     /**
-     * Process the provided XML person message into a internal person obeject.
+     * Process the provided XML person array into a internal person obeject.
      * Processed object is also stored.
      *
-     * @param string $xml The raw contents of the XML message
+     * @param array $xmlarray The raw contents of the XML message in array form
      * @return stdClass A object representing a LMB Person
      */
-    public function xml_to_person($xml) {
+    public function xml_to_person($xmlarray) {
         global $DB;
         $person = new stdClass();
 
-        $xmlarray = enrol_lmb_xml_to_array($xml);
+        
 
         if (!is_array($xmlarray) || !isset($xmlarray['person']) || !isset($xmlarray['person']['#'])) {
             $this->log_error('Not valid person XML');
@@ -2104,43 +2108,53 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param string $tagconents The raw contents of the XML element
      * @return bool success of failure of processing the tag
      */
-    public function process_term_tag($tagcontents) {
+    public function xml_to_term($xmlarray) {
         global $DB;
-
-        $status = true;
-        $logline = 'Term:';
-
         $term = new stdClass();
 
-        // Sourcedid Source.
-        if (preg_match('{<sourcedid>.*?<source>(.+?)</source>.*?</sourcedid>}is', $tagcontents, $matches)) {
-            $term->sourcedidsource = trim($matches[1]);
-        }
+        $this->append_log_line('Term');
 
-        if (preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
-            $term->sourcedid = trim($matches[1]);
-            $logline .= $term->sourcedid.':';
-        } else {
-            $this->log_line($logline."sourcedid not found!");
+        if (!is_array($xmlarray) || !isset($xmlarray['group']) || !isset($xmlarray['group']['#'])) {
+            $this->log_error('Not valid group XML');
+            $this->linestatus = false;
             return false;
         }
 
-        if (preg_match('{<description>.*?<long>(.+?)</long>.*?</description>}is', $tagcontents, $matches)) {
-            $term->title = trim($matches[1]);
+        $xmlgroup = $xmlarray['group']['#'];
+
+        // Sourcedid Source.
+        if (!isset($xmlgroup['sourcedid'][0]['#']['source'][0]['#'])) {
+            $this->log_error('Sourcedid source not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $term->sourcedidsource = $xmlgroup['sourcedid'][0]['#']['source'][0]['#'];
+
+        // Sourcedid.
+        if (!isset($xmlgroup['sourcedid'][0]['#']['id'][0]['#'])) {
+            $this->log_error('Sourcedid not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $term->sourcedid = $xmlgroup['sourcedid'][0]['#']['id'][0]['#'];
+
+        // Long Description.
+        if (isset($xmlgroup['description'][0]['#']['long'][0]['#'])) {
+            $term->title = $xmlgroup['description'][0]['#']['long'][0]['#'];
         } else {
-            $logline .= "title not found:";
-            $status = false;
+            $this->append_log_line('Long description not found');
+            $this->linestatus = false;
         }
 
-        if (preg_match('{<timeframe>.*?<begin.*?\>(.+?)</begin>.*?</timeframe>}is', $tagcontents, $matches)) {
-            $date = explode('-', trim($matches[1]));
-
+        // Timeframe begin.
+        if (isset($xmlgroup['timeframe'][0]['#']['begin'][0]['#'])) {
+            $date = explode('-', trim($xmlgroup['timeframe'][0]['#']['begin'][0]['#']));
             $term->starttime = make_timestamp($date[0], $date[1], $date[2]);
         }
 
-        if (preg_match('{<timeframe>.*?<end.*?\>(.+?)</end>.*?</timeframe>}is', $tagcontents, $matches)) {
-            $date = explode('-', trim($matches[1]));
-
+        // Timeframe end.
+        if (isset($xmlgroup['timeframe'][0]['#']['end'][0]['#'])) {
+            $date = explode('-', trim($xmlgroup['timeframe'][0]['#']['begin'][0]['#']));
             $term->endtime = make_timestamp($date[0], $date[1], $date[2]);
         }
 
@@ -2150,31 +2164,22 @@ class enrol_lmb_plugin extends enrol_plugin {
             $term->id = $oldterm->id;
 
             if ($id = $DB->update_record('enrol_lmb_terms', $term)) {
-                $logline .= 'updated term:';
+                $this->append_log_line('updated term:');
             } else {
-                $logline .= 'failed to update term:';
-                $status = false;
+                $this->append_log_line('failed to update term:');
+                $this->linestatus = false;
             }
         } else {
             if ($id = $DB->insert_record('enrol_lmb_terms', $term, true)) {
-                $logline .= 'create term:';
+                $this->append_log_line('create term:');
                 $term->id = $id;
             } else {
-                $logline .= 'create to update term:';
-                $status = false;
+                $this->append_log_line('create to update term:');
+                $this->linestatus = false;
             }
         }
 
-        if ($status) {
-            if (!$this->get_config('logerrors')) {
-                $this->log_line($logline.'complete');
-            }
-        } else {
-            $this->log_line($logline.'error');
-        }
-
-        return $status;
-
+        return $term;
     }
 
 
