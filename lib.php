@@ -483,6 +483,87 @@ class enrol_lmb_plugin extends enrol_plugin {
     }
 
     /**
+     * Processes a given term tag. Basically just inserting the info
+     * in a lmb internal table for future use.
+     *
+     * @param array $xmlarray The raw contents of the XML element in array format
+     * @return stdClass The term object
+     */
+    public function xml_to_term($xmlarray) {
+        global $DB;
+        $term = new stdClass();
+
+        $this->append_log_line('Term');
+
+        if (!is_array($xmlarray) || !isset($xmlarray['group']) || !isset($xmlarray['group']['#'])) {
+            $this->log_error('Not valid group XML');
+            $this->linestatus = false;
+            return false;
+        }
+
+        $xmlgroup = $xmlarray['group']['#'];
+
+        // Sourcedid Source.
+        if (!isset($xmlgroup['sourcedid'][0]['#']['source'][0]['#'])) {
+            $this->log_error('Sourcedid source not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $term->sourcedidsource = $xmlgroup['sourcedid'][0]['#']['source'][0]['#'];
+
+        // Sourcedid.
+        if (!isset($xmlgroup['sourcedid'][0]['#']['id'][0]['#'])) {
+            $this->log_error('Sourcedid not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $term->sourcedid = $xmlgroup['sourcedid'][0]['#']['id'][0]['#'];
+
+        // Long Description.
+        if (isset($xmlgroup['description'][0]['#']['long'][0]['#'])) {
+            $term->title = $xmlgroup['description'][0]['#']['long'][0]['#'];
+        } else {
+            $this->append_log_line('Long description not found');
+            $this->linestatus = false;
+        }
+
+        // Timeframe begin.
+        if (isset($xmlgroup['timeframe'][0]['#']['begin'][0]['#'])) {
+            $date = explode('-', trim($xmlgroup['timeframe'][0]['#']['begin'][0]['#']));
+            $term->starttime = make_timestamp($date[0], $date[1], $date[2]);
+        }
+
+        // Timeframe end.
+        if (isset($xmlgroup['timeframe'][0]['#']['end'][0]['#'])) {
+            $date = explode('-', trim($xmlgroup['timeframe'][0]['#']['begin'][0]['#']));
+            $term->endtime = make_timestamp($date[0], $date[1], $date[2]);
+        }
+
+        $term->timemodified = time();
+
+        if ($oldterm = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $term->sourcedid))) {
+            $term->id = $oldterm->id;
+
+            if ($id = $DB->update_record('enrol_lmb_terms', $term)) {
+                $this->append_log_line('updated term:');
+            } else {
+                $this->append_log_line('failed to update term:');
+                $this->linestatus = false;
+            }
+        } else {
+            if ($id = $DB->insert_record('enrol_lmb_terms', $term, true)) {
+                $this->append_log_line('create term:');
+                $term->id = $id;
+            } else {
+                $this->append_log_line('create to update term:');
+                $this->linestatus = false;
+            }
+        }
+
+        return $term;
+    }
+
+    /**
      * Process the course section group tag. Defines a course in Moodle.
      *
      * @param string $tagconents The raw contents of the XML element
@@ -1576,8 +1657,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         global $DB;
         $person = new stdClass();
 
-        
-
         if (!is_array($xmlarray) || !isset($xmlarray['person']) || !isset($xmlarray['person']['#'])) {
             $this->log_error('Not valid person XML');
             $this->linestatus = false;
@@ -2101,86 +2180,6 @@ class enrol_lmb_plugin extends enrol_plugin {
     } // End process_person_tag().
 
 
-    /**
-     * Processes a given term tag. Basically just inserting the info
-     * in a lmb internal table for future use.
-     *
-     * @param string $tagconents The raw contents of the XML element
-     * @return bool success of failure of processing the tag
-     */
-    public function xml_to_term($xmlarray) {
-        global $DB;
-        $term = new stdClass();
-
-        $this->append_log_line('Term');
-
-        if (!is_array($xmlarray) || !isset($xmlarray['group']) || !isset($xmlarray['group']['#'])) {
-            $this->log_error('Not valid group XML');
-            $this->linestatus = false;
-            return false;
-        }
-
-        $xmlgroup = $xmlarray['group']['#'];
-
-        // Sourcedid Source.
-        if (!isset($xmlgroup['sourcedid'][0]['#']['source'][0]['#'])) {
-            $this->log_error('Sourcedid source not found');
-            $this->linestatus = false;
-            return false;
-        }
-        $term->sourcedidsource = $xmlgroup['sourcedid'][0]['#']['source'][0]['#'];
-
-        // Sourcedid.
-        if (!isset($xmlgroup['sourcedid'][0]['#']['id'][0]['#'])) {
-            $this->log_error('Sourcedid not found');
-            $this->linestatus = false;
-            return false;
-        }
-        $term->sourcedid = $xmlgroup['sourcedid'][0]['#']['id'][0]['#'];
-
-        // Long Description.
-        if (isset($xmlgroup['description'][0]['#']['long'][0]['#'])) {
-            $term->title = $xmlgroup['description'][0]['#']['long'][0]['#'];
-        } else {
-            $this->append_log_line('Long description not found');
-            $this->linestatus = false;
-        }
-
-        // Timeframe begin.
-        if (isset($xmlgroup['timeframe'][0]['#']['begin'][0]['#'])) {
-            $date = explode('-', trim($xmlgroup['timeframe'][0]['#']['begin'][0]['#']));
-            $term->starttime = make_timestamp($date[0], $date[1], $date[2]);
-        }
-
-        // Timeframe end.
-        if (isset($xmlgroup['timeframe'][0]['#']['end'][0]['#'])) {
-            $date = explode('-', trim($xmlgroup['timeframe'][0]['#']['begin'][0]['#']));
-            $term->endtime = make_timestamp($date[0], $date[1], $date[2]);
-        }
-
-        $term->timemodified = time();
-
-        if ($oldterm = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $term->sourcedid))) {
-            $term->id = $oldterm->id;
-
-            if ($id = $DB->update_record('enrol_lmb_terms', $term)) {
-                $this->append_log_line('updated term:');
-            } else {
-                $this->append_log_line('failed to update term:');
-                $this->linestatus = false;
-            }
-        } else {
-            if ($id = $DB->insert_record('enrol_lmb_terms', $term, true)) {
-                $this->append_log_line('create term:');
-                $term->id = $id;
-            } else {
-                $this->append_log_line('create to update term:');
-                $this->linestatus = false;
-            }
-        }
-
-        return $term;
-    }
 
 
     /**
