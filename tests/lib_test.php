@@ -36,99 +36,124 @@ require_once($CFG->dirroot . '/enrol/lmb/lib.php');
 class enrol_lmb_lib_testcase extends advanced_testcase {
     // TODO expand XML to include more items, like address.
     private $personxml = '<person recstatus="0">
-    <sourcedid>
-        <source>Test SCT Banner</source>
-        <id>usersourcedid</id>
-    </sourcedid>
-    <userid useridtype="Logon ID" password="loginpass">loginuserid</userid>
-    <userid useridtype="SCTID" password="sctpass">sctuserid</userid>
-    <userid useridtype="Email ID" password="emailpass">emailuserid</userid>
-    <userid useridtype="CustomUserId" password="custpass">custuserid</userid>
-    <name>
-        <fn>First M Last</fn>
-        <nickname>Nick Last</nickname>
-        <n>
-            <family>Last</family>
-            <given>First</given>
-            <partname partnametype="MiddleName">M</partname>
-        </n>
-    </name>
-    <demographics>
-        <gender>2</gender>
-    </demographics>
-    <email>test@example.edu</email>
-    <tel teltype="1">555-555-5555</tel>
-    <adr>
-        <street>430 Kresge</street>
-        <locality>Rochester</locality>
-        <region>MI</region>
-        <pcode>48309</pcode>
-        <country>USA</country>
-    </adr>
-    <institutionrole primaryrole="No" institutionroletype="ProspectiveStudent"/>
-    <institutionrole primaryrole="No" institutionroletype="Staff"/>
-    <institutionrole primaryrole="No" institutionroletype="Student"/>
-    <extension>
-        <luminisperson>
-            <academicmajor>Undeclared</academicmajor>
-            <customrole>ApplicantAccept</customrole>
-            <customrole>BannerINB</customrole>
-        </luminisperson>
-    </extension>
+        <sourcedid>
+            <source>Test SCT Banner</source>
+            <id>usersourcedid</id>
+        </sourcedid>
+        <userid useridtype="Logon ID" password="loginpass">loginuserid</userid>
+        <userid useridtype="SCTID" password="sctpass">sctuserid</userid>
+        <userid useridtype="Email ID" password="emailpass">emailuserid</userid>
+        <userid useridtype="CustomUserId" password="custpass">custuserid</userid>
+        <name>
+            <fn>First M Last</fn>
+            <nickname>Nick Last</nickname>
+            <n>
+                <family>Last</family>
+                <given>First</given>
+                <partname partnametype="MiddleName">M</partname>
+            </n>
+        </name>
+        <demographics>
+            <gender>2</gender>
+        </demographics>
+        <email>test@example.edu</email>
+        <tel teltype="1">555-555-5555</tel>
+        <adr>
+            <street>430 Kresge</street>
+            <locality>Rochester</locality>
+            <region>MI</region>
+            <pcode>48309</pcode>
+            <country>USA</country>
+        </adr>
+        <institutionrole primaryrole="No" institutionroletype="ProspectiveStudent"/>
+        <institutionrole primaryrole="No" institutionroletype="Staff"/>
+        <institutionrole primaryrole="No" institutionroletype="Student"/>
+        <extension>
+            <luminisperson>
+                <academicmajor>Undeclared</academicmajor>
+                <customrole>ApplicantAccept</customrole>
+                <customrole>BannerINB</customrole>
+            </luminisperson>
+        </extension>
     </person>';
 
-    private $personxmlserial = 'a:1:{s:6:"person";a:2:{s:1:"@";a:1:{s:9:"recstatus";s:1:"0";}s:1:"#";a:9:{s:9:"sourcedid";'
-    .'a:1:{i:0;a:1:{s:1:"#";a:2:{s:6:"source";a:1:{i:0;a:1:{s:1:"#";s:15:"Test SCT Banner";}}s:2:"id";a:1:'
-    .'{i:0;a:1:{s:1:"#";s:13:"usersourcedid";}}}}}s:6:"userid";a:4:{i:0;a:2:{s:1:"#";s:11:"loginuserid";'
-    .'s:1:"@";a:2:{s:10:"useridtype";s:8:"Logon ID";s:8:"password";s:9:"loginpass";}}i:1;a:2:{s:1:"#";s:9:"sctuserid";'
-    .'s:1:"@";a:2:{s:10:"useridtype";s:5:"SCTID";s:8:"password";s:7:"sctpass";}}i:2;a:2:{s:1:"#";s:11:"emailuserid";'
-    .'s:1:"@";a:2:{s:10:"useridtype";s:8:"Email ID";s:8:"password";s:9:"emailpass";}}i:3;a:2:{s:1:"#";s:10:"custuserid";'
-    .'s:1:"@";a:2:{s:10:"useridtype";s:12:"CustomUserId";s:8:"password";s:8:"custpass";}}}s:4:"name";'
-    .'a:1:{i:0;a:1:{s:1:"#";a:3:{s:2:"fn";a:1:{i:0;a:1:{s:1:"#";s:12:"First M Last";}}s:8:"nickname";'
-    .'a:1:{i:0;a:1:{s:1:"#";s:9:"Nick Last";}}s:1:"n";a:1:{i:0;a:1:{s:1:"#";a:3:{s:6:"family";a:1:{i:0;a:1:{s:1:"#";s:4:"Last";}}'
-    .'s:5:"given";a:1:{i:0;a:1:{s:1:"#";s:5:"First";}}s:8:"partname";a:1:{i:0;a:2:{s:1:"#";s:1:"M";s:1:"@";a:1:{'
-    .'s:12:"partnametype";s:10:"MiddleName";}}}}}}}}}s:12:"demographics";a:1:{i:0;a:1:{s:1:"#";a:1:{s:6:"gender";a:1:{i:0;a:1:{'
-    .'s:1:"#";s:1:"2";}}}}}s:5:"email";a:1:{i:0;a:1:{s:1:"#";s:16:"test@example.edu";}}s:3:"tel";a:1:{i:0;a:2:{s:1:"#";'
-    .'s:12:"555-555-5555";s:1:"@";a:1:{s:7:"teltype";s:1:"1";}}}s:3:"adr";a:1:{i:0;a:1:{s:1:"#";a:5:{s:6:"street";'
-    .'a:1:{i:0;a:1:{s:1:"#";s:10:"430 Kresge";}}s:8:"locality";a:1:{i:0;a:1:{s:1:"#";s:9:"Rochester";}}s:6:"region";'
-    .'a:1:{i:0;a:1:{s:1:"#";s:2:"MI";}}s:5:"pcode";a:1:{i:0;a:1:{s:1:"#";s:5:"48309";}}s:7:"country";a:1:{i:0;a:1:{'
-    .'s:1:"#";s:3:"USA";}}}}}s:15:"institutionrole";a:3:{i:0;a:2:{s:1:"#";s:0:"";s:1:"@";a:2:{s:11:"primaryrole";'
-    .'s:2:"No";s:19:"institutionroletype";s:18:"ProspectiveStudent";}}i:1;a:2:{s:1:"#";s:0:"";s:1:"@";a:2:{'
-    .'s:11:"primaryrole";s:2:"No";s:19:"institutionroletype";s:5:"Staff";}}i:2;a:2:{s:1:"#";s:0:"";s:1:"@";a:2:{'
-    .'s:11:"primaryrole";s:2:"No";s:19:"institutionroletype";s:7:"Student";}}}s:9:"extension";a:1:{i:0;a:1:{'
-    .'s:1:"#";a:1:{s:13:"luminisperson";a:1:{i:0;a:1:{s:1:"#";a:2:{s:13:"academicmajor";a:1:{i:0;a:1:{'
-    .'s:1:"#";s:10:"Undeclared";}}s:10:"customrole";a:2:{i:0;a:1:{s:1:"#";s:15:"ApplicantAccept";}i:1;a:1:{'
-    .'s:1:"#";s:9:"BannerINB";}}}}}}}}}}}';
+    private $personxmlserial = 'a:1:{s:6:"person";a:2:{s:1:"@";a:1:{s:9:"recstatus";s:1:"0";}s:1:"#";a:9:{s:9:"sourcedid";a:1:{i:0;a:1:{s:1:"#";a:2:{s:6:"source";a:1:{i:0;a:1:{s:1:"#";s:15:"Test SCT Banner";}}s:2:"id";a:1:{i:0;a:1:{s:1:"#";s:13:"usersourcedid";}}}}}s:6:"userid";a:4:{i:0;a:2:{s:1:"#";s:11:"loginuserid";s:1:"@";a:2:{s:10:"useridtype";s:8:"Logon ID";s:8:"password";s:9:"loginpass";}}i:1;a:2:{s:1:"#";s:9:"sctuserid";s:1:"@";a:2:{s:10:"useridtype";s:5:"SCTID";s:8:"password";s:7:"sctpass";}}i:2;a:2:{s:1:"#";s:11:"emailuserid";s:1:"@";a:2:{s:10:"useridtype";s:8:"Email ID";s:8:"password";s:9:"emailpass";}}i:3;a:2:{s:1:"#";s:10:"custuserid";s:1:"@";a:2:{s:10:"useridtype";s:12:"CustomUserId";s:8:"password";s:8:"custpass";}}}s:4:"name";a:1:{i:0;a:1:{s:1:"#";a:3:{s:2:"fn";a:1:{i:0;a:1:{s:1:"#";s:12:"First M Last";}}s:8:"nickname";a:1:{i:0;a:1:{s:1:"#";s:9:"Nick Last";}}s:1:"n";a:1:{i:0;a:1:{s:1:"#";a:3:{s:6:"family";a:1:{i:0;a:1:{s:1:"#";s:4:"Last";}}s:5:"given";a:1:{i:0;a:1:{s:1:"#";s:5:"First";}}s:8:"partname";a:1:{i:0;a:2:{s:1:"#";s:1:"M";s:1:"@";a:1:{s:12:"partnametype";s:10:"MiddleName";}}}}}}}}}s:12:"demographics";a:1:{i:0;a:1:{s:1:"#";a:1:{s:6:"gender";a:1:{i:0;a:1:{s:1:"#";s:1:"2";}}}}}s:5:"email";a:1:{i:0;a:1:{s:1:"#";s:16:"test@example.edu";}}s:3:"tel";a:1:{i:0;a:2:{s:1:"#";s:12:"555-555-5555";s:1:"@";a:1:{s:7:"teltype";s:1:"1";}}}s:3:"adr";a:1:{i:0;a:1:{s:1:"#";a:5:{s:6:"street";a:1:{i:0;a:1:{s:1:"#";s:10:"430 Kresge";}}s:8:"locality";a:1:{i:0;a:1:{s:1:"#";s:9:"Rochester";}}s:6:"region";a:1:{i:0;a:1:{s:1:"#";s:2:"MI";}}s:5:"pcode";a:1:{i:0;a:1:{s:1:"#";s:5:"48309";}}s:7:"country";a:1:{i:0;a:1:{s:1:"#";s:3:"USA";}}}}}s:15:"institutionrole";a:3:{i:0;a:2:{s:1:"#";s:0:"";s:1:"@";a:2:{s:11:"primaryrole";s:2:"No";s:19:"institutionroletype";s:18:"ProspectiveStudent";}}i:1;a:2:{s:1:"#";s:0:"";s:1:"@";a:2:{s:11:"primaryrole";s:2:"No";s:19:"institutionroletype";s:5:"Staff";}}i:2;a:2:{s:1:"#";s:0:"";s:1:"@";a:2:{s:11:"primaryrole";s:2:"No";s:19:"institutionroletype";s:7:"Student";}}}s:9:"extension";a:1:{i:0;a:1:{s:1:"#";a:1:{s:13:"luminisperson";a:1:{i:0;a:1:{s:1:"#";a:2:{s:13:"academicmajor";a:1:{i:0;a:1:{s:1:"#";s:10:"Undeclared";}}s:10:"customrole";a:2:{i:0;a:1:{s:1:"#";s:15:"ApplicantAccept";}i:1;a:1:{s:1:"#";s:9:"BannerINB";}}}}}}}}}}}';
 
     private $personxmlarray;
 
     private $termxml = '<group>
-	<sourcedid>
-		<source>Test SCT Banner</source>
-		<id>201310</id>
-	</sourcedid>
-	<grouptype>
-		<scheme>Luminis</scheme>
-		<typevalue level="1">Term</typevalue>
-	</grouptype>
-	<description>
-		<short>Short Term 201310</short>
-		<long>Long Term 201310</long>
-	</description>
-	<timeframe>
-		<begin restrict="0">2013-01-01</begin>
-		<end restrict="0">2013-06-30</end>
-	</timeframe>
-	<enrollcontrol>
-		<enrollaccept>1</enrollaccept>
-		<enrollallowed>0</enrollallowed>
-	</enrollcontrol>
-	<extension>
-	<luminisgroup>
-		<sort>201310</sort>
-	</luminisgroup>
-	</extension>
+    	<sourcedid>
+    		<source>Test SCT Banner</source>
+    		<id>201310</id>
+    	</sourcedid>
+    	<grouptype>
+    		<scheme>Luminis</scheme>
+    		<typevalue level="1">Term</typevalue>
+    	</grouptype>
+    	<description>
+    		<short>Short Term 201310</short>
+    		<long>Long Term 201310</long>
+    	</description>
+    	<timeframe>
+    		<begin restrict="0">2013-01-01</begin>
+    		<end restrict="0">2013-06-30</end>
+    	</timeframe>
+    	<enrollcontrol>
+    		<enrollaccept>1</enrollaccept>
+    		<enrollallowed>0</enrollallowed>
+    	</enrollcontrol>
+    	<extension>
+    	<luminisgroup>
+    		<sort>201310</sort>
+    	</luminisgroup>
+    	</extension>
 	</group>';
+
+    private $coursexml = '<group>
+        <sourcedid>
+            <source>Test SCT Banner</source>
+            <id>10001.201310</id>
+        </sourcedid>
+        <grouptype>
+            <scheme>Luminis</scheme>
+            <typevalue level="1">CourseSection</typevalue>
+        </grouptype>
+        <description>
+            <short>10001</short>
+            <long>DEP-101-001</long>
+            <full>Full Course Description</full>
+        </description>
+            <org>
+                <orgunit>Department Unit</orgunit>
+            </org>
+        <timeframe>
+            <begin restrict="0">2013-01-01</begin>
+            <end restrict="0">2013-06-30</end>
+        </timeframe>
+        <enrollcontrol>
+            <enrollaccept>1</enrollaccept>
+            <enrollallowed>0</enrollallowed>
+        </enrollcontrol>
+        <relationship relation="1">
+        <sourcedid>
+            <source>Test SCT Banner</source>
+            <id>201310</id>
+        </sourcedid>
+        <label>Term</label>
+        </relationship>
+        <relationship relation="1">
+        <sourcedid>
+            <source>Test SCT Banner</source>
+            <id>CRSPA-691</id>
+        </sourcedid>
+        <label>Course</label>
+        </relationship>
+        <extension>
+            <luminisgroup>
+                <deliverysystem>WEBCT</deliverysystem>
+            </luminisgroup>
+        </extension>
+    </group>';
 
     public function test_lmb_xml_to_array() {
         $this->resetAfterTest(false);
@@ -139,6 +164,8 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
     }
 
     public function test_lmb_xml_to_person() {
+        global $DB;
+
         $this->resetAfterTest(true);
         $this->personxmlarray = unserialize($this->personxmlserial);
 
@@ -237,6 +264,12 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected->customfield1 = 'emailuserid';
         $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
         $this->assertEquals($expected, $result);
+
+        // TODO 'sourcedidsource' => 'Test SCT Banner'.
+        unset($expected->password);
+        unset($expected->auth);
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_people', array('sourcedid' => 'usersourcedid')));
+        $this->assertEquals($expected, $dbrecord);
     }
 
     public function test_lmb_lmbperson_to_moodleuser() {
@@ -315,6 +348,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
     }
 
     public function test_lmb_xml_to_term() {
+        global $DB;
         $this->resetAfterTest(true);
         $lmb = new enrol_lmb_plugin();
         $termxmlarray = enrol_lmb_xml_to_array($this->termxml);
@@ -330,11 +364,56 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
 
         $result = $this->clean_lmb_object($lmb->xml_to_term($termxmlarray));
         $this->assertEquals($expected, $result);
+
+        // TODO.
+        $expected->studentshowtime = '0';
+        $expected->active = '1';
+
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_terms', array('sourcedidsource' => 'Test SCT Banner', 'sourcedid' => '201310')));
+        $this->assertEquals($expected, $dbrecord);
+    }
+
+    public function test_lmb_xml_to_course() {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $lmb = new enrol_lmb_plugin();
+        $coursexmlarray = enrol_lmb_xml_to_array($this->coursexml);
+
+        $expected = new stdClass();
+        $expected->sourcedidsource = 'Test SCT Banner';
+        $expected->sourcedid = '10001.201310';
+        $expected->coursenumber = '10001';
+        $expected->term = '201310';
+        $expected->longtitle = 'DEP-101-001';
+        $expected->fulltitle = 'Full Course Description';
+        $expected->rubric = 'DEP-101';
+        $expected->dept = 'DEP';
+        $expected->depttitle = 'Department Unit';
+        $expected->num = '101';
+        $expected->section = '001';
+        $expected->startdate = 1357027200;
+        $expected->enddate = 1372575600;
+        $expected->timemodified = 1;
+        $expected->id = 1;
+
+        $result = $this->clean_lmb_object($lmb->xml_to_course($coursexmlarray));
+        $this->assertEquals($expected, $result);
+
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_courses', array('sourcedidsource' => 'Test SCT Banner', 'sourcedid' => '10001.201310')));
+        $this->assertEquals($expected, $dbrecord);
+    }
+
+    public function test_lmb_course_to_moodlecourse() {
+        global $CFG;
+        $this->resetAfterTest(true);
+        //TODO.
     }
 
     public function test_membershiparray_to_xlsmembers() {
         global $CFG;
         $this->resetAfterTest(true);
+        // TODO
     }
 
     private function clean_user_result($user) {

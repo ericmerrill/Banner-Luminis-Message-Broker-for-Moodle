@@ -34,10 +34,9 @@ require_once($CFG->libdir.'/gradelib.php');
 class enrol_lmb_plugin extends enrol_plugin {
 
     private $log;
-    private $logline = '';
-    private $logerror = false;
+    private $logline = ''; // A line for the log.
+    private $logerror = false; // Line contains an error if true.
     private $linestatus = true;
-    private $forcelogline = false;
     private $logonlyerrors = true;
 
     // The "roles" hard-coded in the Banner XML specification are.
@@ -468,18 +467,22 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         switch ($xmlarray['group']['#']['grouptype'][0]['#']['typevalue'][0]['#']) {
             case 'Term':
-                return $this->xml_to_term($xmlarray);
+                $this->xml_to_term($xmlarray);
                 break;
 
             case 'CourseSection':
-                return $this->process_course_section_tag($tagcontents);
+                $course = $this->xml_to_course($xmlarray);
+                $this->course_to_moodlecourse($course);
                 break;
 
             case 'CrossListedSection':
-                return $this->process_crosslisted_group_tag($tagcontents);
+                return $this->process_crosslisted_group_tag($xmlarray);
                 break;
 
         }
+
+        $this->log_line_new();
+        return $this->linestatus;
     }
 
     /**
@@ -541,69 +544,49 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $term->timemodified = time();
 
-        if ($oldterm = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $term->sourcedid))) {
-            $term->id = $oldterm->id;
-
-            if ($id = $DB->update_record('enrol_lmb_terms', $term)) {
-                $this->append_log_line('updated term:');
-            } else {
-                $this->append_log_line('failed to update term:');
-                $this->linestatus = false;
-            }
-        } else {
-            if ($id = $DB->insert_record('enrol_lmb_terms', $term, true)) {
-                $this->append_log_line('create term:');
-                $term->id = $id;
-            } else {
-                $this->append_log_line('create to update term:');
-                $this->linestatus = false;
-            }
-        }
+        $this->update_or_insert_lmb($term, 'enrol_lmb_terms');
 
         return $term;
     }
 
-    /**
-     * Process the course section group tag. Defines a course in Moodle.
-     *
-     * @param string $tagconents The raw contents of the XML element
-     * @return bool the status of the processing. false if there was no error
-     */
-    public function process_course_section_tag($tagcontents) {
+    public function xml_to_course($xmlarray) {
         global $DB;
-
-        if (!$this->get_config('parsecoursexml')) {
-            $this->log_line('Course:skipping.');
-            return true;
-        }
-
         $course = new stdClass();
 
-        $status = true;
-        $deleted = false;
-        $logline = 'Course:';
+        $this->append_log_line('Course');
 
-        // Sourcedid Source.
-        if (preg_match('{<sourcedid>.*?<source>(.+?)</source>.*?</sourcedid>}is', $tagcontents, $matches)) {
-            $course->sourcedidsource = trim($matches[1]);
-        }
-
-        // Sourcedid Id.
-        if (preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
-            $course->sourcedid = trim($matches[1]);
-
-            $parts = explode('.', $course->sourcedid);
-            $course->coursenumber = $parts[0];
-            $course->term = $parts[1];
-
-            $logline .= $course->sourcedid.':';
-        } else {
-            $this->log_line($logline."sourcedid not found!");
+        if (!is_array($xmlarray) || !isset($xmlarray['group']) || !isset($xmlarray['group']['#'])) {
+            $this->log_error('Not valid group XML');
+            $this->linestatus = false;
             return false;
         }
 
-        if (preg_match('{<description>.*?<long>(.+?)</long>.*?</description>}is', $tagcontents, $matches)) {
-            $course->longtitle = trim($matches[1]);
+        $xmlgroup = $xmlarray['group']['#'];
+
+        // Sourcedid Source.
+        if (!isset($xmlgroup['sourcedid'][0]['#']['source'][0]['#'])) {
+            $this->log_error('Sourcedid source not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $course->sourcedidsource = $xmlgroup['sourcedid'][0]['#']['source'][0]['#'];
+
+        // Sourcedid.
+        if (!isset($xmlgroup['sourcedid'][0]['#']['id'][0]['#'])) {
+            $this->log_error('Sourcedid not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $course->sourcedid = $xmlgroup['sourcedid'][0]['#']['id'][0]['#'];
+
+        // Course parts.
+        $parts = explode('.', $course->sourcedid);
+        $course->coursenumber = $parts[0];
+        $course->term = $parts[1];
+
+        // Course information.
+        if (isset($xmlgroup['description'][0]['#']['long'][0]['#'])) {
+            $course->longtitle = trim($xmlgroup['description'][0]['#']['long'][0]['#']);
 
             $parts = explode('-', $course->longtitle);
 
@@ -613,57 +596,52 @@ class enrol_lmb_plugin extends enrol_plugin {
             $course->section = $parts[2];
         }
 
-        if (preg_match('{<description>.*?<full>(.+?)</full>.*?</description>}is', $tagcontents, $matches)) {
-            $course->fulltitle = trim($matches[1]);
+        // Full title.
+        if (isset($xmlgroup['description'][0]['#']['full'][0]['#'])) {
+            $course->fulltitle = trim($xmlgroup['description'][0]['#']['full'][0]['#']);
         }
 
-        if (preg_match('{<timeframe>.*?<begin.*?\>(.+?)</begin>.*?</timeframe>}is', $tagcontents, $matches)) {
-            $date = explode('-', trim($matches[1]));
+        // Start date.
+        if (isset($xmlgroup['timeframe'][0]['#']['begin'][0]['#'])) {
+            $date = explode('-', trim($xmlgroup['timeframe'][0]['#']['begin'][0]['#']));
 
             $course->startdate = make_timestamp($date[0], $date[1], $date[2]);
         }
 
-        if (preg_match('{<timeframe>.*?<end.*?\>(.+?)</end>.*?</timeframe>}is', $tagcontents, $matches)) {
-            $date = explode('-', trim($matches[1]));
+        // End date.
+        if (isset($xmlgroup['timeframe'][0]['#']['end'][0]['#'])) {
+            $date = explode('-', trim($xmlgroup['timeframe'][0]['#']['end'][0]['#']));
 
             $course->enddate = make_timestamp($date[0], $date[1], $date[2]);
         }
 
-        if (preg_match('{<org>.*?<orgunit>(.+?)</orgunit>.*?</org>}is', $tagcontents, $matches)) {
-            $course->depttitle = trim($matches[1]);
+        // Org unit (department).
+        if (isset($xmlgroup['org'][0]['#']['orgunit'][0]['#'])) {
+            $course->depttitle = trim($xmlgroup['org'][0]['#']['orgunit'][0]['#']);
         } else {
             $course->depttitle = '';
-            $logline .= 'org/orgunit not defined:';
+            $this->append_log_line('org/orgunit not defined:');
         }
+
+        $course->timemodified = time();
+
+        $this->update_or_insert_lmb($course, 'enrol_lmb_courses');
+
+        return $course;
+    }
+
+    /**
+     * Process the course section group tag. Defines a course in Moodle.
+     *
+     * @param stdClass $class The LMB Class object
+     * @return bool the status of the processing. False on error.
+     */
+    public function course_to_moodlecourse($course) {
+        global $DB;
 
         $cat = new stdClass();
 
         $cat->id = $this->get_category_id($course->term, $course->depttitle, $course->dept, $logline, $status);
-
-        // Do the LMB tables check/update!
-
-        $course->timemodified = time();
-
-        if ($oldcourse = $DB->get_record('enrol_lmb_courses', array('sourcedid' => $course->sourcedid))) {
-            $course->id = $oldcourse->id;
-            if (enrol_lmb_compare_objects($course, $oldcourse)) {
-                if ($DB->update_record('enrol_lmb_courses', $course)) {
-                    $logline .= 'updated enrol_lmb_courses:';
-                } else {
-                    $logline .= 'failed to update enrol_lmb_courses:';
-                    $status = false;
-                }
-            } else {
-                $logline .= 'no lmb changes to make:';
-            }
-        } else {
-            if ($course->id = $DB->insert_record('enrol_lmb_courses', $course, true)) {
-                $logline .= 'inserted into enrol_lmb_courses:';
-            } else {
-                $logline .= 'failed to insert into enrol_lmb_courses:';
-                $status = false;
-            }
-        }
 
         // Do the Course check/update!
 
@@ -672,7 +650,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         $moodlecourse->idnumber = $course->sourcedid;
         $moodlecourse->timemodified = time();
 
-        if ($status && ($currentcourse = $DB->get_record('course', array('idnumber' => $moodlecourse->idnumber)))) {
+        if ($currentcourse = $DB->get_record('course', array('idnumber' => $moodlecourse->idnumber))) {
             // If it's an existing course.
             $moodlecourse->id = $currentcourse->id;
 
@@ -712,27 +690,27 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             if ($update) {
                 update_course($moodlecourse);
-                $logline .= 'updated course:';
-
+                $this->append_log_line('updated course');
             } else {
-                $logline .= 'no changes to make:';
+                $this->append_log_line('no changes to make');
             }
 
-        } else if ($status) {
+        } else {
             // If it's a new course.
             $this->create_shell_course($course->sourcedid, enrol_lmb_expand_course_title($course, $this->get_config('coursetitle')),
                                         enrol_lmb_expand_course_title($course, $this->get_config('courseshorttitle')), $cat->id,
                                         $logline, $status, false, $course->startdate, $course->enddate);
         }
 
-        if ($status) {
-            // TODO make optional.
-            $tmpstatus = enrol_lmb_restore_users_to_course($course->sourcedid);
-            if (!$tmpstatus) {
-                $logline .= 'error restoring some enrolments:';
-            }
+        // TODO make optional.
+        $tmpstatus = enrol_lmb_restore_users_to_course($course->sourcedid);
+        if (!$tmpstatus) {
+            $this->append_log_line('error restoring some enrolments');
+            $this->logerror = true;
+            $this->linestatus = false;
         }
 
+        /*
         if ($status && !$deleted) {
             if (!$this->get_config('logerrors')) {
                 $this->log_line($logline.'complete');
@@ -740,6 +718,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         } else {
             $this->log_line($logline.'error');
         }
+        */
 
         return $status;
 
@@ -1065,32 +1044,17 @@ class enrol_lmb_plugin extends enrol_plugin {
      * Processes tag for the definition of a crosslisting group.
      * Currently does nothing. See process_crosslist_membership_tag_error()
      *
-     * @param string $tagcontents the xml/ims idnumber for the term
+     * @param array $xmlarray XML array
      * @return bool success or failure of the processing
      */
-    public function process_crosslisted_group_tag($tagcontents) {
+    public function process_crosslisted_group_tag($xmlarray) {
+        $this->append_log_line('Crosslist Group');
         if ((!$this->get_config('parsexlsxml')) || (!$this->get_config('parsecoursexml'))) {
-            $this->log_line('Crosslist Group:skipping.');
+            $this->append_log_line('skipping');
             return true;
         }
 
-        $status = true;
-        $deleted = false;
-        $logline = 'Crosslist Group:';
-
-        unset($xlist);
-
-        // TODO remove this?
-
-        if ($status && !$deleted) {
-            if (!$this->get_config('logerrors')) {
-                $this->log_line($logline.'complete');
-            }
-        } else {
-            $this->log_line($logline.'error');
-        }
-
-        return $status;
+        return true;
     }
 
 
@@ -1642,7 +1606,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         $lmbperson = $this->xml_to_person($xmlarray);
 
         $moodleuser = $this->person_to_moodleuser($lmbperson);
-
+        
+        $this->log_line_new();
         return $this->linestatus;
     }
 
@@ -1879,27 +1844,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $person->timemodified = time();
 
-        if ($oldlmbperson = $DB->get_record('enrol_lmb_people', array('sourcedid' => $person->sourcedid))) {
-            $person->id = $oldlmbperson->id;
-            if (enrol_lmb_compare_objects($person, $oldlmbperson)) {
-                if (!$DB->update_record('enrol_lmb_people', $person)) {
-                    $this->append_log_line('error updating enrol_lmb_people');
-                    $this->linestatus = false;
-                } else {
-                    $this->append_log_line('updated lmb table');
-                }
-            } else {
-                $this->append_log_line('no lmb changes to make');
-            }
-        } else {
-            if ($id = $DB->insert_record('enrol_lmb_people', $person)) {
-                $this->append_log_line('inserted into lmb table');
-                $person->id = $id;
-            } else {
-                $this->append_log_line('error inserting enrol_lmb_people');
-                $this->linestatus = false;
-            }
-        }
+        $this->update_or_insert_lmb($person, 'enrol_lmb_people');
 
         return $person;
     }
@@ -2388,7 +2333,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     public function append_log_line($string, $error = false) {
         $this->logline .= $string.':';
-        if ($error = true) {
+        if ($error == true) {
             $this->logerror = true;
         }
     }
@@ -2402,9 +2347,10 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function log_line_new($end = false) {
         $message = '';
 
-        if ($this->logonlyerrors && (!$this->logerror)) {
+        if ($this->get_config('logerrors') && (!$this->logerror)) {
             $this->logline = '';
             $this->logerror = false;
+            return;
         }
 
         if ($this->islmb) {
@@ -2414,6 +2360,12 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         if ($end) {
             $message .= $end;
+        }
+
+        if ($this->logerror) {
+            $message .= 'error';
+        } else {
+            $message .= 'complete';
         }
         if (!$this->silent) {
             mtrace($message);
@@ -2425,7 +2377,6 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $this->logline = '';
         $this->logerror = false;
-        $this->forcelogline = false;
     }
 
     /**
@@ -2600,7 +2551,40 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     }
 
+    /**
+     * Process the course section group tag. Defines a course in Moodle.
+     *
+     * @param stdClass &$object The lmb object to work on
+     * @param string $table The table to work on
+     * @return bool the status of the processing. False on error.
+     */
+    public function update_or_insert_lmb(&$object, $table) {
+        global $DB;
+        if ($oldobject = $DB->get_record($table, array('sourcedid' => $object->sourcedid))) {
+            $object->id = $oldobject->id;
+            if (enrol_lmb_compare_objects($object, $oldobject)) {
+                if ($DB->update_record($table, $object)) {
+                    $this->append_log_line('updated '.$table);
+                } else {
+                    $this->append_log_line('failed to update '.$table);
+                    $this->linestatus = false;
+                    return false;
+                }
+            } else {
+                $this->append_log_line('no lmb changes to make');
+            }
+        } else {
+            if ($object->id = $DB->insert_record($table, $object, true)) {
+                $this->append_log_line('inserted into '.$table);
+            } else {
+                $this->append_log_line('failed to insert into '.$table);
+                $this->linestatus = false;
+                return false;
+            }
+        }
 
+        return true;
+    }
 
     /**
      * Drops all enrolments that not been updated by this extract.
