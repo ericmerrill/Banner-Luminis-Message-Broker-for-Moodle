@@ -2151,6 +2151,15 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success or failure of the processing
      */
     public function process_membership_tag_error($tagcontents, &$errorcode, &$errormessage) {
+        $xmlarray = enrol_lmb_xml_to_array($tagcontents);
+
+        if (stripos($xmlarray['membership']['#']['sourcedid']['#'][0]['id']['#'][0], 'XLS') === 0) {
+            $this->xml_to_xls_memberships($xmlarray);
+        } else if ($xmlarray['membership']['#']['sourcedid']['#'][0]['source']['#'][0] === 'Plugin Internal') {
+            $this->xml_to_xls_memberships($xmlarray);
+        } else {
+            $this->xml_to_person_memberships($xmlarray);
+        }
 
         if (preg_match('{<sourcedid>.*?<id>XLS(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
             return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
@@ -2162,6 +2171,116 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     }
 
+
+    public function xml_to_person_memberships($xmlarray) {
+        $this->append_log_line('Enrolment');
+
+        if ((!$this->get_config('parsepersonxml')) || (!$this->get_config('parsecoursexml'))
+                || (!$this->get_config('parsepersonxml'))) {
+            $this->append_log_line('skipping.');
+            return array();
+        }
+
+        $output = array();
+        $membership = new stdClass;
+
+        $xmlmembership = $xmlarray['membership']['#'];
+
+        // Sourcedid Source.
+        /* TODO
+        if (!isset($xmlmembership['sourcedid'][0]['#']['source'][0]['#'])) {
+            $this->log_error('Sourcedid source not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $membership->sourcedidsource = $xmlgroup['sourcedid'][0]['#']['source'][0]['#'];
+        */
+
+        // Sourcedid.
+        if (!isset($xmlmembership['sourcedid'][0]['#']['id'][0]['#'])) {
+            $this->log_error('Sourcedid not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $membership->coursesourcedid = $xmlmembership['sourcedid'][0]['#']['id'][0]['#'];
+
+        if (preg_match('{.....\.(.+?)$}is', $membership->coursesourcedid, $matches)) {
+            $membership->term = trim($matches[1]);
+        }
+
+        foreach ($xmlmembership['member'] as $key => $member) {
+            $output[$key] = $membership;
+            $member = $member['#'];
+
+            // Sourcedid.
+            // Todo, shouldn't error out if one member fails.
+            if (!isset($member['sourcedid'][0]['#']['id'][0]['#'])) {
+                $this->append_log_line('person sourcedid not found');
+                $this->linestatus = false;
+                unset($output[$key]);
+                continue;
+            }
+            $output[$key]->personsourcedid = $member['sourcedid'][0]['#']['id'][0]['#'];
+
+            // Role.
+            if (!isset($member['role'][0]['@']['roletype'])) {
+                $this->append_log_line('role not found');
+                $this->linestatus = false;
+                unset($output[$key]);
+                continue;
+            }
+            $output[$key]->role = $member['role'][0]['@']['roletype'];
+
+            // Status.
+            if (!isset($member['role'][0]['#']['status'][0]['#'])) {
+                $this->append_log_line('person status not found');
+                $this->linestatus = false;
+                unset($output[$key]);
+                continue;
+            }
+            $output[$key]->status = trim($member['role'][0]['#']['status'][0]['#']);
+
+            // Rec Status.
+            if (isset($member['role'][0]['@']['recstatus'])) {
+                $recstatus = (int)trim($member['role'][0]['@']['recstatus']);
+                if ($recstatus==3) {
+                    $output[$key]->status = 0;
+                }
+            }
+
+            // Interm Grade Type.
+            if (isset($member['role'][0]['#']['interimresult'][0]['#']['mode'][0]['#'])) {
+                $output[$key]->midtermgrademode = trim($member['role'][0]['#']['interimresult'][0]['#']['mode'][0]['#']);
+            }
+
+            // Final Grade Type.
+            if (isset($member['role'][0]['#']['finalresult'][0]['#']['mode'][0]['#'])) {
+                $output[$key]->finalgrademode = trim($member['role'][0]['#']['finalresult'][0]['#']['mode'][0]['#']);
+            }
+
+            // Gradable.
+            if (isset($member['role'][0]['#']['extension'][0]['#']['extension'][0]['#'])) {
+                $output[$key]->gradable = (int)trim($member['role'][0]['#']['extension'][0]['#']['extension'][0]['#']);
+            } else {
+                // Per e-learn docs, if ommited, then membership is gradable.
+                if (isset($output[$key]->midtermgrademode) || isset($output[$key]->finalgrademode)) {
+                    $output[$key]->gradable = 1;
+                }
+            }
+
+            if ($this->processid) {
+                $output[$key]->extractstatus = $this->processid;
+            }
+
+            // Tracking for enrolment percentages.
+            if (!isset($this->terms[$output[$key]->term])) {
+                $this->terms[$output[$key]->term] = 0;
+            }
+            $this->terms[$output[$key]->term]++;
+        }
+
+        return $output;
+    }
 
     /**
      * Process a tag that is a membership of a person
@@ -2203,6 +2322,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             $member = $membermatches[1];
 
+            /*
             if (preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $member, $matches)) {
                 $enrolment->personsourcedid = trim($matches[1]);
                 $logline .= 'person id '.$enrolment->personsourcedid.':';
@@ -2217,7 +2337,9 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $logline .= 'person role not found:';
                 $status = false;
             }
+            */
 
+            /*
             if (preg_match('{<interimresult.*?\>.*?<mode>(.+?)</mode>.*?</interimresult>}is', $member, $matches)) {
                 $enrolment->midtermgrademode = trim($matches[1]);
             }
@@ -2234,18 +2356,23 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $enrolment->gradable = 1;
                 }
             }
+            */
 
+            /*
             $recstatus = ($this->get_recstatus($member, 'role'));
             if ($recstatus==3) {
                 $enrolment->status = 0;
             }
+            */
 
+            /*
             if (preg_match('{<role.*?\>.*?<status>(.+?)</status>.*?</role>}is', $member, $matches)) {
                 $enrolment->status = trim($matches[1]);
             } else {
                 $logline .= 'person status not found:';
                 $status = false;
             }
+            */
 
             if ($this->processid) {
                 $enrolment->extractstatus = $this->processid;
