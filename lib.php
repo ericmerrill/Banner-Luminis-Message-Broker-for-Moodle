@@ -1628,7 +1628,9 @@ class enrol_lmb_plugin extends enrol_plugin {
         // Select the userid.
         switch ($this->get_config('usernamesource')) {
             case "email":
-                $person->username = $person->email;
+                if (isset($person->email)) {
+                    $person->username = $person->email;
+                }
                 break;
 
             case "emailname":
