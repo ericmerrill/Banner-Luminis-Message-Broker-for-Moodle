@@ -80,7 +80,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function cron() {
         // If enabled, before a LMB time check.
-        if ($this->get_config('performlmbcheck')) {
+        if ($this->get_config('lmbcheck')) {
             $this->check_last_luminis_event();
         }
 
