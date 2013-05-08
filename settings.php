@@ -173,13 +173,18 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configselect('enrol_lmb/cattype', get_string('categorytype', 'enrol_lmb'),
             get_string('categorytypehelp', 'enrol_lmb'), 'term', $options));
 
-    if (function_exists('make_categories_list')) {
+    // Check for coursecat::make_categories_list, new in 2.5.
+    // Old make_categories_list() depricated in 2.5.
+    if (method_exists('coursecat', 'make_categories_list')) {
+        $displaylist = coursecat::make_categories_list();
+    } else {
         $displaylist = array();
         $parentlist = array();
         make_categories_list($displaylist, $parentlist);
-        $settingslmb->add(new admin_setting_configselect('enrol_lmb/catselect', get_string('catselect', 'enrol_lmb'),
-                get_string('catselecthelp', 'enrol_lmb'), '', $displaylist));
     }
+
+    $settingslmb->add(new admin_setting_configselect('enrol_lmb/catselect', get_string('catselect', 'enrol_lmb'),
+            get_string('catselecthelp', 'enrol_lmb'), '', $displaylist));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/cathidden', get_string('cathidden', 'enrol_lmb'),
             get_string('cathiddenhelp', 'enrol_lmb'), 0));
