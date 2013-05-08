@@ -1965,6 +1965,9 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $moodleuser->mnethostid = $CFG->mnet_localhost_id;
                     $moodleuser->confirmed = 1;
 
+                    // Add default site language.
+                    $moodleuser->lang = $CFG->lang;
+
                     // The user appears to not exist at all yet.
                     $moodleuser->firstname = $firstname;
                     $moodleuser->lastname = $lmbperson->familyname;
