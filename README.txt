@@ -1,6 +1,6 @@
 Luminis Message Broker enrollment Module.
-Version: 2.4.0 alpha
-Moodle version: 2.0.6 throught 2.4.x
+Version: 2.6.0 alpha
+Moodle version: 2.2.0 throught 2.5.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
@@ -13,6 +13,14 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 2.5.0
+Fixing lmbcheck variable name (Good catch from Chris Folin CONTRIB-4263)
+Remove depreciated use of make_categories_list (CONTRIB-4299)
+Set default language when creating new users (Thanks to Charles Fulton - CONTRIB-4054)
+Fixed undefined variable error. (CONTRIB-3940)
+Moved minimum Moodle version to 2.2.0.
+
 
 Release 2.1.9
 Fix for logging to a file. (Thanks to Charles Fulton - CONTRIB-3941)

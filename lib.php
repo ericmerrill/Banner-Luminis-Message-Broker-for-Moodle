@@ -84,7 +84,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function cron() {
         // If enabled, before a LMB time check.
-        if ($this->get_config('performlmbcheck')) {
+        if ($this->get_config('lmbcheck')) {
             $this->check_last_luminis_event();
         }
 
@@ -1712,7 +1712,9 @@ class enrol_lmb_plugin extends enrol_plugin {
         $person->username = '';
         switch ($this->get_config('usernamesource')) {
             case "email":
-                $person->username = $person->email;
+                if (isset($person->email)) {
+                    $person->username = $person->email;
+                }
                 break;
 
             case "emailname":
@@ -2013,6 +2015,9 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
                 $moodleuser->mnethostid = $CFG->mnet_localhost_id;
                 $moodleuser->confirmed = 1;
+
+                // Add default site language.
+                $moodleuser->lang = $CFG->lang;
 
                 // The user appears to not exist at all yet.
                 $moodleuser->firstname = $firstname;
