@@ -155,6 +155,24 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         </extension>
     </group>';
 
+    private $personmemberxml = '<membership>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>10001.201310</id>
+		</sourcedid>
+		<member>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>usersourcedid</id>
+		</sourcedid>
+		<idtype>1</idtype>
+		<role roletype = "01">
+			<subrole>Primary</subrole>
+			<status>1</status>
+		</role>
+		</member>
+	</membership>';
+
     public function test_lmb_xml_to_array() {
         $this->resetAfterTest(false);
 
@@ -164,7 +182,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
     }
 
     public function test_lmb_xml_to_person() {
-        global $DB;
+        global $DB, $CFG;
 
         $this->resetAfterTest(true);
         $this->personxmlarray = unserialize($this->personxmlserial);
@@ -294,6 +312,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected->username = 'test';
         $expected->confirmed = 1;
         $expected->address = '';
+        $expected->lang = $CFG->lang;
 
         $lmb->set_config('includetelephone', 0);
         $lmb->set_config('includeaddress', 0);
@@ -320,6 +339,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         unset($expected->mnethostid);
         unset($expected->country);
         unset($expected->confirmed);
+        unset($expected->lang);
 
         $lmb->set_config('forcename', 1);
         $lmb->set_config('forceemail', 1);
@@ -330,7 +350,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected->city = 'Standard City';
 
         $result = $this->clean_user_result($lmb->person_to_moodleuser($lmbperson));
-        $this->assertEquals($expected, $result, 'Error in forceed user tests');
+        $this->assertEquals($expected, $result, 'Error in forced user tests');
 
         $lmb->set_config('forcename', 0);
         unset($expected->firstname);
@@ -357,8 +377,8 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected->sourcedidsource = 'Test SCT Banner';
         $expected->sourcedid = '201310';
         $expected->title = 'Long Term 201310';
-        $expected->starttime = '1357027200';
-        $expected->endtime = '1357027200';
+        $expected->starttime = 1357016400;
+        $expected->endtime = 1357016400;
         $expected->timemodified = 1;
         $expected->id = 1;
 
@@ -392,8 +412,8 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected->depttitle = 'Department Unit';
         $expected->num = '101';
         $expected->section = '001';
-        $expected->startdate = 1357027200;
-        $expected->enddate = 1372575600;
+        $expected->startdate = 1357016400;
+        $expected->enddate = 1372564800;
         $expected->timemodified = 1;
         $expected->id = 1;
 
@@ -416,6 +436,46 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         // TODO
     }
 
+    public function test_lmb_xml_to_person_memberships() {
+        global $DB, $CFG;
+        $this->resetAfterTest(true);
+
+        $lmb = new enrol_lmb_plugin();
+        $membershiparray = enrol_lmb_xml_to_array($this->personmemberxml);
+
+        $expected = array();
+        $expected[0] = new stdClass();
+        $expected[0]->coursesourcedid = '10001.201310';
+        $expected[0]->personsourcedid = 'usersourcedid';
+        $expected[0]->term = '201310';
+        $expected[0]->role = '1';
+        $expected[0]->status = '1';
+        $expected[0]->id = 1;
+        //$expected[0]->extractstatus = 0;
+        //$expected[0]->succeeded = 0;
+        //$expected[0]->gradeable = 0;
+        //$expected[0]->midtermgrademode = 0;
+        //$expected[0]->midtermsubmitted = 0;
+        //$expected[0]->finalgrademode = 0;
+        //$expected[0]->finalsubmitted = 0;
+
+        $result = $this->clean_array_of_objects($lmb->xml_to_person_memberships($membershiparray));
+        $this->assertEquals($expected, $result);
+
+        $expected[0]->extractstatus = '0';
+        $expected[0]->succeeded = '0';
+        $expected[0]->gradable = '0';
+        $expected[0]->midtermgrademode = null;
+        $expected[0]->midtermsubmitted = '0';
+        $expected[0]->finalgrademode = null;
+        $expected[0]->finalsubmitted = '0';
+        $expected[0]->timemodified = 1;
+
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_enrolments', array('coursesourcedid' => '10001.201310', 'personsourcedid' => 'usersourcedid')));
+        $this->assertEquals($expected[0], $dbrecord, 'DB Record');
+
+    }
+
     private function clean_user_result($user) {
 
         return $this->clean_lmb_object($user);
@@ -424,6 +484,14 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
     private function clean_person_result($person) {
 
         return $this->clean_lmb_object($person);
+    }
+
+    private function clean_array_of_objects($arr) {
+        foreach ($arr as $key => $item) {
+            $arr[$key] = $this->clean_lmb_object($item);
+        }
+
+        return $arr;
     }
 
     private function clean_lmb_object($obj) {

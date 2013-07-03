@@ -2234,7 +2234,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 unset($output[$key]);
                 continue;
             }
-            $output[$key]->role = $member['role'][0]['@']['roletype'];
+            $output[$key]->role = (int)$member['role'][0]['@']['roletype'];
 
             // Status.
             if (!isset($member['role'][0]['#']['status'][0]['#'])) {
@@ -2282,6 +2282,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $this->terms[$output[$key]->term] = 0;
             }
             $this->terms[$output[$key]->term]++;
+
+            $this->update_or_insert_lmb($output[$key], 'enrol_lmb_enrolments');
         }
 
         return $output;
@@ -2684,7 +2686,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     }
 
     /**
-     * Process the course section group tag. Defines a course in Moodle.
+     * 
      *
      * @param stdClass &$object The lmb object to work on
      * @param string $table The table to work on
@@ -2692,7 +2694,15 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function update_or_insert_lmb(&$object, $table) {
         global $DB;
-        if ($oldobject = $DB->get_record($table, array('sourcedid' => $object->sourcedid))) {
+        $args = array();
+        if ($table === 'enrol_lmb_enrolments') {
+            $args['coursesourcedid'] = $object->coursesourcedid;
+            $args['personsourcedid'] = $object->personsourcedid;
+        } else {
+            $args['sourcedid'] = $object->sourcedid;
+        }
+
+        if ($oldobject = $DB->get_record($table, $args)) {
             $object->id = $oldobject->id;
             if (enrol_lmb_compare_objects($object, $oldobject)) {
                 if ($DB->update_record($table, $object)) {
