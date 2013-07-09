@@ -35,7 +35,9 @@ if ($ADMIN->fulltree) {
 
 
 
-    // Log Settings --------------------------------------------------------------------------------.
+    // -----------------------------------------------------------------------------------------------------------------
+    // Log Settings
+    // -----------------------------------------------------------------------------------------------------------------
     $settingslmb->add(new admin_setting_heading('enrol_lmb_logsettings', get_string('logsettings', 'enrol_lmb'), ''));
 
 
@@ -59,7 +61,9 @@ if ($ADMIN->fulltree) {
 
 
 
-    // LMB Security --------------------------------------------------------------------------------.
+    // -----------------------------------------------------------------------------------------------------------------
+    // LMB Security
+    // -----------------------------------------------------------------------------------------------------------------
     $settingslmb->add(new admin_setting_heading('enrol_lmb_lmbsecurity', get_string('lmbsecurity', 'enrol_lmb'), ''));
 
     $settingslmb->add(new admin_setting_configtext('enrol_lmb/lmbusername', get_string('lmbusername', 'enrol_lmb'),
@@ -70,7 +74,9 @@ if ($ADMIN->fulltree) {
 
 
 
-    // LMB Status Check ----------------------------------------------------------------------------.
+    // -----------------------------------------------------------------------------------------------------------------
+    // LMB Status Check
+    // -----------------------------------------------------------------------------------------------------------------
     $settingslmb->add(new admin_setting_heading('enrol_lmb_lmbcheck', get_string('lmbcheck', 'enrol_lmb'), ''));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/lmbcheck', get_string('lmbcheck', 'enrol_lmb'),
@@ -92,7 +98,9 @@ if ($ADMIN->fulltree) {
 
 
 
-    // Banner Extract Import -----------------------------------------------------------------------.
+    // -----------------------------------------------------------------------------------------------------------------
+    // Banner Extract Import
+    // -----------------------------------------------------------------------------------------------------------------
     $settingslmb->add(new admin_setting_heading('enrol_lmb_bannerextractimport',
             get_string('bannerextractimport', 'enrol_lmb'), ''));
 
@@ -119,7 +127,9 @@ if ($ADMIN->fulltree) {
 
 
 
-    // Cron Options --------------------------------------------------------------------------------.
+    // -----------------------------------------------------------------------------------------------------------------
+    // Cron Options
+    // -----------------------------------------------------------------------------------------------------------------
     $settingslmb->add(new admin_setting_heading('enrol_lmb_cron', get_string('cron', 'enrol_lmb'), ''));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/cronxmlfile', get_string('cronxmlfile', 'enrol_lmb'),
@@ -136,7 +146,9 @@ if ($ADMIN->fulltree) {
 
 
 
-    // Parse Course --------------------------------------------------------------------------------.
+    // -----------------------------------------------------------------------------------------------------------------
+    // Parse Course
+    // -----------------------------------------------------------------------------------------------------------------
     $settingslmb->add(new admin_setting_heading('enrol_lmb_parsecourse', get_string('parsecourse', 'enrol_lmb'), ''));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/parsecoursexml', get_string('parsecoursexml', 'enrol_lmb'),
@@ -203,7 +215,9 @@ if ($ADMIN->fulltree) {
 
 
 
-    // Parse XLS -----------------------------------------------------------------------------------.
+    // -----------------------------------------------------------------------------------------------------------------
+    // Parse XLS
+    // -----------------------------------------------------------------------------------------------------------------
     $settingslmb->add(new admin_setting_heading('enrol_lmb_parsexls', get_string('parsexls', 'enrol_lmb'), ''));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/parsexlsxml', get_string('parsexlsxml', 'enrol_lmb'),
@@ -237,7 +251,9 @@ if ($ADMIN->fulltree) {
 
 
 
-    // Parse Person --------------------------------------------------------------------------------.
+    // -----------------------------------------------------------------------------------------------------------------
+    // Parse Person
+    // -----------------------------------------------------------------------------------------------------------------
     $settingslmb->add(new admin_setting_heading('enrol_lmb_parseperson', get_string('parseperson', 'enrol_lmb'), ''));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/parsepersonxml', get_string('parsepersonxml', 'enrol_lmb'),
@@ -349,7 +365,9 @@ if ($ADMIN->fulltree) {
 
 
 
-    // Parse Enrollments ---------------------------------------------------------------------------.
+    // -----------------------------------------------------------------------------------------------------------------
+    // Parse Enrollments
+    // -----------------------------------------------------------------------------------------------------------------
     $settingslmb->add(new admin_setting_heading('enrol_lmb_parseenrol', get_string('parseenrol', 'enrol_lmb'), ''));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/parseenrolxml', get_string('parseenrolxml', 'enrol_lmb'),

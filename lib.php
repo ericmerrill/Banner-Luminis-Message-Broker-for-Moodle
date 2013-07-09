@@ -485,6 +485,250 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $this->linestatus;
     }
 
+    // -----------------------------------------------------------------------------------------------------------------
+    // New XML.
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Process the provided XML person array into a internal person obeject.
+     * Processed object is also stored.
+     *
+     * @param array $xmlarray The raw contents of the XML message in array form
+     * @return stdClass A object representing a LMB Person
+     */
+    public function xml_to_person($xmlarray) {
+        global $DB;
+        $person = new stdClass();
+
+        if (!is_array($xmlarray) || !isset($xmlarray['person']) || !isset($xmlarray['person']['#'])) {
+            $this->log_error('Not valid person XML');
+            $this->linestatus = false;
+            return false;
+        }
+
+        $xmlperson = $xmlarray['person']['#'];
+
+        // Sourcedid Source.
+        if (!isset($xmlperson['sourcedid'][0]['#']['source'][0]['#'])) {
+            $this->log_error('Sourcedid source not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $person->sourcedidsource = $xmlperson['sourcedid'][0]['#']['source'][0]['#'];
+
+        // Sourcedid Id.
+        if (!isset($xmlperson['sourcedid'][0]['#']['id'][0]['#'])) {
+            $this->log_error('Sourcedid not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $person->sourcedid = $xmlperson['sourcedid'][0]['#']['id'][0]['#'];
+
+        // Rec status.
+        if (isset($xmlarray['person']['@']['recstatus'])) {
+            $person->recstatus = $xmlarray['person']['@']['recstatus'];
+        } else {
+            $person->recstatus = '';
+        }
+
+        // Full Name.
+        if (isset($xmlperson['name'][0]['#']['fn'][0]['#'])) {
+            $person->fullname = $xmlperson['name'][0]['#']['fn'][0]['#'];
+        }
+
+        // Nickname.
+        if (isset($xmlperson['name'][0]['#']['nickname'][0]['#'])) {
+            $person->nickname = $xmlperson['name'][0]['#']['nickname'][0]['#'];
+        }
+
+        // Given Name.
+        if (isset($xmlperson['name'][0]['#']['n'][0]['#']['given'][0]['#'])) {
+            $person->givenname = $xmlperson['name'][0]['#']['n'][0]['#']['given'][0]['#'];
+        }
+
+        // Family Name.
+        if (isset($xmlperson['name'][0]['#']['n'][0]['#']['family'][0]['#'])) {
+            $person->familyname = $xmlperson['name'][0]['#']['n'][0]['#']['family'][0]['#'];
+        }
+
+        // Email.
+        if (isset($xmlperson['email'][0]['#'])) {
+            $person->email = $xmlperson['email'][0]['#'];
+        }
+
+        // Telephone.
+        if (isset($xmlperson['tel'][0]['#'])) {
+            $person->telephone = $xmlperson['tel'][0]['#'];
+        }
+
+        // Street.
+        if (isset($xmlperson['adr'][0]['#']['street'][0]['#'])) {
+            $person->adrstreet = $xmlperson['adr'][0]['#']['street'][0]['#'];
+        }
+
+        // Locality.
+        if (isset($xmlperson['adr'][0]['#']['locality'][0]['#'])) {
+            $person->locality = $xmlperson['adr'][0]['#']['locality'][0]['#'];
+        }
+
+        // Region.
+        if (isset($xmlperson['adr'][0]['#']['region'][0]['#'])) {
+            $person->region = $xmlperson['adr'][0]['#']['region'][0]['#'];
+        }
+
+        // Country.
+        if (isset($xmlperson['adr'][0]['#']['country'][0]['#'])) {
+            $person->country = $xmlperson['adr'][0]['#']['country'][0]['#'];
+        }
+
+        // Academic Major.
+        if (isset($xmlperson['extension'][0]['#']['luminisperson'][0]['#']['academicmajor'][0]['#'])) {
+            $person->academicmajor = $xmlperson['extension'][0]['#']['luminisperson'][0]['#']['academicmajor'][0]['#'];
+        }
+
+        // Select the username.
+        $person->username = '';
+        switch ($this->get_config('usernamesource')) {
+            case "email":
+                if (isset($person->email)) {
+                    $person->username = $person->email;
+                }
+                break;
+
+            case "emailname":
+                if (isset($person->email) && preg_match('{(.+?)@.*?}is', $person->email, $matches)) {
+                    $person->username = trim($matches[1]);
+                }
+                break;
+
+            case "other":
+                $type = $this->get_config('useridtypeother');
+            case "loginid":
+                if (!isset($type)) {
+                    $type = 'Logon ID';
+                }
+            case "sctid":
+                if (!isset($type)) {
+                    $type = 'SCTID';
+                }
+            case "emailid":
+                if (!isset($type)) {
+                    $type = 'Email ID';
+                }
+
+                if (isset($xmlperson['userid'])) {
+                    foreach ($xmlperson['userid'] as $row) {
+                        if (isset($row['@']['useridtype'])) {
+                            if ($row['@']['useridtype'] === $type) {
+                                $person->username = $row['#'];
+                            }
+                        }
+                    }
+                }
+
+                break;
+
+            default:
+                $this->append_log_line('bad enrol_lmb_usernamesource setting', true);
+
+                $this->linestatus = false; // TODO?
+
+        }
+        unset($type);
+
+        if ($this->get_config('sourcedidfallback') && trim($person->username)=='') {
+            // This is the point where we can fall back to useing the "sourcedid" if "userid" is not supplied...
+            // ...NB We don't use an "else if" because the tag may be supplied-but-empty.
+            $person->username = $person->sourcedid.'';
+        }
+
+        // Custom field mapping.
+        if ($this->get_config('customfield1mapping')) {
+
+            switch($this->get_config('customfield1source')) {
+                case "loginid":
+                    if (!isset($type)) {
+                        $type = 'Logon ID';
+                    }
+                case "sctid":
+                    if (!isset($type)) {
+                        $type = 'SCTID';
+                    }
+                case "emailid":
+                    if (!isset($type)) {
+                        $type = 'Email ID';
+                    }
+
+                    if (isset($xmlperson['userid'])) {
+                        foreach ($xmlperson['userid'] as $row) {
+                            if (isset($row['@']['useridtype'])) {
+                                if ($row['@']['useridtype'] === $type) {
+                                    $person->customfield1 = $row['#'];
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    $this->append_log_line('bad enrol_lmb_customfield1mapping setting', true);
+            }
+        }
+        unset($type);
+
+        if ($this->get_config('sourcedidfallback') && trim($person->username)=='') {
+            // This is the point where we can fall back to useing the "sourcedid" if "userid" is not supplied...
+            $person->username = $person->sourcedid.'';
+        }
+
+        // Select the password.
+        switch ($this->get_config('passwordnamesource')) {
+            case "none":
+                break;
+
+            case "other":
+                $type = $this->get_config('passworduseridtypeother');
+            case "loginid":
+                if (!isset($type)) {
+                    $type = 'Logon ID';
+                }
+            case "sctid":
+                if (!isset($type)) {
+                    $type = 'SCTID';
+                }
+            case "emailid":
+                if (!isset($type)) {
+                    $type = 'Email ID';
+                }
+
+                if (isset($xmlperson['userid'])) {
+                    foreach ($xmlperson['userid'] as $row) {
+                        if (isset($row['@']['useridtype'])) {
+                            if ($row['@']['useridtype'] === $type) {
+                                $person->password = $row['@']['password'];
+                            }
+                        }
+                    }
+                }
+
+                break;
+
+            default:
+                $this->linestatus = false;
+                $logline .= 'bad enrol_lmb_passwordnamesource setting:';
+
+        }
+        unset($type);
+
+        $person->auth = $this->get_config('auth');
+
+        $person->timemodified = time();
+
+        $this->update_or_insert_lmb($person, 'enrol_lmb_people');
+
+        return $person;
+    }
+
     /**
      * Processes a given term tag. Basically just inserting the info
      * in a lmb internal table for future use.
@@ -630,6 +874,206 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $course;
     }
 
+    public function xml_to_person_memberships($xmlarray) {
+        $this->append_log_line('Enrolment');
+
+        if ((!$this->get_config('parsepersonxml')) || (!$this->get_config('parsecoursexml'))
+                || (!$this->get_config('parsepersonxml'))) {
+            $this->append_log_line('skipping.');
+            return array();
+        }
+
+        $output = array();
+        $membership = new stdClass;
+
+        $xmlmembership = $xmlarray['membership']['#'];
+
+        // Sourcedid Source.
+        /* TODO
+        if (!isset($xmlmembership['sourcedid'][0]['#']['source'][0]['#'])) {
+            $this->log_error('Sourcedid source not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $membership->sourcedidsource = $xmlgroup['sourcedid'][0]['#']['source'][0]['#'];
+        */
+
+        // Sourcedid.
+        if (!isset($xmlmembership['sourcedid'][0]['#']['id'][0]['#'])) {
+            $this->log_error('Sourcedid not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $membership->coursesourcedid = $xmlmembership['sourcedid'][0]['#']['id'][0]['#'];
+
+        if (preg_match('{.....\.(.+?)$}is', $membership->coursesourcedid, $matches)) {
+            $membership->term = trim($matches[1]);
+        }
+
+        foreach ($xmlmembership['member'] as $key => $member) {
+            $output[$key] = clone $membership;
+            $member = $member['#'];
+
+            // Sourcedid.
+            // Todo, shouldn't error out if one member fails.
+            if (!isset($member['sourcedid'][0]['#']['id'][0]['#'])) {
+                $this->append_log_line('person sourcedid not found');
+                $this->linestatus = false;
+                unset($output[$key]);
+                continue;
+            }
+            $output[$key]->personsourcedid = $member['sourcedid'][0]['#']['id'][0]['#'];
+
+            // Role.
+            if (!isset($member['role'][0]['@']['roletype'])) {
+                $this->append_log_line('role not found');
+                $this->linestatus = false;
+                unset($output[$key]);
+                continue;
+            }
+            $output[$key]->role = (int)$member['role'][0]['@']['roletype'];
+
+            // Status.
+            if (!isset($member['role'][0]['#']['status'][0]['#'])) {
+                $this->append_log_line('person status not found');
+                $this->linestatus = false;
+                unset($output[$key]);
+                continue;
+            }
+            $output[$key]->status = trim($member['role'][0]['#']['status'][0]['#']);
+
+            // Rec Status.
+            if (isset($member['role'][0]['@']['recstatus'])) {
+                $recstatus = (int)trim($member['role'][0]['@']['recstatus']);
+                if ($recstatus==3) {
+                    $output[$key]->status = 0;
+                }
+            }
+
+            // Interm Grade Type.
+            if (isset($member['role'][0]['#']['interimresult'][0]['#']['mode'][0]['#'])) {
+                $output[$key]->midtermgrademode = trim($member['role'][0]['#']['interimresult'][0]['#']['mode'][0]['#']);
+            }
+
+            // Final Grade Type.
+            if (isset($member['role'][0]['#']['finalresult'][0]['#']['mode'][0]['#'])) {
+                $output[$key]->finalgrademode = trim($member['role'][0]['#']['finalresult'][0]['#']['mode'][0]['#']);
+            }
+
+            // Gradable.
+            if (isset($member['role'][0]['#']['extension'][0]['#']['extension'][0]['#'])) {
+                $output[$key]->gradable = (int)trim($member['role'][0]['#']['extension'][0]['#']['extension'][0]['#']);
+            } else {
+                // Per e-learn docs, if ommited, then membership is gradable.
+                if (isset($output[$key]->midtermgrademode) || isset($output[$key]->finalgrademode)) {
+                    $output[$key]->gradable = 1;
+                }
+            }
+
+            if ($this->processid) {
+                $output[$key]->extractstatus = $this->processid;
+            }
+
+            // Tracking for enrolment percentages.
+            if (!isset($this->terms[$output[$key]->term])) {
+                $this->terms[$output[$key]->term] = 0;
+            }
+            $this->terms[$output[$key]->term]++;
+
+            $this->update_or_insert_lmb($output[$key], 'enrol_lmb_enrolments');
+        }
+
+        return $output;
+    }
+
+    public function xml_to_xls_memberships($xmlarray) {
+        $this->append_log_line('Crosslist Membership');
+
+        if (!$this->get_config('parsexlsxml')) {
+            $this->append_log_line('skipping.');
+            return array();
+        }
+
+        $output = array();
+        $membership = new stdClass;
+
+        $xmlmembership = $xmlarray['membership']['#'];
+
+        // Sourcedid Source.
+        if (!isset($xmlmembership['sourcedid'][0]['#']['source'][0]['#'])) {
+            $this->log_error('Sourcedid source not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $membership->crosssourcedidsource = $xmlmembership['sourcedid'][0]['#']['source'][0]['#'];
+
+        // Sourcedid.
+        if (!isset($xmlmembership['sourcedid'][0]['#']['id'][0]['#'])) {
+            $this->log_error('Sourcedid not found');
+            $this->linestatus = false;
+            return false;
+        }
+        $membership->crosslistsourcedid = $xmlmembership['sourcedid'][0]['#']['id'][0]['#'];
+
+        // Grouping Type.
+        if (isset($xmlmembership['type'][0]['#']) &&
+                (($xmlmembership['type'][0]['#'] == 'meta') || ($xmlmembership['type'][0]['#'] == 'merge'))) {
+            $membership->type = $xmlmembership['type'][0]['#'];
+        } else {
+            $membership->type = $this->get_config('xlstype');
+        }
+
+        foreach ($xmlmembership['member'] as $key => $member) {
+            $output[$key] = clone $membership;
+            $member = $member['#'];
+
+            // Sourcedid Source.
+            // Todo, shouldn't error out if one member fails.
+            if (!isset($member['sourcedid'][0]['#']['source'][0]['#'])) {
+                $this->append_log_line('person sourcedid not found');
+                $this->linestatus = false;
+                unset($output[$key]);
+                continue;
+            }
+            $output[$key]->coursesourcedidsource = $member['sourcedid'][0]['#']['source'][0]['#'];
+
+            // Sourcedid.
+            // Todo, shouldn't error out if one member fails.
+            if (!isset($member['sourcedid'][0]['#']['id'][0]['#'])) {
+                $this->append_log_line('person sourcedid not found');
+                $this->linestatus = false;
+                unset($output[$key]);
+                continue;
+            }
+            $output[$key]->coursesourcedid = $member['sourcedid'][0]['#']['id'][0]['#'];
+
+            // Status.
+            if (!isset($member['role'][0]['#']['status'][0]['#'])) {
+                $this->append_log_line('person status not found');
+                $this->linestatus = false;
+                unset($output[$key]);
+                continue;
+            }
+            $output[$key]->status = trim($member['role'][0]['#']['status'][0]['#']);
+
+            // Rec Status.
+            if (isset($member['role'][0]['@']['recstatus'])) {
+                $recstatus = (int)trim($member['role'][0]['@']['recstatus']);
+                if ($recstatus==3) {
+                    $output[$key]->status = 0;
+                }
+            }
+
+            $this->update_or_insert_lmb($output[$key], 'enrol_lmb_crosslists');
+        }
+
+        return $output;
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // New Moodle.
+    // -----------------------------------------------------------------------------------------------------------------
+
     /**
      * Process the course section group tag. Defines a course in Moodle.
      *
@@ -724,6 +1168,11 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     } // End process_group_tag().
 
+
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Old.
+    // -----------------------------------------------------------------------------------------------------------------
 
     /**
      * Calls fix_course_sortorder() if course categories are getting to close.
@@ -1606,250 +2055,11 @@ class enrol_lmb_plugin extends enrol_plugin {
         $lmbperson = $this->xml_to_person($xmlarray);
 
         $moodleuser = $this->person_to_moodleuser($lmbperson);
-        
+
         $this->log_line_new();
         return $this->linestatus;
     }
 
-    /**
-     * Process the provided XML person array into a internal person obeject.
-     * Processed object is also stored.
-     *
-     * @param array $xmlarray The raw contents of the XML message in array form
-     * @return stdClass A object representing a LMB Person
-     */
-    public function xml_to_person($xmlarray) {
-        global $DB;
-        $person = new stdClass();
-
-        if (!is_array($xmlarray) || !isset($xmlarray['person']) || !isset($xmlarray['person']['#'])) {
-            $this->log_error('Not valid person XML');
-            $this->linestatus = false;
-            return false;
-        }
-
-        $xmlperson = $xmlarray['person']['#'];
-
-        // Sourcedid Source.
-        if (!isset($xmlperson['sourcedid'][0]['#']['source'][0]['#'])) {
-            $this->log_error('Sourcedid source not found');
-            $this->linestatus = false;
-            return false;
-        }
-        $person->sourcedidsource = $xmlperson['sourcedid'][0]['#']['source'][0]['#'];
-
-        // Sourcedid Id.
-        if (!isset($xmlperson['sourcedid'][0]['#']['id'][0]['#'])) {
-            $this->log_error('Sourcedid not found');
-            $this->linestatus = false;
-            return false;
-        }
-        $person->sourcedid = $xmlperson['sourcedid'][0]['#']['id'][0]['#'];
-
-        // Rec status.
-        if (isset($xmlarray['person']['@']['recstatus'])) {
-            $person->recstatus = $xmlarray['person']['@']['recstatus'];
-        } else {
-            $person->recstatus = '';
-        }
-
-        // Full Name.
-        if (isset($xmlperson['name'][0]['#']['fn'][0]['#'])) {
-            $person->fullname = $xmlperson['name'][0]['#']['fn'][0]['#'];
-        }
-
-        // Nickname.
-        if (isset($xmlperson['name'][0]['#']['nickname'][0]['#'])) {
-            $person->nickname = $xmlperson['name'][0]['#']['nickname'][0]['#'];
-        }
-
-        // Given Name.
-        if (isset($xmlperson['name'][0]['#']['n'][0]['#']['given'][0]['#'])) {
-            $person->givenname = $xmlperson['name'][0]['#']['n'][0]['#']['given'][0]['#'];
-        }
-
-        // Family Name.
-        if (isset($xmlperson['name'][0]['#']['n'][0]['#']['family'][0]['#'])) {
-            $person->familyname = $xmlperson['name'][0]['#']['n'][0]['#']['family'][0]['#'];
-        }
-
-        // Email.
-        if (isset($xmlperson['email'][0]['#'])) {
-            $person->email = $xmlperson['email'][0]['#'];
-        }
-
-        // Telephone.
-        if (isset($xmlperson['tel'][0]['#'])) {
-            $person->telephone = $xmlperson['tel'][0]['#'];
-        }
-
-        // Street.
-        if (isset($xmlperson['adr'][0]['#']['street'][0]['#'])) {
-            $person->adrstreet = $xmlperson['adr'][0]['#']['street'][0]['#'];
-        }
-
-        // Locality.
-        if (isset($xmlperson['adr'][0]['#']['locality'][0]['#'])) {
-            $person->locality = $xmlperson['adr'][0]['#']['locality'][0]['#'];
-        }
-
-        // Region.
-        if (isset($xmlperson['adr'][0]['#']['region'][0]['#'])) {
-            $person->region = $xmlperson['adr'][0]['#']['region'][0]['#'];
-        }
-
-        // Country.
-        if (isset($xmlperson['adr'][0]['#']['country'][0]['#'])) {
-            $person->country = $xmlperson['adr'][0]['#']['country'][0]['#'];
-        }
-
-        // Academic Major.
-        if (isset($xmlperson['extension'][0]['#']['luminisperson'][0]['#']['academicmajor'][0]['#'])) {
-            $person->academicmajor = $xmlperson['extension'][0]['#']['luminisperson'][0]['#']['academicmajor'][0]['#'];
-        }
-
-        // Select the username.
-        $person->username = '';
-        switch ($this->get_config('usernamesource')) {
-            case "email":
-                if (isset($person->email)) {
-                    $person->username = $person->email;
-                }
-                break;
-
-            case "emailname":
-                if (isset($person->email) && preg_match('{(.+?)@.*?}is', $person->email, $matches)) {
-                    $person->username = trim($matches[1]);
-                }
-                break;
-
-            case "other":
-                $type = $this->get_config('useridtypeother');
-            case "loginid":
-                if (!isset($type)) {
-                    $type = 'Logon ID';
-                }
-            case "sctid":
-                if (!isset($type)) {
-                    $type = 'SCTID';
-                }
-            case "emailid":
-                if (!isset($type)) {
-                    $type = 'Email ID';
-                }
-
-                if (isset($xmlperson['userid'])) {
-                    foreach ($xmlperson['userid'] as $row) {
-                        if (isset($row['@']['useridtype'])) {
-                            if ($row['@']['useridtype'] === $type) {
-                                $person->username = $row['#'];
-                            }
-                        }
-                    }
-                }
-
-                break;
-
-            default:
-                $this->append_log_line('bad enrol_lmb_usernamesource setting', true);
-
-                $this->linestatus = false; // TODO?
-
-        }
-        unset($type);
-
-        if ($this->get_config('sourcedidfallback') && trim($person->username)=='') {
-            // This is the point where we can fall back to useing the "sourcedid" if "userid" is not supplied...
-            // ...NB We don't use an "else if" because the tag may be supplied-but-empty.
-            $person->username = $person->sourcedid.'';
-        }
-
-        // Custom field mapping.
-        if ($this->get_config('customfield1mapping')) {
-
-            switch($this->get_config('customfield1source')) {
-                case "loginid":
-                    if (!isset($type)) {
-                        $type = 'Logon ID';
-                    }
-                case "sctid":
-                    if (!isset($type)) {
-                        $type = 'SCTID';
-                    }
-                case "emailid":
-                    if (!isset($type)) {
-                        $type = 'Email ID';
-                    }
-
-                    if (isset($xmlperson['userid'])) {
-                        foreach ($xmlperson['userid'] as $row) {
-                            if (isset($row['@']['useridtype'])) {
-                                if ($row['@']['useridtype'] === $type) {
-                                    $person->customfield1 = $row['#'];
-                                }
-                            }
-                        }
-                    }
-                    break;
-
-                default:
-                    $this->append_log_line('bad enrol_lmb_customfield1mapping setting', true);
-            }
-        }
-        unset($type);
-
-        if ($this->get_config('sourcedidfallback') && trim($person->username)=='') {
-            // This is the point where we can fall back to useing the "sourcedid" if "userid" is not supplied...
-            $person->username = $person->sourcedid.'';
-        }
-
-        // Select the password.
-        switch ($this->get_config('passwordnamesource')) {
-            case "none":
-                break;
-
-            case "other":
-                $type = $this->get_config('passworduseridtypeother');
-            case "loginid":
-                if (!isset($type)) {
-                    $type = 'Logon ID';
-                }
-            case "sctid":
-                if (!isset($type)) {
-                    $type = 'SCTID';
-                }
-            case "emailid":
-                if (!isset($type)) {
-                    $type = 'Email ID';
-                }
-
-                if (isset($xmlperson['userid'])) {
-                    foreach ($xmlperson['userid'] as $row) {
-                        if (isset($row['@']['useridtype'])) {
-                            if ($row['@']['useridtype'] === $type) {
-                                $person->password = $row['@']['password'];
-                            }
-                        }
-                    }
-                }
-
-                break;
-
-            default:
-                $this->linestatus = false;
-                $logline .= 'bad enrol_lmb_passwordnamesource setting:';
-
-        }
-        unset($type);
-
-        $person->auth = $this->get_config('auth');
-
-        $person->timemodified = time();
-
-        $this->update_or_insert_lmb($person, 'enrol_lmb_people');
-
-        return $person;
-    }
 
     /**
      * Takes an internal LMB person object and converts it to a moodle user object,
@@ -2130,8 +2340,6 @@ class enrol_lmb_plugin extends enrol_plugin {
     } // End process_person_tag().
 
 
-
-
     /**
      * Used to call process_membership_tag_error() without passing
      * error variables. See process_membership_tag_error()
@@ -2177,117 +2385,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     }
 
 
-    public function xml_to_person_memberships($xmlarray) {
-        $this->append_log_line('Enrolment');
 
-        if ((!$this->get_config('parsepersonxml')) || (!$this->get_config('parsecoursexml'))
-                || (!$this->get_config('parsepersonxml'))) {
-            $this->append_log_line('skipping.');
-            return array();
-        }
-
-        $output = array();
-        $membership = new stdClass;
-
-        $xmlmembership = $xmlarray['membership']['#'];
-
-        // Sourcedid Source.
-        /* TODO
-        if (!isset($xmlmembership['sourcedid'][0]['#']['source'][0]['#'])) {
-            $this->log_error('Sourcedid source not found');
-            $this->linestatus = false;
-            return false;
-        }
-        $membership->sourcedidsource = $xmlgroup['sourcedid'][0]['#']['source'][0]['#'];
-        */
-
-        // Sourcedid.
-        if (!isset($xmlmembership['sourcedid'][0]['#']['id'][0]['#'])) {
-            $this->log_error('Sourcedid not found');
-            $this->linestatus = false;
-            return false;
-        }
-        $membership->coursesourcedid = $xmlmembership['sourcedid'][0]['#']['id'][0]['#'];
-
-        if (preg_match('{.....\.(.+?)$}is', $membership->coursesourcedid, $matches)) {
-            $membership->term = trim($matches[1]);
-        }
-
-        foreach ($xmlmembership['member'] as $key => $member) {
-            $output[$key] = $membership;
-            $member = $member['#'];
-
-            // Sourcedid.
-            // Todo, shouldn't error out if one member fails.
-            if (!isset($member['sourcedid'][0]['#']['id'][0]['#'])) {
-                $this->append_log_line('person sourcedid not found');
-                $this->linestatus = false;
-                unset($output[$key]);
-                continue;
-            }
-            $output[$key]->personsourcedid = $member['sourcedid'][0]['#']['id'][0]['#'];
-
-            // Role.
-            if (!isset($member['role'][0]['@']['roletype'])) {
-                $this->append_log_line('role not found');
-                $this->linestatus = false;
-                unset($output[$key]);
-                continue;
-            }
-            $output[$key]->role = (int)$member['role'][0]['@']['roletype'];
-
-            // Status.
-            if (!isset($member['role'][0]['#']['status'][0]['#'])) {
-                $this->append_log_line('person status not found');
-                $this->linestatus = false;
-                unset($output[$key]);
-                continue;
-            }
-            $output[$key]->status = trim($member['role'][0]['#']['status'][0]['#']);
-
-            // Rec Status.
-            if (isset($member['role'][0]['@']['recstatus'])) {
-                $recstatus = (int)trim($member['role'][0]['@']['recstatus']);
-                if ($recstatus==3) {
-                    $output[$key]->status = 0;
-                }
-            }
-
-            // Interm Grade Type.
-            if (isset($member['role'][0]['#']['interimresult'][0]['#']['mode'][0]['#'])) {
-                $output[$key]->midtermgrademode = trim($member['role'][0]['#']['interimresult'][0]['#']['mode'][0]['#']);
-            }
-
-            // Final Grade Type.
-            if (isset($member['role'][0]['#']['finalresult'][0]['#']['mode'][0]['#'])) {
-                $output[$key]->finalgrademode = trim($member['role'][0]['#']['finalresult'][0]['#']['mode'][0]['#']);
-            }
-
-            // Gradable.
-            if (isset($member['role'][0]['#']['extension'][0]['#']['extension'][0]['#'])) {
-                $output[$key]->gradable = (int)trim($member['role'][0]['#']['extension'][0]['#']['extension'][0]['#']);
-            } else {
-                // Per e-learn docs, if ommited, then membership is gradable.
-                if (isset($output[$key]->midtermgrademode) || isset($output[$key]->finalgrademode)) {
-                    $output[$key]->gradable = 1;
-                }
-            }
-
-            if ($this->processid) {
-                $output[$key]->extractstatus = $this->processid;
-            }
-
-            // Tracking for enrolment percentages.
-            if (!isset($this->terms[$output[$key]->term])) {
-                $this->terms[$output[$key]->term] = 0;
-            }
-            $this->terms[$output[$key]->term]++;
-
-            $this->update_or_insert_lmb($output[$key], 'enrol_lmb_enrolments');
-        }
-
-        return $output;
-    }
 
     /**
      * Process a tag that is a membership of a person
@@ -2698,6 +2796,11 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($table === 'enrol_lmb_enrolments') {
             $args['coursesourcedid'] = $object->coursesourcedid;
             $args['personsourcedid'] = $object->personsourcedid;
+        } else if ($table === 'enrol_lmb_crosslists') {
+            $args['coursesourcedidsource'] = $object->coursesourcedidsource;
+            $args['coursesourcedid'] = $object->coursesourcedid;
+            $args['crosssourcedidsource'] = $object->crosssourcedidsource;
+            $args['crosslistsourcedid'] = $object->crosslistsourcedid;
         } else {
             $args['sourcedid'] = $object->sourcedid;
         }

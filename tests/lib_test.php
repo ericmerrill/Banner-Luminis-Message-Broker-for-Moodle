@@ -167,8 +167,144 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
 		</sourcedid>
 		<idtype>1</idtype>
 		<role roletype = "01">
+		<status>1</status>
+		<timeframe>
+			<begin restrict = "0">2013-05-06</begin>
+			<end restrict = "0">2013-06-26</end>
+		</timeframe>
+		<interimresult resulttype = "MidTerm">
+			<mode>Standard Numeric</mode>
+		</interimresult>
+		<finalresult>
+			<mode>Standard Numeric</mode>
+		</finalresult>
+		<extension>
+			<gradable>1</gradable>
+		</extension>
+		</role>
+		</member>
+	</membership>';
+
+    private $personsmemberxml = '<membership>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>10001.201310</id>
+		</sourcedid>
+		<member>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>usersourcedid</id>
+		</sourcedid>
+		<idtype>1</idtype>
+		<role roletype = "01">
+		<status>1</status>
+		<timeframe>
+			<begin restrict = "0">2013-05-06</begin>
+			<end restrict = "0">2013-06-26</end>
+		</timeframe>
+		<interimresult resulttype = "MidTerm">
+			<mode>Standard Numeric</mode>
+		</interimresult>
+		<finalresult>
+			<mode>Standard Numeric</mode>
+		</finalresult>
+		<extension>
+			<gradable>1</gradable>
+		</extension>
+		</role>
+		</member>
+        <member>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>usersourcedid2</id>
+		</sourcedid>
+		<idtype>1</idtype>
+		<role roletype = "02">
 			<subrole>Primary</subrole>
 			<status>1</status>
+		</role>
+		</member>
+	</membership>';
+
+    private $xlsmembers = '<membership>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>XLSAA201310</id>
+		</sourcedid>
+		<member>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>10001.201310</id>
+		</sourcedid>
+		<idtype>2</idtype>
+		<role roletype = "02">
+		<status>1</status>
+		</role>
+		</member>
+        <member>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>10002.201310</id>
+		</sourcedid>
+		<idtype>2</idtype>
+		<role roletype = "02">
+		<status>1</status>
+		</role>
+		</member>
+	</membership>';
+
+    private $xlsmembersmerge = '<membership>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>XLSAA201310</id>
+		</sourcedid>
+        <type>merge</type>
+		<member>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>10001.201310</id>
+		</sourcedid>
+		<idtype>2</idtype>
+		<role roletype = "02">
+		<status>1</status>
+		</role>
+		</member>
+        <member>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>10002.201310</id>
+		</sourcedid>
+		<idtype>2</idtype>
+		<role roletype = "02">
+		<status>1</status>
+		</role>
+		</member>
+	</membership>';
+
+    private $xlsmembersmeta = '<membership>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>XLSAA201310</id>
+		</sourcedid>
+        <type>meta</type>
+		<member>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>10001.201310</id>
+		</sourcedid>
+		<idtype>2</idtype>
+		<role roletype = "02">
+		<status>1</status>
+		</role>
+		</member>
+        <member>
+		<sourcedid>
+			<source>Test XML Banner</source>
+			<id>10002.201310</id>
+		</sourcedid>
+		<idtype>2</idtype>
+		<role roletype = "02">
+		<status>1</status>
 		</role>
 		</member>
 	</membership>';
@@ -385,11 +521,12 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $result = $this->clean_lmb_object($lmb->xml_to_term($termxmlarray));
         $this->assertEquals($expected, $result);
 
-        // TODO.
+        // TODO These are not used, and the DB columbs should be dropped at some point.
         $expected->studentshowtime = '0';
         $expected->active = '1';
 
-        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_terms', array('sourcedidsource' => 'Test SCT Banner', 'sourcedid' => '201310')));
+        $params = array('sourcedidsource' => 'Test SCT Banner', 'sourcedid' => '201310');
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_terms', $params));
         $this->assertEquals($expected, $dbrecord);
     }
 
@@ -420,20 +557,9 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $result = $this->clean_lmb_object($lmb->xml_to_course($coursexmlarray));
         $this->assertEquals($expected, $result);
 
-        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_courses', array('sourcedidsource' => 'Test SCT Banner', 'sourcedid' => '10001.201310')));
+        $params = array('sourcedidsource' => 'Test SCT Banner', 'sourcedid' => '10001.201310');
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_courses', $params));
         $this->assertEquals($expected, $dbrecord);
-    }
-
-    public function test_lmb_course_to_moodlecourse() {
-        global $CFG;
-        $this->resetAfterTest(true);
-        //TODO.
-    }
-
-    public function test_membershiparray_to_xlsmembers() {
-        global $CFG;
-        $this->resetAfterTest(true);
-        // TODO
     }
 
     public function test_lmb_xml_to_person_memberships() {
@@ -443,6 +569,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $lmb = new enrol_lmb_plugin();
         $membershiparray = enrol_lmb_xml_to_array($this->personmemberxml);
 
+        // Convert a membership and check it.
         $expected = array();
         $expected[0] = new stdClass();
         $expected[0]->coursesourcedid = '10001.201310';
@@ -450,30 +577,108 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected[0]->term = '201310';
         $expected[0]->role = '1';
         $expected[0]->status = '1';
+        $expected[0]->gradable = '1';
+        $expected[0]->midtermgrademode = 'Standard Numeric';
+        $expected[0]->finalgrademode = 'Standard Numeric';
         $expected[0]->id = 1;
-        //$expected[0]->extractstatus = 0;
-        //$expected[0]->succeeded = 0;
-        //$expected[0]->gradeable = 0;
-        //$expected[0]->midtermgrademode = 0;
-        //$expected[0]->midtermsubmitted = 0;
-        //$expected[0]->finalgrademode = 0;
-        //$expected[0]->finalsubmitted = 0;
 
         $result = $this->clean_array_of_objects($lmb->xml_to_person_memberships($membershiparray));
-        $this->assertEquals($expected, $result);
+        $this->assertEquals($expected, $result, 'Single person conversion');
 
+        // Check the DB for the record.
         $expected[0]->extractstatus = '0';
         $expected[0]->succeeded = '0';
-        $expected[0]->gradable = '0';
-        $expected[0]->midtermgrademode = null;
         $expected[0]->midtermsubmitted = '0';
-        $expected[0]->finalgrademode = null;
         $expected[0]->finalsubmitted = '0';
         $expected[0]->timemodified = 1;
 
-        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_enrolments', array('coursesourcedid' => '10001.201310', 'personsourcedid' => 'usersourcedid')));
-        $this->assertEquals($expected[0], $dbrecord, 'DB Record');
+        $params = array('coursesourcedid' => '10001.201310', 'personsourcedid' => 'usersourcedid');
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_enrolments', $params));
+        $this->assertEquals($expected[0], $dbrecord, 'Single person conversion DB Record');
 
+        // Convert a multiple membership array.
+        $membershiparray = enrol_lmb_xml_to_array($this->personsmemberxml);
+
+        $expected = array();
+        $expected[0] = new stdClass();
+        $expected[0]->coursesourcedid = '10001.201310';
+        $expected[0]->personsourcedid = 'usersourcedid';
+        $expected[0]->term = '201310';
+        $expected[0]->role = '1';
+        $expected[0]->status = '1';
+        $expected[0]->gradable = '1';
+        $expected[0]->midtermgrademode = 'Standard Numeric';
+        $expected[0]->finalgrademode = 'Standard Numeric';
+        $expected[0]->id = 1;
+
+        $expected[1] = new stdClass();
+        $expected[1]->coursesourcedid = '10001.201310';
+        $expected[1]->personsourcedid = 'usersourcedid2';
+        $expected[1]->term = '201310';
+        $expected[1]->role = '2';
+        $expected[1]->status = '1';
+        $expected[1]->id = 1;
+
+        $result = $this->clean_array_of_objects($lmb->xml_to_person_memberships($membershiparray));
+        $this->assertEquals($expected, $result, 'Multiple people conversion');
+
+        // Check the DB records.
+        $expected[0]->extractstatus = '0';
+        $expected[0]->succeeded = '0';
+        $expected[0]->midtermsubmitted = '0';
+        $expected[0]->finalsubmitted = '0';
+        $expected[0]->timemodified = 1;
+
+        $expected[1]->extractstatus = '0';
+        $expected[1]->succeeded = '0';
+        $expected[1]->gradable = '0';
+        $expected[1]->midtermgrademode = null;
+        $expected[1]->midtermsubmitted = '0';
+        $expected[1]->finalgrademode = null;
+        $expected[1]->finalsubmitted = '0';
+        $expected[1]->timemodified = 1;
+
+        $params = array('coursesourcedid' => '10001.201310', 'personsourcedid' => 'usersourcedid');
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_enrolments', $params));
+        $this->assertEquals($expected[0], $dbrecord, 'Multiple people conversion DB Record 1');
+
+        $params = array('coursesourcedid' => '10001.201310', 'personsourcedid' => 'usersourcedid2');
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_enrolments', $params));
+        $this->assertEquals($expected[1], $dbrecord, 'Multiple people conversion DB Record 2');
+    }
+
+    public function test_xml_to_xls_memberships() {
+        global $DB, $CFG;
+        $this->resetAfterTest(true);
+
+        $lmb = new enrol_lmb_plugin();
+        $xmlmembersarray = enrol_lmb_xml_to_array($this->xlsmembers);
+
+        $expected = array();
+        $expected[0] = new stdClass();
+        $expected[0]->coursesourcedidsource = 'Test XML Banner';
+        $expected[0]->coursesourcedid = '10001.201310';
+        $expected[0]->crosssourcedidsource = 'Test XML Banner';
+        $expected[0]->crosslistsourcedid = 'XLSAA201310';
+        $expected[0]->status = '1';
+        //$expected[0]->manual = 0; // TODO - Is this even used?
+        $expected[0]->type = $lmb->get_config('xlstype');
+        //$expected[0]->crosslistgroupid = null; // TODO - Is this even used?
+        $expected[0]->id = 1;
+
+        $expected[1] = new stdClass();
+        $expected[1]->coursesourcedidsource = 'Test XML Banner';
+        $expected[1]->coursesourcedid = '10002.201310';
+        $expected[1]->crosssourcedidsource = 'Test XML Banner';
+        $expected[1]->crosslistsourcedid = 'XLSAA201310';
+        $expected[1]->status = '1';
+        //$expected[1]->manual = 0; // TODO - Is this even used?
+        $expected[1]->type = $lmb->get_config('xlstype');
+        //$expected[1]->crosslistgroupid = null; // TODO - Is this even used?
+        $expected[1]->id = 1;
+
+        $result = $this->clean_array_of_objects($lmb->xml_to_xls_memberships($xmlmembersarray));
+        $this->assertEquals($expected, $result, 'Multiple XLS records');
     }
 
     private function clean_user_result($user) {
