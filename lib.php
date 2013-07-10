@@ -53,104 +53,11 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     private $customfields = array();
 
-    /**
-     * This public function is only used when first setting up the plugin, to
-     * decide which role assignments to recommend by default.
-     * For example, IMS role '01' is 'Learner', so may map to 'student' in Moodle.
-     *
-     * @param int $imscode This is the XML code for the role type
-     * @return int the moodle role id
-     */
-    public function determine_default_rolemapping($imscode) {
-        global $DB;
-
-        switch($imscode) {
-            case '01':
-                $shortname = 'student';
-                break;
-            case '02':
-                $shortname = 'editingteacher';
-                break;
-            default:
-                return 0; // Zero for no match.
-        }
-        return $DB->get_field('role', 'id', array('shortname' => $shortname));
-    }
 
 
-
-    /**
-     * Preform any cron tasks for the module.
-     */
-    public function cron() {
-        // If enabled, before a LMB time check.
-        if ($this->get_config('lmbcheck')) {
-            $this->check_last_luminis_event();
-        }
-
-        if ($this->get_config('cronxmlfile')) {
-            $this->process_file(null, false);
-        }
-
-        // TODO.
-        if ($this->get_config('cronxmlfolder')) {
-            $this->process_folder();
-        }
-
-        if ($this->get_config('nextunhiderun') === null) {
-            $curtime = time();
-            $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime));
-
-            $this->set_config('nextunhiderun', $endtoday);
-        }
-
-        if ($this->get_config('cronunhidecourses') && (time() > $this->get_config('nextunhiderun'))) {
-            if ($this->get_config('prevunhideendtime') === null) {
-                $this->set_config('prevunhideendtime', (time() + ($this->get_config('cronunhidedays')*86400)));
-            }
-
-            $starttime = $this->get_config('prevunhideendtime');
-            $curtime = time();
-            $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime));
-
-            $endtime = $endtoday + ($this->get_config('cronunhidedays')*86400);
-
-            $this->unhide_courses($starttime, $endtime);
-
-            $this->set_config('nextunhiderun', $endtoday);
-            $this->set_config('prevunhideendtime', $endtime);
-        }
-
-    }
-
-
-    public function unhide_courses($lasttime, $curtime, $days = 0) {
-        global $CFG, $DB;
-        $daysec = $days * 86400;
-
-        $this->open_log_file();
-
-        $start = $lasttime + $daysec;
-        $end = $curtime + $daysec;
-
-        // Update normal courses.
-        $sqlparams = array('start' => $start, 'end' => $end);
-        $sql = 'UPDATE {course} SET visible=1 WHERE visible=0 AND idnumber IN (SELECT sourcedid FROM {enrol_lmb_courses} '
-                .'WHERE startdate > :start AND startdate <= :end)';
-
-        $this->log_line('cron unhide:'.$sql);
-        $DB->execute($sql, $sqlparams);
-
-        // Update crosslists.
-        $sqlparams = array('start' => $start, 'end' => $end);
-        $sql = 'UPDATE {course} SET visible=1 WHERE visible=0 AND idnumber IN (SELECT crosslistsourcedid FROM '
-                .'{enrol_lmb_crosslists} WHERE coursesourcedid IN (SELECT sourcedid FROM {enrol_lmb_courses} '
-                .'WHERE startdate > :start AND startdate <= :end))';
-
-        $this->log_line('cron unhide:'.$sql);
-        $DB->execute($sql, $sqlparams);
-    }
-
+    // -----------------------------------------------------------------------------------------------------------------
+    // Input Processing.
+    // -----------------------------------------------------------------------------------------------------------------
     /**
      * Used to call process_xml_line_error() without passing
      * error variables. See process_xml_line_error()
@@ -164,7 +71,6 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         return $this->process_xml_line_error($xml, $errorcode, $errormessage);
     }
-
 
     /**
      * Processes a single tag (membership, group, person, etc) of xml
@@ -203,7 +109,6 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         return $status;
     }
-
 
     /**
      * Process an entire file of xml
@@ -318,7 +223,6 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     }
 
-
     /**
      * Process a folder of xml file(s)
      *
@@ -399,7 +303,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     }
 
-
     /**
      * Check if a complete tag is found in the cached data, which usually happens
      * when the end of the tag has only just been loaded into the cache.
@@ -420,8 +323,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     }
 
-
-
     /**
      * Remove complete tag from the cached data (including all its contents) - so
      * that the cache doesn't grow to unmanageable size
@@ -434,22 +335,77 @@ class enrol_lmb_plugin extends enrol_plugin {
     }
 
 
+    // -----------------------------------------------------------------------------------------------------------------
+    // Tag Controllers.
+    // -----------------------------------------------------------------------------------------------------------------
     /**
-     * public function the returns the recstatus of a tag
-     * 1=Add, 2=Update, 3=Delete, as specified by IMS, and we also use 0 to indicate "unspecified".
+     * Processes a given person tag, updating or creating a moodle user as
+     * needed.
      *
-     * @param string $tagdata the tag XML data
-     * @param string $tagname the name of the tag we're interested in
-     * @return int recstatus number
+     * @param string $tagconents The raw contents of the XML element
+     * @return bool success of failure of processing the tag
      */
-    public function get_recstatus($tagdata, $tagname) {
-        if (preg_match('{<'.$tagname.'\b[^>]*recstatus\s*=\s*["\'](\d)["\']}is', $tagdata, $matches)) {
-            return intval($matches[1]);
-        } else {
-            return 0; // Unspecified.
+    public function process_person_tag($tagcontents) {
+        // TODO check for error.
+        // TODO status flags?
+
+        if (!$this->get_config('parsepersonxml')) {
+            $this->log_line('Person:skipping.');
+            return true;
         }
+
+        $this->append_log_line('Person');
+        $xmlarray = enrol_lmb_xml_to_array($tagcontents);
+        $lmbperson = $this->xml_to_person($xmlarray);
+
+        $moodleuser = $this->person_to_moodleuser($lmbperson);
+
+        $this->log_line_new();
+        return $this->linestatus;
     }
 
+    /**
+     * Used to call process_membership_tag_error() without passing
+     * error variables. See process_membership_tag_error()
+     *
+     * @param string $tagcontents the xml string to process
+     * @return bool success or failure of the processing
+     */
+    public function process_membership_tag($tagcontents) {
+        $errorcode = 0;
+        $errormessage = '';
+
+        return $this->process_membership_tag_error($tagcontents, $errorcode, $errormessage);
+    }
+
+    /**
+     * Process the membership tag. Sends the tag onto the appropriate tag processor
+     *
+     * @param string $tagconents The raw contents of the XML element
+     * @param string $errorcode an error code number
+     * @param string $errormessage an error message
+     * @return bool success or failure of the processing
+     */
+    public function process_membership_tag_error($tagcontents, &$errorcode, &$errormessage) {
+        $xmlarray = enrol_lmb_xml_to_array($tagcontents);
+
+        if (stripos($xmlarray['membership']['#']['sourcedid']['#'][0]['id']['#'][0], 'XLS') === 0) {
+            $this->xml_to_xls_memberships($xmlarray);
+        } else if ($xmlarray['membership']['#']['sourcedid']['#'][0]['source']['#'][0] === 'Plugin Internal') {
+            $this->xml_to_xls_memberships($xmlarray);
+        } else {
+            $this->xml_to_person_memberships($xmlarray);
+        }
+
+        if (preg_match('{<sourcedid>.*?<id>XLS(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
+            return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
+        } else if (preg_match('{<sourcedid>.*?<source>Plugin Internal</source>.*?</sourcedid>}is', $tagcontents, $matches)) {
+            return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
+        } else {
+            return $this->process_person_membership_tag($tagcontents);
+        }
+
+    }
 
     /**
      * Process the group tag. Sends the tag onto the appropriate tag processor
@@ -485,10 +441,38 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $this->linestatus;
     }
 
+    /**
+     * Processes tag for the definition of a crosslisting group.
+     * Currently does nothing. See process_crosslist_membership_tag_error()
+     *
+     * @param array $xmlarray XML array
+     * @return bool success or failure of the processing
+     */
+    public function process_crosslisted_group_tag($xmlarray) {
+        $this->append_log_line('Crosslist Group');
+        if ((!$this->get_config('parsexlsxml')) || (!$this->get_config('parsecoursexml'))) {
+            $this->append_log_line('skipping');
+            return true;
+        }
+
+        return true;
+    }
+
+    /**
+     * Process the properties tag. Currently unimplimented. Need to look into need.
+     *
+     * @param string $tagconents The raw contents of the XML element
+     * @return bool success or failure
+     */
+    public function process_properties_tag($tagcontents) {
+
+        return true;
+    }
+
+
     // -----------------------------------------------------------------------------------------------------------------
     // New XML.
     // -----------------------------------------------------------------------------------------------------------------
-
     /**
      * Process the provided XML person array into a internal person obeject.
      * Processed object is also stored.
@@ -1070,10 +1054,10 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $output;
     }
 
+
     // -----------------------------------------------------------------------------------------------------------------
     // New Moodle.
     // -----------------------------------------------------------------------------------------------------------------
-
     /**
      * Process the course section group tag. Defines a course in Moodle.
      *
@@ -1141,7 +1125,8 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         } else {
             // If it's a new course.
-            $this->create_shell_course($course->sourcedid, enrol_lmb_expand_course_title($course, $this->get_config('coursetitle')),
+            $moodlecourse->id = $this->create_shell_course($course->sourcedid,
+                                        enrol_lmb_expand_course_title($course, $this->get_config('coursetitle')),
                                         enrol_lmb_expand_course_title($course, $this->get_config('courseshorttitle')), $cat->id,
                                         $logline, $status, false, $course->startdate, $course->enddate);
         }
@@ -1163,46 +1148,296 @@ class enrol_lmb_plugin extends enrol_plugin {
             $this->log_line($logline.'error');
         }
         */
-
-        return $status;
+        if (isset($moodlecourse->id)) {
+            return $DB->get_record('course', array('id' => $moodlecourse->id));
+        } else {
+            return false;
+        }
 
     } // End process_group_tag().
 
-
-
-    // -----------------------------------------------------------------------------------------------------------------
-    // Old.
-    // -----------------------------------------------------------------------------------------------------------------
-
     /**
-     * Calls fix_course_sortorder() if course categories are getting to close.
-     * We do this so that we aren't calling fix_course_sortorder() after each
-     * course creation when doing a bulk import, which would greatly slow an import.
+     * Takes an internal LMB person object and converts it to a moodle user object,
+     * inserting, updating, or deleting the user in moodle as needed.
+     *
+     * @param stdClass $lmbperson The LMB person element
+     * @return stdClass A object representing a Moodle user
      */
-    public function sort_if_needed() {
-        global $DB;
-        $sql = "SELECT MIN(sortorder) AS min,
-                       MAX(sortorder) AS max,
-                       COUNT(sortorder),
-                       category FROM {course} GROUP BY category ORDER BY min";
+    public function person_to_moodleuser($lmbperson) {
+        global $DB, $CFG;
+        $emailallow = true;
 
-        if ($cats = $DB->get_records_sql($sql)) {
-            $count = count($cats);
+        if (!isset($lmbperson->username) || (trim($lmbperson->username)=='')) {
+            if (!$this->get_config('createusersemaildomain')) {
+                $this->linestatus = false;
+            }
+            $this->append_log_line('no username');
 
-            $next = array_shift($cats);
-            for ($i = 0; $i < $count-1; $i++) {
-                $curr = $next;
-                $next = array_shift($cats);
-                if ((($next->min) - ($curr->max)) < 100) {
-                    print "sorting\n";
-                    fix_course_sortorder();
-                    return;
+            return false;
+        }
+
+        if (!isset($lmbperson->email) || (trim($lmbperson->email)=='')) {
+            if (!$this->get_config('donterroremail')) {
+                $this->linestatus = false;
+            }
+            $this->append_log_line('no email address');
+
+            return false;
+        }
+
+        if ($this->get_config('createusersemaildomain')) {
+            if ($domain = explode('@', $lmbperson->email) && (count($domain) > 1)) {
+                $domain = trim($domain[1]);
+
+                if (isset($CFG->ignoredomaincase) && $CFG->ignoredomaincase) {
+                    $matchappend = 'i';
+                } else {
+                    $matchappend = '';
+                }
+
+                if (!preg_match('/^'.trim($this->get_config('createusersemaildomain')).'$/'.$matchappend, $domain)) {
+                    $this->append_log_line('no in domain email');
+                    $emailallow = false;
+                    if (!$this->get_config('donterroremail')) {
+                        $this->linestatus = false;
+                    }
+                }
+            } else {
+                $this->append_log_line('no in domain email');
+                $emailallow = false;
+                if (!$this->get_config('donterroremail')) {
+                    $this->linestatus = false;
                 }
             }
         }
-    }
+
+        if ($this->get_config('nickname') && isset($lmbperson->nickname) && !empty($lmbperson->nickname)) {
+            $pos = strrpos($lmbperson->nickname, ' '.$lmbperson->familyname);
+            $firstname = $lmbperson->nickname;
+
+            // Remove last name.
+            if ($pos !== false) {
+                $firstname = substr($firstname, 0, $pos);
+            }
+
+            if (empty($firstname) || ($firstname === false)) {
+                $firstname = $lmbperson->givenname;
+            }
+
+        } else {
+            $firstname = $lmbperson->givenname;
+        }
+
+        $newuser = false;
+
+        if ($emailallow && $lmbperson->recstatus != 3) {
+            $moodleuser = new stdClass();
+
+            $moodleuser->idnumber = $lmbperson->sourcedid;
+
+            if ($this->get_config('ignoreusernamecase')) {
+                $moodleuser->username = strtolower($lmbperson->username);
+            } else {
+                $moodleuser->username = $lmbperson->username;
+            }
+            $moodleuser->auth = $this->get_config('auth');
+            $moodleuser->timemodified = time();
+
+            if (($oldmoodleuser = $DB->get_record('user', array('idnumber' => $moodleuser->idnumber)))
+                    || (($this->get_config('consolidateusernames'))
+                    && ($oldmoodleuser = $DB->get_record('user', array('username' => $moodleuser->username))))) {
+                // If we have an existing user in moodle (using idnumber) or...
+                // ...if we can match by username (but not idnumber) and the consolidation is on.
+
+                if ($this->get_config('ignoreusernamecase')) {
+                    $oldmoodleuser->username = strtolower($oldmoodleuser->username);
+                }
+
+                $moodleuser->id = $oldmoodleuser->id;
+
+                if ($this->get_config('forcename')) {
+                    $moodleuser->firstname = $firstname;
+                    $moodleuser->lastname = $lmbperson->familyname;
+                }
+
+                if ($this->get_config('forceemail')) {
+                    $moodleuser->email = $lmbperson->email;
+                }
+
+                if ($this->get_config('includetelephone') && $this->get_config('forcetelephone')) {
+                    $moodleuser->phone1 = $lmbperson->telephone;
+                }
+
+                if ($this->get_config('includeaddress') && $this->get_config('forceaddress')) {
+                    $moodleuser->address = $lmbperson->adrstreet;
+
+                    if ($this->get_config('defaultcity') == 'standardxml') {
+                        if ($lmbperson->locality) {
+                            $moodleuser->city = $lmbperson->locality;
+                        } else {
+                            $moodleuser->city = $this->get_config('standardcity');
+                        }
+                    } else if ($this->get_config('defaultcity') == 'xml') {
+                        $moodleuser->city = $lmbperson->locality;
+                    } else if ($this->get_config('defaultcity') == 'standard') {
+                        $moodleuser->city = $this->get_config('standardcity');
+                    }
+                } else {
+                    $moodleuser->address = '';
+                }
+
+                if (enrol_lmb_compare_objects($moodleuser, $oldmoodleuser) || ($this->get_config('customfield1mapping')
+                        && ($this->compare_custom_mapping($moodleuser->id, $lmbperson->customfield1,
+                        $this->get_config('customfield1mapping'))))) {
+
+                    if (($oldmoodleuser->username != $moodleuser->username)
+                            && ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username)))) {
+                        $this->append_log_line('username collision while trying to update');
+                        $this->linestatus = false;
+                    } else {
+                        if ($DB->update_record('user', $moodleuser)) {
+                            $this->append_log_line('updated user');
+                            // Update custom fields.
+                            if ($this->get_config('customfield1mapping')) {
+                                $this->update_custom_mapping($moodleuser->id, $lmbperson->customfield1,
+                                    $this->get_config('customfield1mapping'));
+                            }
+                        } else {
+                            $this->append_log_line('failed to update user');
+                            $this->linestatus = false;
+                        }
+                    }
+                } else {
+                    $this->append_log_line('no changes to make');
+                }
+            } else {
+                // Set some default prefs.
+                if (!isset($CFG->mnet_localhost_id)) {
+                    include_once($CFG->dirroot . '/mnet/lib.php');
+                    $env = new mnet_environment();
+                    $env->init();
+                    unset($env);
+                }
+                $moodleuser->mnethostid = $CFG->mnet_localhost_id;
+                $moodleuser->confirmed = 1;
+
+                // Add default site language.
+                $moodleuser->lang = $CFG->lang;
+
+                // The user appears to not exist at all yet.
+                $moodleuser->firstname = $firstname;
+                $moodleuser->lastname = $lmbperson->familyname;
+
+                if ($this->get_config('ignoreemailcase')) {
+                    $moodleuser->email = strtolower($lmbperson->email);
+                } else {
+                    $moodleuser->email = $lmbperson->email;
+                }
+
+                $moodleuser->auth = $this->get_config('auth');
+                if ($this->get_config('includetelephone')) {
+                    $moodleuser->phone1 = $lmbperson->telephone;
+                }
+
+                if ($this->get_config('includeaddress')) {
+                    if (isset ($lmbperson->adrstreet)) {
+                        $moodleuser->address = $lmbperson->adrstreet;
+                    } else {
+                        $moodleuser->address = '';
+                    }
+
+                    if ($this->get_config('defaultcity') == 'standardxml') {
+                        if ($lmbperson->locality) {
+                            $moodleuser->city = $lmbperson->locality;
+                        } else {
+                            $moodleuser->city = $this->get_config('standardcity');
+                        }
+                    } else if ($this->get_config('defaultcity') == 'xml') {
+                        $moodleuser->city = $lmbperson->locality;
+                    } else if ($this->get_config('defaultcity') == 'standard') {
+                        $moodleuser->city = $this->get_config('standardcity');
+                    }
+
+                } else {
+                    $moodleuser->address = '';
+                }
+
+                $moodleuser->country = $CFG->country;
+
+                if ($this->get_config('createnewusers')) {
+                    if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
+                        $this->append_log_line('username collision, could not create user:');
+                        $this->linestatus = false;
+                    } else {
+                        if ($id = $DB->insert_record('user', $moodleuser, true)) {
+                            $this->append_log_line('created new user:');
+                            if (isset($lmbperson->customfield1)) {
+                                $this->update_custom_mapping($id, $lmbperson->customfield1,
+                                        $this->get_config('customfield1mapping'));
+                            }
+                            $moodleuser->id = $id;
+                            $newuser = true;
+
+                            $this->linestatus = $this->linestatus && $this->restore_user_enrolments($lmbperson->sourcedid);
+
+                        } else {
+                            $this->append_log_line('failed to insert new user:');
+                            $this->linestatus = false;
+                        }
+                    }
+                } else {
+                    $this->append_log_line('did not create new user');
+                    return false;
+                }
+            }
+
+            if ($this->get_config('passwordnamesource') != 'none') {
+                if ($this->get_config('forcepassword', true) || $newuser) {
+                    if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
+                        $userauth = get_auth_plugin($user->auth);
+                        if ($userauth->can_change_password() && (!$userauth->change_password_url())) {
+                            // TODO2 - what happens if password is blank?
+                            if (isset($person->password) && ($person->password != '')) {
+                                if (!$userauth->user_update_password($user, $person->password)) {
+                                    $this->append_log_line('error setting password');
+                                    $this->linestatus = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        } else if (($this->get_config('imsdeleteusers')) && ($lmbperson->recstatus == 3)
+                && ($moodleuser = $DB->get_record('user', array('idnumber' => $lmbperson->idnumber)))) {
+            $deleteuser = new object();
+            $deleteuser->id           = $moodleuser->id;
+            $deleteuser->deleted      = 1;
+            // TODO2 $deleteuser->username     = addslashes("$moodleuser->email.".time());  // Remember it just in case.
+            $deleteuser->username     = "$moodleuser->email.".time();  // Remember it just in case
+            $deleteuser->email        = '';               // Clear this field to free it up.
+            $deleteuser->idnumber     = '';               // Clear this field to free it up.
+            $deleteuser->timemodified = time();
+
+            if ($id = $DB->update_record('user', $deleteuser)) {
+                $this->append_log_line('deleted user');
+                $deleted = true;
+            } else {
+                $this->append_log_line('failed to delete user');
+                $this->linestatus = false;
+            }
+
+            $moodleuser = $deleteuser;
+        }
+
+        return $moodleuser;
+
+    } // End process_person_tag().
 
 
+    // -----------------------------------------------------------------------------------------------------------------
+    // Support Functions.
+    // -----------------------------------------------------------------------------------------------------------------
     /**
      * Create an empty moodle course
      *
@@ -1267,7 +1502,6 @@ class enrol_lmb_plugin extends enrol_plugin {
             $moodlecourse->groupmodeforce           = $moodlecourseconfig->groupmodeforce;
             $moodlecourse->lang                     = $moodlecourseconfig->lang;
             $moodlecourse->enablecompletion         = $moodlecourseconfig->enablecompletion;
-            $moodlecourse->completionstartonenrol   = $moodlecourseconfig->completionstartonenrol;
 
         } else {
             $logline .= 'Using hard-coded settings:';
@@ -1306,18 +1540,174 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $moodlecourse->id;
     }
 
+    /**
+     * Adds a meta course enrolment method from a course
+     *
+     * @param int $parentid parent course id
+     * @param int $childid child course id
+     * @return bool result
+     */
+    public function add_to_metacourse($parentid, $childid) {
+        global $DB;
+
+        $params = array('courseid' => $parentid, 'customint1' => $childid, 'enrol' => 'meta');
+        if (($enrols = $DB->get_record('enrol', $params, '*', IGNORE_MULTIPLE)) && (count($enrols) > 0)) {
+            return true;
+        }
+
+        $parentcourse = $DB->get_record('course', array('id' => $parentid));
+        $metaplugin = enrol_get_plugin('meta');
+        $metaplugin->add_instance($parentcourse, array('customint1' => $childid));
+
+        $this->meta_sync($parentid);
+
+        return true;
+    }
 
     /**
-     * Is it possible to delete enrol instance via standard UI?
+     * Removes a meta course enrolment method from a course
      *
-     * @param object $instance
-     * @return bool
+     * @param int $parentid parent course id
+     * @param int $childid child course id
+     * @return bool result
      */
-    public function instance_deleteable($instance) {
-        return false;
-    }// TODO - make option?
+    public function remove_from_metacourse($parentid, $childid) {
+        global $DB;
 
+        $params = array('courseid' => $parentid, 'customint1' => $childid, 'enrol' => 'meta');
+        $enrol = $DB->get_record('enrol', $params, '*', IGNORE_MULTIPLE);
+        if (!$enrol) {
+            return true;
+        }
 
+        $metaplugin = enrol_get_plugin('meta');
+
+        $metaplugin->delete_instance($enrol);
+
+        return true;
+    }
+
+    /**
+     * Syncs meta enrolments between children and parent.
+     *
+     * @param int $parentid course id of the parent course to sync
+     */
+    public function meta_sync($parentid) {
+        $metaplugin = enrol_get_plugin('meta');
+
+        $course = new stdClass();
+        $course->id = $parentid;
+
+        $metaplugin->course_updated(false, $course, false);
+    }
+
+    /**
+     * Provides the title for the given crosslist id based on the provided
+     * definitions. See help documentation for definition formatting.
+     *
+     * @param string $idnumber the xml/ims id of the crosslist
+     * @param string $titledef the definition of the title
+     * @param string $repeatdef the definition of the repeater
+     * @param string $dividerdef the definition of the divider
+     * @return string the title
+     */
+    public function expand_crosslist_title($idnumber, $titledef, $repeatdef, $dividerdef) {
+        global $DB;
+
+        $title = $titledef;
+        $repeat = '';
+
+        if ($courseids = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
+            $courses = array();
+
+            foreach ($courseids as $courseid) {
+
+                if ($course = $DB->get_record('enrol_lmb_courses', array('sourcedid' => $courseid->coursesourcedid))) {
+                    array_push($courses, $course);
+
+                }
+            }
+
+            if ($course = $courses[0]) {
+                $title = enrol_lmb_expand_course_title($course, $title);
+
+                $i = 1;
+                $count = count($courses);
+                foreach ($courses as $course) {
+
+                    $repeat .= enrol_lmb_expand_course_title($course, $repeatdef);
+                    if ($count != $i) {
+                        $repeat .= $dividerdef;
+                    }
+                    $i++;
+                }
+
+                $title = str_replace('[REPEAT]', $repeat, $title);
+
+            }
+        }
+
+        $title = str_replace('[XLSID]', $idnumber, $title);
+
+        return $title;
+    }
+
+    /**
+     * Determines the end time for a crosslisted course - the latest end date
+     * of any child course
+     *
+     * @param string $idnumber the xml/ims id of the crosslist
+     * @return int the end time in unit time format
+     */
+    public function get_crosslist_endtime($idnumber) {
+        global $DB;
+
+        if ($courseids = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
+            $enddates = array();
+
+            foreach ($courseids as $courseid) {
+                if ($enddate = $DB->get_field('enrol_lmb_courses', 'enddate', array('sourcedid' => $courseid->coursesourcedid))) {
+                    array_push($enddates, $enddate);
+
+                }
+            }
+
+            if ($enddate = $enddates[0]) {
+                rsort($enddates);
+
+                return $enddates[0];
+            }
+        }
+    }
+
+    /**
+     * Determines the start time for a crosslisted course - the earliest start date
+     * of any child course
+     *
+     * @param string $idnumber the xml/ims id of the crosslist
+     * @return int the start time in unit time format
+     */
+    public function get_crosslist_starttime($idnumber) {
+        global $DB;
+
+        if ($courseids = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
+            $startdates = array();
+
+            foreach ($courseids as $courseid) {
+                $params = array('sourcedid' => $courseid->coursesourcedid);
+                if ($startdate = $DB->get_field('enrol_lmb_courses', 'startdate', $params)) {
+                    array_push($startdates, $startdate);
+                }
+            }
+
+            if ($startdate = $startdates[0]) {
+                sort($startdates);
+
+                return $startdates[0];
+            }
+        }
+        return 0;
+    }
 
     /**
      * Get the moodle id of a desired category based on settings. Create it if
@@ -1430,7 +1820,6 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     }
 
-
     /**
      * Get the moodle id of a desired term category. Create it if
      * no matching category is found.
@@ -1487,25 +1876,929 @@ class enrol_lmb_plugin extends enrol_plugin {
         return false;
     }
 
-
+    /**
+     * Loads the custom user profile field from the database.
+     * This is cached.
+     * Returns stdClass on success or false on failure.
+     *
+     * @param string $shortname
+     * @param boolean $flush
+     * @return mixed
+     */
+    private function load_custom_mapping($shortname, $flush=false) {
+        global $DB;
+        if (!isset($this->customfields[$shortname]) || $flush) {
+            $this->customfields[$shortname] = $DB->get_record('user_info_field', array('shortname' => $shortname));
+        }
+        return $this->customfields[$shortname];
+    }
 
     /**
-     * Processes tag for the definition of a crosslisting group.
-     * Currently does nothing. See process_crosslist_membership_tag_error()
+     * This is a stripped down version of edit_save_data() from /user/profile/lib.php
      *
-     * @param array $xmlarray XML array
-     * @return bool success or failure of the processing
+     * @param int userid
+     * @param string custom field value
+     * @param string custom field shortname
+     * @return void
      */
-    public function process_crosslisted_group_tag($xmlarray) {
-        $this->append_log_line('Crosslist Group');
-        if ((!$this->get_config('parsexlsxml')) || (!$this->get_config('parsecoursexml'))) {
-            $this->append_log_line('skipping');
-            return true;
+    private function update_custom_mapping($userid, $value, $mapping) {
+        global $DB;
+
+        $profile = $this->load_custom_mapping($mapping);
+        if ($profile === false) {
+            return;
+        }
+
+        $data = new stdClass();
+        $data->userid  = $userid;
+        $data->fieldid = $profile->id;
+        if ($value) {
+            $data->data = $value;
+        } else {
+            $data->data = '';
+        }
+
+        if ($dataid = $DB->get_field('user_info_data', 'id', array('userid' => $data->userid, 'fieldid' => $data->fieldid))) {
+            $data->id = $dataid;
+            $DB->update_record('user_info_data', $data);
+        } else {
+            $DB->insert_record('user_info_data', $data);
+        }
+    }
+
+    /**
+     * Compares the custfield value with the one stored.
+     *
+     * @param int $userid The matching userid
+     * @param string $value The new custom field value
+     * @param string $mapping custom field shortname
+     * @return bool True for mismatch, false for match
+     */
+    private function compare_custom_mapping($userid, $value, $mapping) {
+        global $DB;
+
+        $profile = $this->load_custom_mapping($mapping);
+        if ($profile === false) {
+            return false;
+        }
+
+        $data = $DB->get_field('user_info_data', 'data', array('userid' => $userid, 'fieldid' => $profile->id));
+        return (!($data == $value));
+    }
+
+    /**
+     * Calls fix_course_sortorder() if course categories are getting to close.
+     * We do this so that we aren't calling fix_course_sortorder() after each
+     * course creation when doing a bulk import, which would greatly slow an import.
+     */
+    public function sort_if_needed() {
+        global $DB;
+        $sql = "SELECT MIN(sortorder) AS min,
+                       MAX(sortorder) AS max,
+                       COUNT(sortorder),
+                       category FROM {course} GROUP BY category ORDER BY min";
+
+        if ($cats = $DB->get_records_sql($sql)) {
+            $count = count($cats);
+
+            $next = array_shift($cats);
+            for ($i = 0; $i < $count-1; $i++) {
+                $curr = $next;
+                $next = array_shift($cats);
+                if ((($next->min) - ($curr->max)) < 100) {
+                    print "sorting\n";
+                    fix_course_sortorder();
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * This public function is only used when first setting up the plugin, to
+     * decide which role assignments to recommend by default.
+     * For example, IMS role '01' is 'Learner', so may map to 'student' in Moodle.
+     *
+     * @param int $imscode This is the XML code for the role type
+     * @return int the moodle role id
+     */
+    public function determine_default_rolemapping($imscode) {
+        global $DB;
+
+        switch($imscode) {
+            case '01':
+                $shortname = 'student';
+                break;
+            case '02':
+                $shortname = 'editingteacher';
+                break;
+            default:
+                return 0; // Zero for no match.
+        }
+        return $DB->get_field('role', 'id', array('shortname' => $shortname));
+    }
+
+    /**
+     * public function the returns the recstatus of a tag
+     * 1=Add, 2=Update, 3=Delete, as specified by IMS, and we also use 0 to indicate "unspecified".
+     *
+     * @param string $tagdata the tag XML data
+     * @param string $tagname the name of the tag we're interested in
+     * @return int recstatus number
+     */
+    public function get_recstatus($tagdata, $tagname) {
+        if (preg_match('{<'.$tagname.'\b[^>]*recstatus\s*=\s*["\'](\d)["\']}is', $tagdata, $matches)) {
+            return intval($matches[1]);
+        } else {
+            return 0; // Unspecified.
+        }
+    }
+
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // DB Helpers.
+    // -----------------------------------------------------------------------------------------------------------------
+    /**
+     * 
+     *
+     * @param stdClass &$object The lmb object to work on
+     * @param string $table The table to work on
+     * @return bool the status of the processing. False on error.
+     */
+    public function update_or_insert_lmb(&$object, $table) {
+        global $DB;
+        $args = array();
+        if ($table === 'enrol_lmb_enrolments') {
+            $args['coursesourcedid'] = $object->coursesourcedid;
+            $args['personsourcedid'] = $object->personsourcedid;
+        } else if ($table === 'enrol_lmb_crosslists') {
+            $args['coursesourcedidsource'] = $object->coursesourcedidsource;
+            $args['coursesourcedid'] = $object->coursesourcedid;
+            $args['crosssourcedidsource'] = $object->crosssourcedidsource;
+            $args['crosslistsourcedid'] = $object->crosslistsourcedid;
+        } else {
+            $args['sourcedid'] = $object->sourcedid;
+        }
+
+        if ($oldobject = $DB->get_record($table, $args)) {
+            $object->id = $oldobject->id;
+            if (enrol_lmb_compare_objects($object, $oldobject)) {
+                if ($DB->update_record($table, $object)) {
+                    $this->append_log_line('updated '.$table);
+                } else {
+                    $this->append_log_line('failed to update '.$table);
+                    $this->linestatus = false;
+                    return false;
+                }
+            } else {
+                $this->append_log_line('no lmb changes to make');
+            }
+        } else {
+            if ($object->id = $DB->insert_record($table, $object, true)) {
+                $this->append_log_line('inserted into '.$table);
+            } else {
+                $this->append_log_line('failed to insert into '.$table);
+                $this->linestatus = false;
+                return false;
+            }
         }
 
         return true;
     }
 
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Logging.
+    // -----------------------------------------------------------------------------------------------------------------
+    public function append_log_line($string, $error = false) {
+        $this->logline .= $string.':';
+        if ($error == true) {
+            $this->logerror = true;
+        }
+    }
+
+    public function log_error($string) {
+        $this->append_log_line($string);
+        $this->logerror = true;
+        $this->log_line_new();
+    }
+
+    public function log_line_new($end = false) {
+        $message = '';
+
+        if ($this->get_config('logerrors') && (!$this->logerror)) {
+            $this->logline = '';
+            $this->logerror = false;
+            return;
+        }
+
+        if ($this->islmb) {
+            $message = 'LMB Message:';
+        }
+        $message .= $this->logline;
+
+        if ($end) {
+            $message .= $end;
+        }
+
+        if ($this->logerror) {
+            $message .= 'error';
+        } else {
+            $message .= 'complete';
+        }
+        if (!$this->silent) {
+            mtrace($message);
+        }
+
+        if (isset($this->logfp) && $this->logfp) {
+            fwrite($this->logfp, date('Y-m-d\TH:i:s - ') . $message . "\n");
+        }
+
+        $this->logline = '';
+        $this->logerror = false;
+    }
+
+    /**
+     * Open the lof file and store the pointer in this object.
+     */
+    public function open_log_file () {
+        $this->logfp = false; // File pointer for writing log data to.
+        if ($this->get_config('logtolocation') !== null) {
+            $this->logfp = fopen($this->get_config('logtolocation'), 'a');
+        }
+    }
+
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Utility.
+    // -----------------------------------------------------------------------------------------------------------------
+    public function unhide_courses($lasttime, $curtime, $days = 0) {
+        global $CFG, $DB;
+        $daysec = $days * 86400;
+
+        $this->open_log_file();
+
+        $start = $lasttime + $daysec;
+        $end = $curtime + $daysec;
+
+        // Update normal courses.
+        $sqlparams = array('start' => $start, 'end' => $end);
+        $sql = 'UPDATE {course} SET visible=1 WHERE visible=0 AND idnumber IN (SELECT sourcedid FROM {enrol_lmb_courses} '
+                .'WHERE startdate > :start AND startdate <= :end)';
+
+        $this->log_line('cron unhide:'.$sql);
+        $DB->execute($sql, $sqlparams);
+
+        // Update crosslists.
+        $sqlparams = array('start' => $start, 'end' => $end);
+        $sql = 'UPDATE {course} SET visible=1 WHERE visible=0 AND idnumber IN (SELECT crosslistsourcedid FROM '
+                .'{enrol_lmb_crosslists} WHERE coursesourcedid IN (SELECT sourcedid FROM {enrol_lmb_courses} '
+                .'WHERE startdate > :start AND startdate <= :end))';
+
+        $this->log_line('cron unhide:'.$sql);
+        $DB->execute($sql, $sqlparams);
+    }
+
+    /**
+     * Remove all entries for a term from various tables.
+     *
+     * @param string $term The term sourcedid
+     * @return bool success or failure
+     */
+    public function prune_tables($term) {
+        global $DB;
+
+        $DB->delete_records('enrol_lmb_enrolments', array('term' => $term));
+        $DB->delete_records('enrol_lmb_courses', array('term' => $term));
+
+        $sqlparams = array('term' => '%'.$term);
+        $DB->delete_records_select('enrol_lmb_crosslists', "coursesourcedid LIKE :term", $sqlparams);
+
+        $DB->delete_records('enrol_lmb_terms', array('sourcedid' => $term));
+
+        return true;
+    }
+
+    /**
+     * Execute the check of the last time a message was received
+     * on the liveimport interface (luminis message broker). If
+     * last message time falls outside parameters, then email
+     * error messages.
+     */
+    public function check_last_luminis_event() {
+        global $CFG;
+
+        $this->log_line("Checking LMB last message sent time.");
+
+        if ($this->get_config('lastlmbmessagetime')) {
+            $lasttime = $this->get_config('lastlmbmessagetime');
+
+            $starttime = make_timestamp(date("Y"), date("m"), date("d"),
+                    ( $this->get_config('startbiztimehr') ? $this->get_config('startbiztimehr') : 9),
+                    $this->get_config('startbiztimemin'));
+            $endtime = make_timestamp(date("Y"), date("m"), date("d"),
+                    ( $this->get_config('endbiztimehr') ? $this->get_config('endbiztimehr') : 9),
+                    $this->get_config('endbiztimemin'));
+
+            $currenttime = time();
+
+            $difftime = $currenttime - $lasttime;
+
+            // If it's mon-fri, and inside of biz hours.
+            if ((date("w") > 0) && (date("w") < 6) && ($currenttime > $starttime && $currenttime < $endtime)) {
+                // If longer then grace.
+                if (($this->get_config('bizgrace')) && ($difftime > ($this->get_config('bizgrace') * 60))) {
+                    $this->log_line('Last luminis message received '.floor($difftime/60).' minutes ago.');
+                    $emails = explode(',', $this->get_config('emails'));
+
+                    foreach ($emails as $email) {
+                        $this->email_luminis_error(floor($difftime/60), trim($email));
+                    }
+                }
+            } else {
+                // If longer then grace.
+                if (($this->get_config('nonbizgrace')) && ($difftime > ($this->get_config('nonbizgrace') * 60))) {
+                    $this->log_line('Last luminis message received '.floor($difftime/60).' minutes ago.');
+
+                    $emails = explode(',', $this->get_config('emails'));
+
+                    foreach ($emails as $email) {
+                        $this->email_luminis_error(floor($difftime/60), trim($email));
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Email a luminis downtime message to the provided email
+     *
+     * TODO - replace with mesaging system?
+     *
+     * @param int $minutes the number of minutes since the last message was received
+     * @param string $emailaddress the email address to send the message to
+     * @return bool success of failure of the email send
+     */
+    public function email_luminis_error($minutes, $emailaddress) {
+        global $CFG, $FULLME;
+        include_once($CFG->libdir .'/phpmailer/class.phpmailer.php');
+
+        $messagetext = get_string('nomessagefull', 'enrol_lmb').$minutes.get_string('minutes');
+        $subject = get_string("nomessage", "enrol_lmb");
+
+        $mail = new phpmailer;
+
+        $mail->Version = 'Moodle '. $CFG->version;           // Mailer version.
+        $mail->PluginDir = $CFG->libdir .'/phpmailer/';      // Plugin directory (eg smtp plugin).
+
+        if (current_language() != 'en') {
+            $mail->CharSet = get_string('thischarset');
+        }
+
+        if ($CFG->smtphosts == 'qmail') {
+            $mail->IsQmail();                              // Sse Qmail system.
+
+        } else if (empty($CFG->smtphosts)) {
+            $mail->IsMail();                               // Use PHP mail() = sendmail.
+
+        } else {
+            $mail->IsSMTP();                               // Use SMTP directly.
+            if ($CFG->debug > 7) {
+                echo '<pre>' . "\n";
+                $mail->SMTPDebug = true;
+            }
+            $mail->Host = $CFG->smtphosts;               // Specify main and backup servers.
+
+            if ($CFG->smtpuser) {                          // Use SMTP authentication.
+                $mail->SMTPAuth = true;
+                $mail->Username = $CFG->smtpuser;
+                $mail->Password = $CFG->smtppass;
+            }
+        }
+
+        $adminuser = get_admin();
+
+        // Make up an email address for handling bounces.
+        if (!empty($CFG->handlebounces)) {
+            $modargs = 'B'.base64_encode(pack('V', $adminuser->id)).substr(md5($adminuser->email), 0, 16);
+            $mail->Sender = generate_email_processing_address(0, $modargs);
+        } else {
+            $mail->Sender   = $adminuser->email;
+        }
+
+        $mail->From     = $CFG->noreplyaddress;
+        if (empty($replyto)) {
+            $mail->AddReplyTo($CFG->noreplyaddress, get_string('noreplyname'));
+        }
+
+        if (!empty($replyto)) {
+            $mail->AddReplyTo($replyto);
+        }
+
+        $mail->Subject = $subject;
+
+        $mail->AddAddress($emailaddress, "" );
+
+        $mail->WordWrap = 79;                               // Set word wrap.
+
+        $mail->IsHTML(false);
+        $mail->Body =  "\n$messagetext\n";
+
+        if ($mail->Send()) {
+            set_send_count($adminuser);
+            return true;
+        } else {
+            mtrace('ERROR: '. $mail->ErrorInfo);
+            add_to_log(SITEID, 'library', 'mailer', $FULLME, 'ERROR: '. $mail->ErrorInfo);
+            $this->log_line("Error emailing");
+            return false;
+        }
+    }
+
+    /**
+     * Drops all enrolments that not been updated by this extract.
+     * Since an extract is comprehensive, we track all enrolemnts that
+     * were not updated by the extract import.
+     * All the remaining ones are assumed to have dropped, and so we set their
+     * status to 0, and unassign the role assignment from moodle.
+     *
+     * This should only ever be called at the end of an extract process, or
+     * users may get un-intentionally unenrolled from courses
+     *
+     * @return bool success or failure of the drops
+     */
+    public function process_extract_drops() {
+        global $CFG, $DB;
+        $status = true;
+
+        foreach ($this->terms as $termid => $count) {
+            $this->log_line('Processing drops for term '.$termid);
+
+            $sqlparams = array('term' => $termid, 'status' => 1);
+            $termcnt = $DB->count_records('enrol_lmb_enrolments', $sqlparams);
+
+            $sqlparams = array('processid' => $this->processid, 'termid' => $termid, 'status' => 1);
+            $dropcnt = $DB->count_records_select('enrol_lmb_enrolments',
+                    'extractstatus < :processid AND term = :termid AND status = :status', $sqlparams);
+
+            $percent = (int)ceil(($dropcnt/$termcnt)*100);
+            $this->log_line('Dropping '.$dropcnt.' out of '.$termcnt.' ('.$percent.'%) enrolments.');
+
+            if ($percent > $this->get_config('dropprecentlimit')) {
+                $this->log_line('Exceeds the drop percent limit, skipping term.');
+                continue;
+            }
+
+            $sqlparams = array('extractstatus' => $this->processid, 'termid' => $termid);
+
+            if ($enrols = $DB->get_records_select('enrol_lmb_enrolments',
+                    'extractstatus < :extractstatus AND term = :termid', $sqlparams, 'coursesourcedid ASC')) {
+                $count = count($enrols);
+                $curr = 0;
+                $percent = 0;
+                $csourcedid = '';
+
+                $this->log_line($count.' records to process');
+
+                foreach ($enrols as $enrol) {
+                    $logline = $enrol->coursesourcedid.':'.$enrol->personsourcedid.':';
+
+                    $enrolstatus = true;
+
+                    $cperc = (int)floor(($curr/$count)*100);
+                    if ($cperc > $percent) {
+                        $percent = $cperc;
+                        if ($this->get_config('logpercent')) {
+                            $this->log_line($percent.'% complete');
+                        }
+                    }
+                    $curr++;
+
+                    if ($csourcedid != $enrol->coursesourcedid) {
+                        $csourcedid = $enrol->coursesourcedid;
+                        $courseid = enrol_lmb_get_course_id($csourcedid);
+                    }
+
+                    if ($enrol->status || !$enrol->succeeded) {
+                        $enrolup = new Object();
+                        $enrolup->id = $enrol->id;
+                        $enrolup->timemodified = time();
+                        $enrolup->status = 0;
+                        $enrolup->succeeded = 0;
+
+                        if ($courseid) {
+                            if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
+                                if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
+                                    if (!$this->lmb_unassign_role_log($roleid, $courseid, $userid, $logline)) {
+                                        $logline .= 'could not drop user:';
+                                        $enrolup->succeeded = 0;
+                                        $enrolstatus = false;
+                                    } else {
+                                        $logline .= 'dropped:';
+                                        $enrolup->succeeded = 1;
+                                    }
+                                } else {
+                                    $enrolup->succeeded = 0;
+                                    $logline .= 'roleid not found:';
+                                    $enrolstatus = false;
+                                }
+                            } else {
+                                $logline .= 'user not found:';
+                            }
+                        } else {
+                            $logline .= 'role course not found:';
+                        }
+
+                        if (enrol_lmb_compare_objects($enrolup, $enrol)) {
+                            if (!$DB->update_record('enrol_lmb_enrolments', $enrolup)) {
+                                $logline .= 'error updating lmb:';
+                                $enrolstatus = false;
+                            } else {
+                                $logline .= 'lmb updated:';
+                            }
+                        } else {
+                            $logline .= 'no lmb changes to make:';
+                        }
+
+                        if ($enrolstatus) {
+                            if (!$this->get_config('logerrors')) {
+                                $this->log_line($logline.'complete');
+                            }
+                        } else {
+                            $this->log_line($logline.'error');
+                        }
+
+                        unset($enrolup);
+                        $logline = '';
+                        $status = $status && $enrolstatus;
+                    }
+
+                }
+
+            }
+
+            $this->log_line('Completed with term '.$termid);
+        }
+
+        return $status;
+    }
+
+    /**
+     * For a given person id number, run all enrol and unenrol records in
+     * the local lmb database
+     *
+     * @param string $idnumber the ims/xml id of a person
+     * @return bool success or failure of the enrolments
+     */
+    public function restore_user_enrolments($idnumber) {
+        global $DB;
+
+        $status = true;
+
+        if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('personsourcedid' => $idnumber))) {
+            foreach ($enrols as $enrol) {
+                $logline = '';
+                $status = $this->process_enrolment_log($enrol, $logline) && $status;
+            }
+
+        }
+
+        return $status;
+    }
+
+    /**
+     * Assigns a moodle role to a user in the provided course
+     *
+     * @param int $roleid id of the moodle role to assign
+     * @param int $courseid id of the course to assign
+     * @param int $userid id of the moodle user
+     * @param string $logline passed logline object to append log entries to
+     * @return bool success or failure of the role assignment
+     */
+    public function lmb_assign_role_log($roleid, $courseid, $userid, &$logline) {
+        if (!$courseid) {
+            $logline .= 'missing courseid:';
+        }
+
+        if ($instance = $this->get_instance($courseid)) {
+            if ($this->get_config('recovergrades')) {
+                $wasenrolled = is_enrolled(context_course::instance($courseid), $userid);
+            }
+
+            // TODO catch exceptions thrown.
+            $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
+            if ($this->get_config('recovergrades') && !$wasenrolled) {
+                $logline .= 'recovering grades:';
+                grade_recover_history_grades($userid, $courseid);
+            }
+            $logline .= 'enrolled:';
+            return true;
+        } else {
+            $logline .= 'course lmb instance not found:';
+            return false;
+        }
+    }
+
+    /**
+     * Unassigns a moodle role to a user in the provided course
+     *
+     * @param int $roleid id of the moodle role to unassign
+     * @param int $courseid id of the course to unassign
+     * @param int $userid id of the moodle user
+     * @param string $logline passed logline object to append log entries to
+     * @return bool success or failure of the role assignment
+     */
+    public function lmb_unassign_role_log($roleid, $courseid, $userid, &$logline) {
+        if (!$courseid) {
+            $logline .= 'missing courseid:';
+            return false;
+        }
+
+        if (enrol_lmb_check_enrolled_in_xls_merged($userid, $courseid)) {
+            $logline .= 'xls still enroled:';
+            return true;
+        }
+
+        if ($instance = $this->get_instance($courseid)) {
+            // TODO catch exceptions thrown.
+            if ($this->get_config('disableenrol')) {
+                $this->update_user_enrol($instance, $userid, ENROL_USER_SUSPENDED);
+            } else {
+                $this->unenrol_user($instance, $userid, $roleid);
+            }
+            $logline .= 'unenrolled:';
+            return true;
+        } else {
+            $logline .= 'course lmb instance not found:';
+            return false;
+        }
+    }
+
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Class Functions.
+    // -----------------------------------------------------------------------------------------------------------------
+    /**
+     * Preform any cron tasks for the module.
+     */
+    public function cron() {
+        // If enabled, before a LMB time check.
+        if ($this->get_config('lmbcheck')) {
+            $this->check_last_luminis_event();
+        }
+
+        if ($this->get_config('cronxmlfile')) {
+            $this->process_file(null, false);
+        }
+
+        // TODO.
+        if ($this->get_config('cronxmlfolder')) {
+            $this->process_folder();
+        }
+
+        if ($this->get_config('nextunhiderun') === null) {
+            $curtime = time();
+            $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime));
+
+            $this->set_config('nextunhiderun', $endtoday);
+        }
+
+        if ($this->get_config('cronunhidecourses') && (time() > $this->get_config('nextunhiderun'))) {
+            if ($this->get_config('prevunhideendtime') === null) {
+                $this->set_config('prevunhideendtime', (time() + ($this->get_config('cronunhidedays')*86400)));
+            }
+
+            $starttime = $this->get_config('prevunhideendtime');
+            $curtime = time();
+            $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime));
+
+            $endtime = $endtoday + ($this->get_config('cronunhidedays')*86400);
+
+            $this->unhide_courses($starttime, $endtime);
+
+            $this->set_config('nextunhiderun', $endtoday);
+            $this->set_config('prevunhideendtime', $endtime);
+        }
+
+    }
+
+    /**
+     * Does this plugin allow manual enrolments?
+     *
+     * @param stdClass $instance course enrol instance
+     * All plugins allowing this must implement 'enrol/xxx:enrol' capability
+     *
+     * @return bool - true means user with 'enrol/xxx:enrol' may enrol others freely,
+     *                false means nobody may add more enrolments manually
+     */
+    public function allow_enrol(stdClass $instance) {
+        return true;
+    }
+
+    /**
+     * Does this plugin allow manual unenrolment of all users?
+     * All plugins allowing this must implement 'enrol/xxx:unenrol' capability
+     *
+     * @param stdClass $instance course enrol instance
+     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol others freely,
+     *                false means nobody may touch user_enrolments
+     */
+    public function allow_unenrol(stdClass $instance) {
+        return true;
+    }
+
+    /**
+     * Does this plugin allow manual unenrolment of a specific user?
+     * All plugins allowing this must implement 'enrol/xxx:unenrol' capability
+     *
+     * This is useful especially for synchronisation plugins that
+     * do suspend instead of full unenrolment.
+     *
+     * @param stdClass $instance course enrol instance
+     * @param stdClass $ue record from user_enrolments table, specifies user
+     *
+     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol this user,
+     *                false means nobody may touch this user enrolment
+     */
+    public function allow_unenrol_user(stdClass $instance, stdClass $ue) {
+        return $this->allow_unenrol($instance);
+    }
+
+    /**
+     * Does this plugin allow manual changes in user_enrolments table?
+     *
+     * All plugins allowing this must implement 'enrol/xxx:manage' capability
+     *
+     * @param stdClass $instance course enrol instance
+     * @return bool - true means it is possible to change enrol period and status in user_enrolments table
+     */
+    public function allow_manage(stdClass $instance) {
+        return true;
+    }
+
+    /**
+     * Returns edit icons for the page with list of instances.
+     * @param stdClass $instance
+     * @return array
+     */
+    public function get_action_icons(stdClass $instance) {
+        return array();
+        /*
+        global $OUTPUT;
+
+        if ($instance->enrol !== 'lmb') {
+            throw new coding_exception('invalid enrol instance!');
+        }
+        $context = context_course::instance($instance->courseid);
+
+        $icons = array();
+
+        if (has_capability('enrol/lmb:manage', $context)) {
+            $managelink = new moodle_url("/enrol/lmb/manage.php", array('enrolid'=>$instance->id));
+            $icons[] = $OUTPUT->action_icon($managelink, new pix_icon('i/users', get_string('enrolusers', 'enrol_manual'),
+                    'core', array('class'=>'iconsmall')));
+        }
+
+        return $icons;
+        */
+    }
+
+    /**
+     * Is it possible to delete enrol instance via standard UI?
+     *
+     * @param object $instance
+     * @return bool
+     */
+    public function instance_deleteable($instance) {
+        return false;
+    }// TODO - make option?
+
+    /**
+     * Returns enrolment instance in given course.
+     * @param int $courseid
+     * @return object of enrol instances, or false
+     */
+    public function get_instance($courseid) {
+        global $DB;
+
+        $instance = $DB->get_record('enrol', array('courseid' => $courseid, 'enrol' => 'lmb'));
+
+        // TODO add option to disable this.
+        if (!$instance) {
+            if ($course = $DB->get_record('course', array('id' => $courseid))) {
+                $this->add_instance($course);
+                $instance = $DB->get_record('enrol', array('courseid' => $courseid, 'enrol' => 'lmb'));
+            }
+        }
+
+        return $instance;
+    }
+
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Old.
+    // -----------------------------------------------------------------------------------------------------------------
+    /**
+     * Write the provided string out to the logfile and to the screen.
+     * New line will be added after line.
+     *
+     * @param string $string Text to write
+     */
+    public function log_line($string) {
+        $message = '';
+
+        if ($this->islmb) {
+            $message = 'LMB Message:';
+        }
+
+        if (!$this->silent) {
+            mtrace($string);
+        }
+
+        if (isset($this->logfp) && $this->logfp) {
+            fwrite($this->logfp, date('Y-m-d\TH:i:s - ') . $message . $string . "\n");
+        }
+    }
+
+
+    /**
+     * Processes an enrol object, executing the associated assign or
+     * unassign and update the lmb entry for success or failure
+     *
+     * @param object $enrol an enrol object representing a record in enrol_lmb_enrolments
+     * @param string $logline passed logline object to append log entries to
+     * @return bool success or failure of the role assignments
+     */ // TODO2.
+    public function process_enrolment_log($enrol, &$logline) {
+        global $DB;
+        $status = true;
+
+        $newcoursedid = enrol_lmb_get_course_id($enrol->coursesourcedid);
+
+        $params = array('status' => 1, 'coursesourcedid' => $enrol->coursesourcedid);
+        if ($this->get_config('xlsmergegroups') && $xlist = $DB->get_record('enrol_lmb_crosslists', $params)) {
+            $groupid = enrol_lmb_get_crosslist_groupid($enrol->coursesourcedid, $xlist->crosslistsourcedid);
+        } else {
+            $groupid = false;
+        }
+
+        $enrolup = new object();
+        $enrolup->id = $enrol->id;
+
+        if ($newcoursedid) {
+            if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
+                if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
+                    if ($enrol->status) {
+                        $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline);
+                        if ($status && $groupid && !groups_is_member($groupid, $userid)) {
+                            global $CFG;
+                            require_once($CFG->dirroot.'/group/lib.php');
+                            groups_add_member($groupid, $userid);
+                            $logline .= 'added user to group:';
+                        }
+                    } else {
+                        $status = $this->lmb_unassign_role_log($roleid, $newcoursedid, $userid, $logline);
+                        if ($status && $groupid && groups_is_member($groupid, $userid)) {
+                            global $CFG;
+                            require_once($CFG->dirroot.'/group/lib.php');
+                            groups_remove_member($groupid, $userid);
+                            $logline .= 'removed user from group:';
+                        }
+                    }
+                } else {
+                    $logline .= 'roleid not found:';
+                    $status = false;
+                }
+            } else {
+                $logline .= 'user not found:';
+                $status = false;
+            }
+        } else {
+            $logline .= 'course not found:';
+            $status = false;
+        }
+
+        if ($status) {
+            $enrolup->succeeded = 1;
+        } else {
+            $enrolup->succeeded = 0;
+        }
+
+        if (enrol_lmb_compare_objects($enrolup, $enrol)) {
+            if (!$DB->update_record('enrol_lmb_enrolments', $enrolup)) {
+                $logline .= 'error updating in enrol_lmb_enrolments:';
+                $status = false;
+            } else {
+                $logline .= 'lmb updated:';
+            }
+        }
+
+        unset($enrolup);
+
+        return $status;
+
+    }
 
     /**
      * Used to call process_crosslist_membership_tag_error() without passing
@@ -1520,7 +2813,6 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
     }
-
 
     /**
      * Processes tags that join courses to a crosslist. Creates the crosslist
@@ -1858,535 +3150,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $status;
     }
 
-
-    /**
-     * Adds a meta course enrolment method from a course
-     *
-     * @param int $parentid parent course id
-     * @param int $childid child course id
-     * @return bool result
-     */
-    public function add_to_metacourse($parentid, $childid) {
-        global $DB;
-
-        $params = array('courseid' => $parentid, 'customint1' => $childid, 'enrol' => 'meta');
-        if (($enrols = $DB->get_record('enrol', $params, '*', IGNORE_MULTIPLE)) && (count($enrols) > 0)) {
-            return true;
-        }
-
-        $parentcourse = $DB->get_record('course', array('id' => $parentid));
-        $metaplugin = enrol_get_plugin('meta');
-        $metaplugin->add_instance($parentcourse, array('customint1' => $childid));
-
-        $this->meta_sync($parentid);
-
-        return true;
-    }
-
-
-    /**
-     * Removes a meta course enrolment method from a course
-     *
-     * @param int $parentid parent course id
-     * @param int $childid child course id
-     * @return bool result
-     */
-    public function remove_from_metacourse($parentid, $childid) {
-        global $DB;
-
-        $params = array('courseid' => $parentid, 'customint1' => $childid, 'enrol' => 'meta');
-        $enrol = $DB->get_record('enrol', $params, '*', IGNORE_MULTIPLE);
-        if (!$enrol) {
-            return true;
-        }
-
-        $metaplugin = enrol_get_plugin('meta');
-
-        $metaplugin->delete_instance($enrol);
-
-        return true;
-    }
-
-
-    /**
-     * Syncs meta enrolments between children and parent.
-     *
-     * @param int $parentid course id of the parent course to sync
-     */
-    public function meta_sync($parentid) {
-        $metaplugin = enrol_get_plugin('meta');
-
-        $course = new stdClass();
-        $course->id = $parentid;
-
-        $metaplugin->course_updated(false, $course, false);
-    }
-
-
-    /**
-     * Provides the title for the given crosslist id based on the provided
-     * definitions. See help documentation for definition formatting.
-     *
-     * @param string $idnumber the xml/ims id of the crosslist
-     * @param string $titledef the definition of the title
-     * @param string $repeatdef the definition of the repeater
-     * @param string $dividerdef the definition of the divider
-     * @return string the title
-     */
-    public function expand_crosslist_title($idnumber, $titledef, $repeatdef, $dividerdef) {
-        global $DB;
-
-        $title = $titledef;
-        $repeat = '';
-
-        if ($courseids = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
-            $courses = array();
-
-            foreach ($courseids as $courseid) {
-
-                if ($course = $DB->get_record('enrol_lmb_courses', array('sourcedid' => $courseid->coursesourcedid))) {
-                    array_push($courses, $course);
-
-                }
-            }
-
-            if ($course = $courses[0]) {
-                $title = enrol_lmb_expand_course_title($course, $title);
-
-                $i = 1;
-                $count = count($courses);
-                foreach ($courses as $course) {
-
-                    $repeat .= enrol_lmb_expand_course_title($course, $repeatdef);
-                    if ($count != $i) {
-                        $repeat .= $dividerdef;
-                    }
-                    $i++;
-                }
-
-                $title = str_replace('[REPEAT]', $repeat, $title);
-
-            }
-        }
-
-        $title = str_replace('[XLSID]', $idnumber, $title);
-
-        return $title;
-    }
-
-
-    /**
-     * Determines the end time for a crosslisted course - the latest end date
-     * of any child course
-     *
-     * @param string $idnumber the xml/ims id of the crosslist
-     * @return int the end time in unit time format
-     */
-    public function get_crosslist_endtime($idnumber) {
-        global $DB;
-
-        if ($courseids = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
-            $enddates = array();
-
-            foreach ($courseids as $courseid) {
-                if ($enddate = $DB->get_field('enrol_lmb_courses', 'enddate', array('sourcedid' => $courseid->coursesourcedid))) {
-                    array_push($enddates, $enddate);
-
-                }
-            }
-
-            if ($enddate = $enddates[0]) {
-                rsort($enddates);
-
-                return $enddates[0];
-            }
-        }
-    }
-
-
-    /**
-     * Determines the start time for a crosslisted course - the earliest start date
-     * of any child course
-     *
-     * @param string $idnumber the xml/ims id of the crosslist
-     * @return int the start time in unit time format
-     */
-    public function get_crosslist_starttime($idnumber) {
-        global $DB;
-
-        if ($courseids = $DB->get_records('enrol_lmb_crosslists', array('status' => 1, 'crosslistsourcedid' => $idnumber))) {
-            $startdates = array();
-
-            foreach ($courseids as $courseid) {
-                $params = array('sourcedid' => $courseid->coursesourcedid);
-                if ($startdate = $DB->get_field('enrol_lmb_courses', 'startdate', $params)) {
-                    array_push($startdates, $startdate);
-                }
-            }
-
-            if ($startdate = $startdates[0]) {
-                sort($startdates);
-
-                return $startdates[0];
-            }
-        }
-        return 0;
-    }
-
-
-    /**
-     * Processes a given person tag, updating or creating a moodle user as
-     * needed.
-     *
-     * @param string $tagconents The raw contents of the XML element
-     * @return bool success of failure of processing the tag
-     */
-    public function process_person_tag($tagcontents) {
-        // TODO check for error.
-        // TODO status flags?
-
-        if (!$this->get_config('parsepersonxml')) {
-            $this->log_line('Person:skipping.');
-            return true;
-        }
-
-        $this->append_log_line('Person');
-        $xmlarray = enrol_lmb_xml_to_array($tagcontents);
-        $lmbperson = $this->xml_to_person($xmlarray);
-
-        $moodleuser = $this->person_to_moodleuser($lmbperson);
-
-        $this->log_line_new();
-        return $this->linestatus;
-    }
-
-
-    /**
-     * Takes an internal LMB person object and converts it to a moodle user object,
-     * inserting, updating, or deleting the user in moodle as needed.
-     *
-     * @param stdClass $lmbperson The LMB person element
-     * @return stdClass A object representing a Moodle user
-     */
-    public function person_to_moodleuser($lmbperson) {
-        global $DB, $CFG;
-        $emailallow = true;
-
-        if (!isset($lmbperson->username) || (trim($lmbperson->username)=='')) {
-            if (!$this->get_config('createusersemaildomain')) {
-                $this->linestatus = false;
-            }
-            $this->append_log_line('no username');
-
-            return false;
-        }
-
-        if (!isset($lmbperson->email) || (trim($lmbperson->email)=='')) {
-            if (!$this->get_config('donterroremail')) {
-                $this->linestatus = false;
-            }
-            $this->append_log_line('no email address');
-
-            return false;
-        }
-
-        if ($this->get_config('createusersemaildomain')) {
-            if ($domain = explode('@', $lmbperson->email) && (count($domain) > 1)) {
-                $domain = trim($domain[1]);
-
-                if (isset($CFG->ignoredomaincase) && $CFG->ignoredomaincase) {
-                    $matchappend = 'i';
-                } else {
-                    $matchappend = '';
-                }
-
-                if (!preg_match('/^'.trim($this->get_config('createusersemaildomain')).'$/'.$matchappend, $domain)) {
-                    $this->append_log_line('no in domain email');
-                    $emailallow = false;
-                    if (!$this->get_config('donterroremail')) {
-                        $this->linestatus = false;
-                    }
-                }
-            } else {
-                $this->append_log_line('no in domain email');
-                $emailallow = false;
-                if (!$this->get_config('donterroremail')) {
-                    $this->linestatus = false;
-                }
-            }
-        }
-
-        if ($this->get_config('nickname') && isset($lmbperson->nickname) && !empty($lmbperson->nickname)) {
-            $pos = strrpos($lmbperson->nickname, ' '.$lmbperson->familyname);
-            $firstname = $lmbperson->nickname;
-
-            // Remove last name.
-            if ($pos !== false) {
-                $firstname = substr($firstname, 0, $pos);
-            }
-
-            if (empty($firstname) || ($firstname === false)) {
-                $firstname = $lmbperson->givenname;
-            }
-
-        } else {
-            $firstname = $lmbperson->givenname;
-        }
-
-        $newuser = false;
-
-        if ($emailallow && $lmbperson->recstatus != 3) {
-            $moodleuser = new stdClass();
-
-            $moodleuser->idnumber = $lmbperson->sourcedid;
-
-            if ($this->get_config('ignoreusernamecase')) {
-                $moodleuser->username = strtolower($lmbperson->username);
-            } else {
-                $moodleuser->username = $lmbperson->username;
-            }
-            $moodleuser->auth = $this->get_config('auth');
-            $moodleuser->timemodified = time();
-
-            if (($oldmoodleuser = $DB->get_record('user', array('idnumber' => $moodleuser->idnumber)))
-                    || (($this->get_config('consolidateusernames'))
-                    && ($oldmoodleuser = $DB->get_record('user', array('username' => $moodleuser->username))))) {
-                // If we have an existing user in moodle (using idnumber) or...
-                // ...if we can match by username (but not idnumber) and the consolidation is on.
-
-                if ($this->get_config('ignoreusernamecase')) {
-                    $oldmoodleuser->username = strtolower($oldmoodleuser->username);
-                }
-
-                $moodleuser->id = $oldmoodleuser->id;
-
-                if ($this->get_config('forcename')) {
-                    $moodleuser->firstname = $firstname;
-                    $moodleuser->lastname = $lmbperson->familyname;
-                }
-
-                if ($this->get_config('forceemail')) {
-                    $moodleuser->email = $lmbperson->email;
-                }
-
-                if ($this->get_config('includetelephone') && $this->get_config('forcetelephone')) {
-                    $moodleuser->phone1 = $lmbperson->telephone;
-                }
-
-                if ($this->get_config('includeaddress') && $this->get_config('forceaddress')) {
-                    $moodleuser->address = $lmbperson->adrstreet;
-
-                    if ($this->get_config('defaultcity') == 'standardxml') {
-                        if ($lmbperson->locality) {
-                            $moodleuser->city = $lmbperson->locality;
-                        } else {
-                            $moodleuser->city = $this->get_config('standardcity');
-                        }
-                    } else if ($this->get_config('defaultcity') == 'xml') {
-                        $moodleuser->city = $lmbperson->locality;
-                    } else if ($this->get_config('defaultcity') == 'standard') {
-                        $moodleuser->city = $this->get_config('standardcity');
-                    }
-                } else {
-                    $moodleuser->address = '';
-                }
-
-                if (enrol_lmb_compare_objects($moodleuser, $oldmoodleuser) || ($this->get_config('customfield1mapping')
-                        && ($this->compare_custom_mapping($moodleuser->id, $lmbperson->customfield1,
-                        $this->get_config('customfield1mapping'))))) {
-
-                    if (($oldmoodleuser->username != $moodleuser->username)
-                            && ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username)))) {
-                        $this->append_log_line('username collision while trying to update');
-                        $this->linestatus = false;
-                    } else {
-                        if ($DB->update_record('user', $moodleuser)) {
-                            $this->append_log_line('updated user');
-                            // Update custom fields.
-                            if ($this->get_config('customfield1mapping')) {
-                                $this->update_custom_mapping($moodleuser->id, $lmbperson->customfield1,
-                                    $this->get_config('customfield1mapping'));
-                            }
-                        } else {
-                            $this->append_log_line('failed to update user');
-                            $this->linestatus = false;
-                        }
-                    }
-                } else {
-                    $this->append_log_line('no changes to make');
-                }
-            } else {
-                // Set some default prefs.
-                if (!isset($CFG->mnet_localhost_id)) {
-                    include_once($CFG->dirroot . '/mnet/lib.php');
-                    $env = new mnet_environment();
-                    $env->init();
-                    unset($env);
-                }
-                $moodleuser->mnethostid = $CFG->mnet_localhost_id;
-                $moodleuser->confirmed = 1;
-
-                // Add default site language.
-                $moodleuser->lang = $CFG->lang;
-
-                // The user appears to not exist at all yet.
-                $moodleuser->firstname = $firstname;
-                $moodleuser->lastname = $lmbperson->familyname;
-
-                if ($this->get_config('ignoreemailcase')) {
-                    $moodleuser->email = strtolower($lmbperson->email);
-                } else {
-                    $moodleuser->email = $lmbperson->email;
-                }
-
-                $moodleuser->auth = $this->get_config('auth');
-                if ($this->get_config('includetelephone')) {
-                    $moodleuser->phone1 = $lmbperson->telephone;
-                }
-
-                if ($this->get_config('includeaddress')) {
-                    if (isset ($lmbperson->adrstreet)) {
-                        $moodleuser->address = $lmbperson->adrstreet;
-                    } else {
-                        $moodleuser->address = '';
-                    }
-
-                    if ($this->get_config('defaultcity') == 'standardxml') {
-                        if ($lmbperson->locality) {
-                            $moodleuser->city = $lmbperson->locality;
-                        } else {
-                            $moodleuser->city = $this->get_config('standardcity');
-                        }
-                    } else if ($this->get_config('defaultcity') == 'xml') {
-                        $moodleuser->city = $lmbperson->locality;
-                    } else if ($this->get_config('defaultcity') == 'standard') {
-                        $moodleuser->city = $this->get_config('standardcity');
-                    }
-
-                } else {
-                    $moodleuser->address = '';
-                }
-
-                $moodleuser->country = $CFG->country;
-
-                if ($this->get_config('createnewusers')) {
-                    if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
-                        $this->append_log_line('username collision, could not create user:');
-                        $this->linestatus = false;
-                    } else {
-                        if ($id = $DB->insert_record('user', $moodleuser, true)) {
-                            $this->append_log_line('created new user:');
-                            if (isset($lmbperson->customfield1)) {
-                                $this->update_custom_mapping($id, $lmbperson->customfield1,
-                                        $this->get_config('customfield1mapping'));
-                            }
-                            $moodleuser->id = $id;
-                            $newuser = true;
-
-                            $this->linestatus = $this->linestatus && $this->restore_user_enrolments($lmbperson->sourcedid);
-
-                        } else {
-                            $this->append_log_line('failed to insert new user:');
-                            $this->linestatus = false;
-                        }
-                    }
-                } else {
-                    $this->append_log_line('did not create new user');
-                    return false;
-                }
-            }
-
-            if ($this->get_config('passwordnamesource') != 'none') {
-                if ($this->get_config('forcepassword', true) || $newuser) {
-                    if ($user = $DB->get_record('user', array('id' => $moodleuser->id))) {
-                        $userauth = get_auth_plugin($user->auth);
-                        if ($userauth->can_change_password() && (!$userauth->change_password_url())) {
-                            // TODO2 - what happens if password is blank?
-                            if (isset($person->password) && ($person->password != '')) {
-                                if (!$userauth->user_update_password($user, $person->password)) {
-                                    $this->append_log_line('error setting password');
-                                    $this->linestatus = false;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-        } else if (($this->get_config('imsdeleteusers')) && ($lmbperson->recstatus == 3)
-                && ($moodleuser = $DB->get_record('user', array('idnumber' => $lmbperson->idnumber)))) {
-            $deleteuser = new object();
-            $deleteuser->id           = $moodleuser->id;
-            $deleteuser->deleted      = 1;
-            // TODO2 $deleteuser->username     = addslashes("$moodleuser->email.".time());  // Remember it just in case.
-            $deleteuser->username     = "$moodleuser->email.".time();  // Remember it just in case
-            $deleteuser->email        = '';               // Clear this field to free it up.
-            $deleteuser->idnumber     = '';               // Clear this field to free it up.
-            $deleteuser->timemodified = time();
-
-            if ($id = $DB->update_record('user', $deleteuser)) {
-                $this->append_log_line('deleted user');
-                $deleted = true;
-            } else {
-                $this->append_log_line('failed to delete user');
-                $this->linestatus = false;
-            }
-
-            $moodleuser = $deleteuser;
-        }
-
-        return $moodleuser;
-
-    } // End process_person_tag().
-
-
-    /**
-     * Used to call process_membership_tag_error() without passing
-     * error variables. See process_membership_tag_error()
-     *
-     * @param string $tagcontents the xml string to process
-     * @return bool success or failure of the processing
-     */
-    public function process_membership_tag($tagcontents) {
-        $errorcode = 0;
-        $errormessage = '';
-
-        return $this->process_membership_tag_error($tagcontents, $errorcode, $errormessage);
-    }
-
-
-    /**
-     * Process the membership tag. Sends the tag onto the appropriate tag processor
-     *
-     * @param string $tagconents The raw contents of the XML element
-     * @param string $errorcode an error code number
-     * @param string $errormessage an error message
-     * @return bool success or failure of the processing
-     */
-    public function process_membership_tag_error($tagcontents, &$errorcode, &$errormessage) {
-        $xmlarray = enrol_lmb_xml_to_array($tagcontents);
-
-        if (stripos($xmlarray['membership']['#']['sourcedid']['#'][0]['id']['#'][0], 'XLS') === 0) {
-            $this->xml_to_xls_memberships($xmlarray);
-        } else if ($xmlarray['membership']['#']['sourcedid']['#'][0]['source']['#'][0] === 'Plugin Internal') {
-            $this->xml_to_xls_memberships($xmlarray);
-        } else {
-            $this->xml_to_person_memberships($xmlarray);
-        }
-
-        if (preg_match('{<sourcedid>.*?<id>XLS(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
-            return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
-        } else if (preg_match('{<sourcedid>.*?<source>Plugin Internal</source>.*?</sourcedid>}is', $tagcontents, $matches)) {
-            return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
-        } else {
-            return $this->process_person_membership_tag($tagcontents);
-        }
-
-    }
-
-
-
-
     /**
      * Process a tag that is a membership of a person
      *
@@ -2527,781 +3290,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         return $status;
-    }
-
-
-
-    /**
-     * Process the properties tag. Currently unimplimented. Need to look into need.
-     *
-     * @param string $tagconents The raw contents of the XML element
-     * @return bool success or failure
-     */
-    public function process_properties_tag($tagcontents) {
-
-        return true;
-    }
-
-    /**
-     * Remove all entries for a term from various tables.
-     *
-     * @param string $term The term sourcedid
-     * @return bool success or failure
-     */
-    public function prune_tables($term) {
-        global $DB;
-
-        $DB->delete_records('enrol_lmb_enrolments', array('term' => $term));
-        $DB->delete_records('enrol_lmb_courses', array('term' => $term));
-
-        $sqlparams = array('term' => '%'.$term);
-        $DB->delete_records_select('enrol_lmb_crosslists', "coursesourcedid LIKE :term", $sqlparams);
-
-        $DB->delete_records('enrol_lmb_terms', array('sourcedid' => $term));
-
-        return true;
-    }
-
-
-    public function append_log_line($string, $error = false) {
-        $this->logline .= $string.':';
-        if ($error == true) {
-            $this->logerror = true;
-        }
-    }
-
-    public function log_error($string) {
-        $this->append_log_line($string);
-        $this->logerror = true;
-        $this->log_line_new();
-    }
-
-    public function log_line_new($end = false) {
-        $message = '';
-
-        if ($this->get_config('logerrors') && (!$this->logerror)) {
-            $this->logline = '';
-            $this->logerror = false;
-            return;
-        }
-
-        if ($this->islmb) {
-            $message = 'LMB Message:';
-        }
-        $message .= $this->logline;
-
-        if ($end) {
-            $message .= $end;
-        }
-
-        if ($this->logerror) {
-            $message .= 'error';
-        } else {
-            $message .= 'complete';
-        }
-        if (!$this->silent) {
-            mtrace($message);
-        }
-
-        if (isset($this->logfp) && $this->logfp) {
-            fwrite($this->logfp, date('Y-m-d\TH:i:s - ') . $message . "\n");
-        }
-
-        $this->logline = '';
-        $this->logerror = false;
-    }
-
-    /**
-     * Write the provided string out to the logfile and to the screen.
-     * New line will be added after line.
-     *
-     * @param string $string Text to write
-     */
-    public function log_line($string) {
-        $message = '';
-
-        if ($this->islmb) {
-            $message = 'LMB Message:';
-        }
-
-        if (!$this->silent) {
-            mtrace($string);
-        }
-
-        if (isset($this->logfp) && $this->logfp) {
-            fwrite($this->logfp, date('Y-m-d\TH:i:s - ') . $message . $string . "\n");
-        }
-    }
-
-
-    /**
-     * Open the lof file and store the pointer in this object.
-     */
-    public function open_log_file () {
-        $this->logfp = false; // File pointer for writing log data to.
-        if ($this->get_config('logtolocation') !== null) {
-            $this->logfp = fopen($this->get_config('logtolocation'), 'a');
-        }
-    }
-
-
-    /**
-     * Execute the check of the last time a message was received
-     * on the liveimport interface (luminis message broker). If
-     * last message time falls outside parameters, then email
-     * error messages.
-     */
-    public function check_last_luminis_event() {
-        global $CFG;
-
-        $this->log_line("Checking LMB last message sent time.");
-
-        if ($this->get_config('lastlmbmessagetime')) {
-            $lasttime = $this->get_config('lastlmbmessagetime');
-
-            $starttime = make_timestamp(date("Y"), date("m"), date("d"),
-                    ( $this->get_config('startbiztimehr') ? $this->get_config('startbiztimehr') : 9),
-                    $this->get_config('startbiztimemin'));
-            $endtime = make_timestamp(date("Y"), date("m"), date("d"),
-                    ( $this->get_config('endbiztimehr') ? $this->get_config('endbiztimehr') : 9),
-                    $this->get_config('endbiztimemin'));
-
-            $currenttime = time();
-
-            $difftime = $currenttime - $lasttime;
-
-            // If it's mon-fri, and inside of biz hours.
-            if ((date("w") > 0) && (date("w") < 6) && ($currenttime > $starttime && $currenttime < $endtime)) {
-                // If longer then grace.
-                if (($this->get_config('bizgrace')) && ($difftime > ($this->get_config('bizgrace') * 60))) {
-                    $this->log_line('Last luminis message received '.floor($difftime/60).' minutes ago.');
-                    $emails = explode(',', $this->get_config('emails'));
-
-                    foreach ($emails as $email) {
-                        $this->email_luminis_error(floor($difftime/60), trim($email));
-                    }
-                }
-            } else {
-                // If longer then grace.
-                if (($this->get_config('nonbizgrace')) && ($difftime > ($this->get_config('nonbizgrace') * 60))) {
-                    $this->log_line('Last luminis message received '.floor($difftime/60).' minutes ago.');
-
-                    $emails = explode(',', $this->get_config('emails'));
-
-                    foreach ($emails as $email) {
-                        $this->email_luminis_error(floor($difftime/60), trim($email));
-                    }
-                }
-            }
-        }
-
-    }
-
-
-    /**
-     * Email a luminis downtime message to the provided email
-     *
-     * TODO - replace with mesaging system?
-     *
-     * @param int $minutes the number of minutes since the last message was received
-     * @param string $emailaddress the email address to send the message to
-     * @return bool success of failure of the email send
-     */
-    public function email_luminis_error($minutes, $emailaddress) {
-        global $CFG, $FULLME;
-        include_once($CFG->libdir .'/phpmailer/class.phpmailer.php');
-
-        $messagetext = get_string('nomessagefull', 'enrol_lmb').$minutes.get_string('minutes');
-        $subject = get_string("nomessage", "enrol_lmb");
-
-        $mail = new phpmailer;
-
-        $mail->Version = 'Moodle '. $CFG->version;           // Mailer version.
-        $mail->PluginDir = $CFG->libdir .'/phpmailer/';      // Plugin directory (eg smtp plugin).
-
-        if (current_language() != 'en') {
-            $mail->CharSet = get_string('thischarset');
-        }
-
-        if ($CFG->smtphosts == 'qmail') {
-            $mail->IsQmail();                              // Sse Qmail system.
-
-        } else if (empty($CFG->smtphosts)) {
-            $mail->IsMail();                               // Use PHP mail() = sendmail.
-
-        } else {
-            $mail->IsSMTP();                               // Use SMTP directly.
-            if ($CFG->debug > 7) {
-                echo '<pre>' . "\n";
-                $mail->SMTPDebug = true;
-            }
-            $mail->Host = $CFG->smtphosts;               // Specify main and backup servers.
-
-            if ($CFG->smtpuser) {                          // Use SMTP authentication.
-                $mail->SMTPAuth = true;
-                $mail->Username = $CFG->smtpuser;
-                $mail->Password = $CFG->smtppass;
-            }
-        }
-
-        $adminuser = get_admin();
-
-        // Make up an email address for handling bounces.
-        if (!empty($CFG->handlebounces)) {
-            $modargs = 'B'.base64_encode(pack('V', $adminuser->id)).substr(md5($adminuser->email), 0, 16);
-            $mail->Sender = generate_email_processing_address(0, $modargs);
-        } else {
-            $mail->Sender   = $adminuser->email;
-        }
-
-        $mail->From     = $CFG->noreplyaddress;
-        if (empty($replyto)) {
-            $mail->AddReplyTo($CFG->noreplyaddress, get_string('noreplyname'));
-        }
-
-        if (!empty($replyto)) {
-            $mail->AddReplyTo($replyto);
-        }
-
-        $mail->Subject = $subject;
-
-        $mail->AddAddress($emailaddress, "" );
-
-        $mail->WordWrap = 79;                               // Set word wrap.
-
-        $mail->IsHTML(false);
-        $mail->Body =  "\n$messagetext\n";
-
-        if ($mail->Send()) {
-            set_send_count($adminuser);
-            return true;
-        } else {
-            mtrace('ERROR: '. $mail->ErrorInfo);
-            add_to_log(SITEID, 'library', 'mailer', $FULLME, 'ERROR: '. $mail->ErrorInfo);
-            $this->log_line("Error emailing");
-            return false;
-        }
-    }
-
-    /**
-     * 
-     *
-     * @param stdClass &$object The lmb object to work on
-     * @param string $table The table to work on
-     * @return bool the status of the processing. False on error.
-     */
-    public function update_or_insert_lmb(&$object, $table) {
-        global $DB;
-        $args = array();
-        if ($table === 'enrol_lmb_enrolments') {
-            $args['coursesourcedid'] = $object->coursesourcedid;
-            $args['personsourcedid'] = $object->personsourcedid;
-        } else if ($table === 'enrol_lmb_crosslists') {
-            $args['coursesourcedidsource'] = $object->coursesourcedidsource;
-            $args['coursesourcedid'] = $object->coursesourcedid;
-            $args['crosssourcedidsource'] = $object->crosssourcedidsource;
-            $args['crosslistsourcedid'] = $object->crosslistsourcedid;
-        } else {
-            $args['sourcedid'] = $object->sourcedid;
-        }
-
-        if ($oldobject = $DB->get_record($table, $args)) {
-            $object->id = $oldobject->id;
-            if (enrol_lmb_compare_objects($object, $oldobject)) {
-                if ($DB->update_record($table, $object)) {
-                    $this->append_log_line('updated '.$table);
-                } else {
-                    $this->append_log_line('failed to update '.$table);
-                    $this->linestatus = false;
-                    return false;
-                }
-            } else {
-                $this->append_log_line('no lmb changes to make');
-            }
-        } else {
-            if ($object->id = $DB->insert_record($table, $object, true)) {
-                $this->append_log_line('inserted into '.$table);
-            } else {
-                $this->append_log_line('failed to insert into '.$table);
-                $this->linestatus = false;
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Drops all enrolments that not been updated by this extract.
-     * Since an extract is comprehensive, we track all enrolemnts that
-     * were not updated by the extract import.
-     * All the remaining ones are assumed to have dropped, and so we set their
-     * status to 0, and unassign the role assignment from moodle.
-     *
-     * This should only ever be called at the end of an extract process, or
-     * users may get un-intentionally unenrolled from courses
-     *
-     * @return bool success or failure of the drops
-     */
-    public function process_extract_drops() {
-        global $CFG, $DB;
-        $status = true;
-
-        foreach ($this->terms as $termid => $count) {
-            $this->log_line('Processing drops for term '.$termid);
-
-            $sqlparams = array('term' => $termid, 'status' => 1);
-            $termcnt = $DB->count_records('enrol_lmb_enrolments', $sqlparams);
-
-            $sqlparams = array('processid' => $this->processid, 'termid' => $termid, 'status' => 1);
-            $dropcnt = $DB->count_records_select('enrol_lmb_enrolments',
-                    'extractstatus < :processid AND term = :termid AND status = :status', $sqlparams);
-
-            $percent = (int)ceil(($dropcnt/$termcnt)*100);
-            $this->log_line('Dropping '.$dropcnt.' out of '.$termcnt.' ('.$percent.'%) enrolments.');
-
-            if ($percent > $this->get_config('dropprecentlimit')) {
-                $this->log_line('Exceeds the drop percent limit, skipping term.');
-                continue;
-            }
-
-            $sqlparams = array('extractstatus' => $this->processid, 'termid' => $termid);
-
-            if ($enrols = $DB->get_records_select('enrol_lmb_enrolments',
-                    'extractstatus < :extractstatus AND term = :termid', $sqlparams, 'coursesourcedid ASC')) {
-                $count = count($enrols);
-                $curr = 0;
-                $percent = 0;
-                $csourcedid = '';
-
-                $this->log_line($count.' records to process');
-
-                foreach ($enrols as $enrol) {
-                    $logline = $enrol->coursesourcedid.':'.$enrol->personsourcedid.':';
-
-                    $enrolstatus = true;
-
-                    $cperc = (int)floor(($curr/$count)*100);
-                    if ($cperc > $percent) {
-                        $percent = $cperc;
-                        if ($this->get_config('logpercent')) {
-                            $this->log_line($percent.'% complete');
-                        }
-                    }
-                    $curr++;
-
-                    if ($csourcedid != $enrol->coursesourcedid) {
-                        $csourcedid = $enrol->coursesourcedid;
-                        $courseid = enrol_lmb_get_course_id($csourcedid);
-                    }
-
-                    if ($enrol->status || !$enrol->succeeded) {
-                        $enrolup = new Object();
-                        $enrolup->id = $enrol->id;
-                        $enrolup->timemodified = time();
-                        $enrolup->status = 0;
-                        $enrolup->succeeded = 0;
-
-                        if ($courseid) {
-                            if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
-                                if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
-                                    if (!$this->lmb_unassign_role_log($roleid, $courseid, $userid, $logline)) {
-                                        $logline .= 'could not drop user:';
-                                        $enrolup->succeeded = 0;
-                                        $enrolstatus = false;
-                                    } else {
-                                        $logline .= 'dropped:';
-                                        $enrolup->succeeded = 1;
-                                    }
-                                } else {
-                                    $enrolup->succeeded = 0;
-                                    $logline .= 'roleid not found:';
-                                    $enrolstatus = false;
-                                }
-                            } else {
-                                $logline .= 'user not found:';
-                            }
-                        } else {
-                            $logline .= 'role course not found:';
-                        }
-
-                        if (enrol_lmb_compare_objects($enrolup, $enrol)) {
-                            if (!$DB->update_record('enrol_lmb_enrolments', $enrolup)) {
-                                $logline .= 'error updating lmb:';
-                                $enrolstatus = false;
-                            } else {
-                                $logline .= 'lmb updated:';
-                            }
-                        } else {
-                            $logline .= 'no lmb changes to make:';
-                        }
-
-                        if ($enrolstatus) {
-                            if (!$this->get_config('logerrors')) {
-                                $this->log_line($logline.'complete');
-                            }
-                        } else {
-                            $this->log_line($logline.'error');
-                        }
-
-                        unset($enrolup);
-                        $logline = '';
-                        $status = $status && $enrolstatus;
-                    }
-
-                }
-
-            }
-
-            $this->log_line('Completed with term '.$termid);
-        }
-
-        return $status;
-    }
-
-    /**
-     * Processes an enrol object, executing the associated assign or
-     * unassign and update the lmb entry for success or failure
-     *
-     * @param object $enrol an enrol object representing a record in enrol_lmb_enrolments
-     * @param string $logline passed logline object to append log entries to
-     * @return bool success or failure of the role assignments
-     */ // TODO2.
-    public function process_enrolment_log($enrol, &$logline) {
-        global $DB;
-        $status = true;
-
-        $newcoursedid = enrol_lmb_get_course_id($enrol->coursesourcedid);
-
-        $params = array('status' => 1, 'coursesourcedid' => $enrol->coursesourcedid);
-        if ($this->get_config('xlsmergegroups') && $xlist = $DB->get_record('enrol_lmb_crosslists', $params)) {
-            $groupid = enrol_lmb_get_crosslist_groupid($enrol->coursesourcedid, $xlist->crosslistsourcedid);
-        } else {
-            $groupid = false;
-        }
-
-        $enrolup = new object();
-        $enrolup->id = $enrol->id;
-
-        if ($newcoursedid) {
-            if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
-                if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
-                    if ($enrol->status) {
-                        $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline);
-                        if ($status && $groupid && !groups_is_member($groupid, $userid)) {
-                            global $CFG;
-                            require_once($CFG->dirroot.'/group/lib.php');
-                            groups_add_member($groupid, $userid);
-                            $logline .= 'added user to group:';
-                        }
-                    } else {
-                        $status = $this->lmb_unassign_role_log($roleid, $newcoursedid, $userid, $logline);
-                        if ($status && $groupid && groups_is_member($groupid, $userid)) {
-                            global $CFG;
-                            require_once($CFG->dirroot.'/group/lib.php');
-                            groups_remove_member($groupid, $userid);
-                            $logline .= 'removed user from group:';
-                        }
-                    }
-                } else {
-                    $logline .= 'roleid not found:';
-                    $status = false;
-                }
-            } else {
-                $logline .= 'user not found:';
-                $status = false;
-            }
-        } else {
-            $logline .= 'course not found:';
-            $status = false;
-        }
-
-        if ($status) {
-            $enrolup->succeeded = 1;
-        } else {
-            $enrolup->succeeded = 0;
-        }
-
-        if (enrol_lmb_compare_objects($enrolup, $enrol)) {
-            if (!$DB->update_record('enrol_lmb_enrolments', $enrolup)) {
-                $logline .= 'error updating in enrol_lmb_enrolments:';
-                $status = false;
-            } else {
-                $logline .= 'lmb updated:';
-            }
-        }
-
-        unset($enrolup);
-
-        return $status;
-
-    }
-
-
-    /**
-     * For a given person id number, run all enrol and unenrol records in
-     * the local lmb database
-     *
-     * @param string $idnumber the ims/xml id of a person
-     * @return bool success or failure of the enrolments
-     */
-    public function restore_user_enrolments($idnumber) {
-        global $DB;
-
-        $status = true;
-
-        if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('personsourcedid' => $idnumber))) {
-            foreach ($enrols as $enrol) {
-                $logline = '';
-                $status = $this->process_enrolment_log($enrol, $logline) && $status;
-            }
-
-        }
-
-        return $status;
-    }
-
-
-    /**
-     * Assigns a moodle role to a user in the provided course
-     *
-     * @param int $roleid id of the moodle role to assign
-     * @param int $courseid id of the course to assign
-     * @param int $userid id of the moodle user
-     * @param string $logline passed logline object to append log entries to
-     * @return bool success or failure of the role assignment
-     */
-    public function lmb_assign_role_log($roleid, $courseid, $userid, &$logline) {
-        if (!$courseid) {
-            $logline .= 'missing courseid:';
-        }
-
-        if ($instance = $this->get_instance($courseid)) {
-            if ($this->get_config('recovergrades')) {
-                $wasenrolled = is_enrolled(context_course::instance($courseid), $userid);
-            }
-
-            // TODO catch exceptions thrown.
-            $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
-            if ($this->get_config('recovergrades') && !$wasenrolled) {
-                $logline .= 'recovering grades:';
-                grade_recover_history_grades($userid, $courseid);
-            }
-            $logline .= 'enrolled:';
-            return true;
-        } else {
-            $logline .= 'course lmb instance not found:';
-            return false;
-        }
-    }
-
-
-    /**
-     * Unassigns a moodle role to a user in the provided course
-     *
-     * @param int $roleid id of the moodle role to unassign
-     * @param int $courseid id of the course to unassign
-     * @param int $userid id of the moodle user
-     * @param string $logline passed logline object to append log entries to
-     * @return bool success or failure of the role assignment
-     */
-    public function lmb_unassign_role_log($roleid, $courseid, $userid, &$logline) {
-        if (!$courseid) {
-            $logline .= 'missing courseid:';
-            return false;
-        }
-
-        if (enrol_lmb_check_enrolled_in_xls_merged($userid, $courseid)) {
-            $logline .= 'xls still enroled:';
-            return true;
-        }
-
-        if ($instance = $this->get_instance($courseid)) {
-            // TODO catch exceptions thrown.
-            if ($this->get_config('disableenrol')) {
-                $this->update_user_enrol($instance, $userid, ENROL_USER_SUSPENDED);
-            } else {
-                $this->unenrol_user($instance, $userid, $roleid);
-            }
-            $logline .= 'unenrolled:';
-            return true;
-        } else {
-            $logline .= 'course lmb instance not found:';
-            return false;
-        }
-    }
-
-
-    /**
-     * Returns enrolment instance in given course.
-     * @param int $courseid
-     * @return object of enrol instances, or false
-     */
-    public function get_instance($courseid) {
-        global $DB;
-
-        $instance = $DB->get_record('enrol', array('courseid' => $courseid, 'enrol' => 'lmb'));
-
-        // TODO add option to disable this.
-        if (!$instance) {
-            if ($course = $DB->get_record('course', array('id' => $courseid))) {
-                $this->add_instance($course);
-                $instance = $DB->get_record('enrol', array('courseid' => $courseid, 'enrol' => 'lmb'));
-            }
-        }
-
-        return $instance;
-    }
-
-    /**
-     * Loads the custom user profile field from the database.
-     * This is cached.
-     * Returns stdClass on success or false on failure.
-     *
-     * @param string $shortname
-     * @param boolean $flush
-     * @return mixed
-     */
-    private function load_custom_mapping($shortname, $flush=false) {
-        global $DB;
-        if (!isset($this->customfields[$shortname]) || $flush) {
-            $this->customfields[$shortname] = $DB->get_record('user_info_field', array('shortname' => $shortname));
-        }
-        return $this->customfields[$shortname];
-    }
-
-    /**
-     * This is a stripped down version of edit_save_data() from /user/profile/lib.php
-     *
-     * @param int userid
-     * @param string custom field value
-     * @param string custom field shortname
-     * @return void
-     */
-    private function update_custom_mapping($userid, $value, $mapping) {
-        global $DB;
-
-        $profile = $this->load_custom_mapping($mapping);
-        if ($profile === false) {
-            return;
-        }
-
-        $data = new stdClass();
-        $data->userid  = $userid;
-        $data->fieldid = $profile->id;
-        if ($value) {
-            $data->data = $value;
-        } else {
-            $data->data = '';
-        }
-
-        if ($dataid = $DB->get_field('user_info_data', 'id', array('userid' => $data->userid, 'fieldid' => $data->fieldid))) {
-            $data->id = $dataid;
-            $DB->update_record('user_info_data', $data);
-        } else {
-            $DB->insert_record('user_info_data', $data);
-        }
-    }
-
-    /**
-     * Compares the custfield value with the one stored.
-     *
-     * @param int $userid The matching userid
-     * @param string $value The new custom field value
-     * @param string $mapping custom field shortname
-     * @return bool True for mismatch, false for match
-     */
-    private function compare_custom_mapping($userid, $value, $mapping) {
-        global $DB;
-
-        $profile = $this->load_custom_mapping($mapping);
-        if ($profile === false) {
-            return false;
-        }
-
-        $data = $DB->get_field('user_info_data', 'data', array('userid' => $userid, 'fieldid' => $profile->id));
-        return (!($data == $value));
-    }
-
-    /**
-     * Does this plugin allow manual enrolments?
-     *
-     * @param stdClass $instance course enrol instance
-     * All plugins allowing this must implement 'enrol/xxx:enrol' capability
-     *
-     * @return bool - true means user with 'enrol/xxx:enrol' may enrol others freely,
-     *                false means nobody may add more enrolments manually
-     */
-    public function allow_enrol(stdClass $instance) {
-        return true;
-    }
-
-    /**
-     * Does this plugin allow manual unenrolment of all users?
-     * All plugins allowing this must implement 'enrol/xxx:unenrol' capability
-     *
-     * @param stdClass $instance course enrol instance
-     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol others freely,
-     *                false means nobody may touch user_enrolments
-     */
-    public function allow_unenrol(stdClass $instance) {
-        return true;
-    }
-
-    /**
-     * Does this plugin allow manual unenrolment of a specific user?
-     * All plugins allowing this must implement 'enrol/xxx:unenrol' capability
-     *
-     * This is useful especially for synchronisation plugins that
-     * do suspend instead of full unenrolment.
-     *
-     * @param stdClass $instance course enrol instance
-     * @param stdClass $ue record from user_enrolments table, specifies user
-     *
-     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol this user,
-     *                false means nobody may touch this user enrolment
-     */
-    public function allow_unenrol_user(stdClass $instance, stdClass $ue) {
-        return $this->allow_unenrol($instance);
-    }
-
-    /**
-     * Does this plugin allow manual changes in user_enrolments table?
-     *
-     * All plugins allowing this must implement 'enrol/xxx:manage' capability
-     *
-     * @param stdClass $instance course enrol instance
-     * @return bool - true means it is possible to change enrol period and status in user_enrolments table
-     */
-    public function allow_manage(stdClass $instance) {
-        return true;
-    }
-
-    /**
-     * Returns edit icons for the page with list of instances.
-     * @param stdClass $instance
-     * @return array
-     */
-    public function get_action_icons(stdClass $instance) {
-        return array();
-        /*
-        global $OUTPUT;
-
-        if ($instance->enrol !== 'lmb') {
-            throw new coding_exception('invalid enrol instance!');
-        }
-        $context = context_course::instance($instance->courseid);
-
-        $icons = array();
-
-        if (has_capability('enrol/lmb:manage', $context)) {
-            $managelink = new moodle_url("/enrol/lmb/manage.php", array('enrolid'=>$instance->id));
-            $icons[] = $OUTPUT->action_icon($managelink, new pix_icon('i/users', get_string('enrolusers', 'enrol_manual'),
-                    'core', array('class'=>'iconsmall')));
-        }
-
-        return $icons;
-        */
     }
 
 } // End of class.

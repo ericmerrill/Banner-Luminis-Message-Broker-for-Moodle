@@ -426,7 +426,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $this->assertEquals($expected, $dbrecord);
     }
 
-    public function test_lmb_lmbperson_to_moodleuser() {
+    public function test_lmb_person_to_moodleuser() {
         // TODO expand for settings, conflicts, etc.
         global $CFG;
         $this->resetAfterTest(true);
@@ -555,11 +555,87 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected->id = 1;
 
         $result = $this->clean_lmb_object($lmb->xml_to_course($coursexmlarray));
-        $this->assertEquals($expected, $result);
+        $this->assertEquals($expected, $result, 'XML to Course');
 
         $params = array('sourcedidsource' => 'Test SCT Banner', 'sourcedid' => '10001.201310');
         $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_courses', $params));
-        $this->assertEquals($expected, $dbrecord);
+        $this->assertEquals($expected, $dbrecord, 'XML to Course DB Record');
+    }
+
+    public function test_lmb_course_to_moodlecourse() {
+        global $DB;
+
+        $this->resetAfterTest(true);
+
+        $moodlecourseconfig = get_config('moodlecourse');
+        $lmb = new enrol_lmb_plugin();
+        $coursexmlarray = enrol_lmb_xml_to_array($this->coursexml);
+        $lmb->xml_to_term(enrol_lmb_xml_to_array($this->termxml));
+        $lmbcourse = $lmb->xml_to_course($coursexmlarray);
+
+        // -----------------------------------------------------------------------------------------
+        // Hard coded settings.
+        // -----------------------------------------------------------------------------------------
+        $lmb->set_config('usemoodlecoursesettings', 0);
+
+        $expected = new stdClass();
+        $expected->id = 1;
+        $expected->timecreated = 1;
+        $expected->timemodified = 1;
+        $expected->fullname = 'DEP-101-10001-Full Course Description';
+        $expected->shortname = 'DEP101-10001201310';
+        $expected->idnumber = '10001.201310';
+        $expected->format = 'topics';
+        $expected->showgrades = 1;
+        $expected->newsitems = 3;
+        $expected->startdate = '1357016400';
+        $expected->showreports = 1;
+        $expected->visible = '1';
+        $expected->visibleold = '1';
+        $expected->lang = '';
+        $expected->theme = '';
+
+        $rawmoodlecourse = $lmb->course_to_moodlecourse($lmbcourse);
+        $moodlecourse = $this->clean_course_result(clone $rawmoodlecourse);
+        $this->assertEquals($expected, $moodlecourse, 'LMB Course to Moodle Course, hardcoded');
+
+        $params = array('courseid' => $rawmoodlecourse->id, 'name' => 'numsections');
+        $numsections = $DB->get_field('course_format_options', 'value', $params);
+        $this->assertEquals(6, $numsections, 'Number of sections, hardcoded');
+
+        // -----------------------------------------------------------------------------------------
+        // Moodle Course Settings
+        // -----------------------------------------------------------------------------------------
+        $this->resetAllData();
+
+        $lmb->set_config('usemoodlecoursesettings', 1);
+        $lmb->xml_to_term(enrol_lmb_xml_to_array($this->termxml));
+
+        $expected = new stdClass();
+        $expected->id = 1;
+        $expected->timecreated = 1;
+        $expected->timemodified = 1;
+        $expected->fullname = 'DEP-101-10001-Full Course Description';
+        $expected->shortname = 'DEP101-10001201310';
+        $expected->idnumber = '10001.201310';
+        $expected->format = $moodlecourseconfig->format;
+        $expected->showgrades = $moodlecourseconfig->showgrades;
+        $expected->newsitems = $moodlecourseconfig->newsitems;
+        $expected->startdate = '1357016400';
+        $expected->showreports = $moodlecourseconfig->showreports;
+        $expected->visible = '1';
+        $expected->visibleold = '1';
+        $expected->lang = $moodlecourseconfig->lang;
+        $expected->theme = '';
+
+        $rawmoodlecourse = $lmb->course_to_moodlecourse($lmbcourse);
+        $moodlecourse = $this->clean_course_result(clone $rawmoodlecourse);
+        $this->assertEquals($expected, $moodlecourse, 'LMB Course to Moodle Course, Moodle settings');
+
+        $params = array('courseid' => $rawmoodlecourse->id, 'name' => 'numsections');
+        $numsections = $DB->get_field('course_format_options', 'value', $params);
+        $this->assertEquals($moodlecourseconfig->numsections, $numsections, 'Number of sections, Moodle settings');
+
     }
 
     public function test_lmb_xml_to_person_memberships() {
@@ -661,9 +737,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected[0]->crosssourcedidsource = 'Test XML Banner';
         $expected[0]->crosslistsourcedid = 'XLSAA201310';
         $expected[0]->status = '1';
-        //$expected[0]->manual = 0; // TODO - Is this even used?
         $expected[0]->type = $lmb->get_config('xlstype');
-        //$expected[0]->crosslistgroupid = null; // TODO - Is this even used?
         $expected[0]->id = 1;
 
         $expected[1] = new stdClass();
@@ -672,13 +746,78 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected[1]->crosssourcedidsource = 'Test XML Banner';
         $expected[1]->crosslistsourcedid = 'XLSAA201310';
         $expected[1]->status = '1';
-        //$expected[1]->manual = 0; // TODO - Is this even used?
         $expected[1]->type = $lmb->get_config('xlstype');
-        //$expected[1]->crosslistgroupid = null; // TODO - Is this even used?
         $expected[1]->id = 1;
 
         $result = $this->clean_array_of_objects($lmb->xml_to_xls_memberships($xmlmembersarray));
         $this->assertEquals($expected, $result, 'Multiple XLS records');
+
+        $expected[0]->manual = '0'; // TODO - Is this even used?
+        $expected[0]->crosslistgroupid = null; // TODO - Is this even used?
+        $expected[0]->timemodified = 1;
+
+        $expected[1]->manual = '0'; // TODO - Is this even used?
+        $expected[1]->crosslistgroupid = null; // TODO - Is this even used?
+        $expected[1]->timemodified = 1;
+
+        $params = array('coursesourcedidsource' => 'Test XML Banner', 'coursesourcedid' => '10001.201310',
+            'crosssourcedidsource' => 'Test XML Banner', 'crosslistsourcedid' => 'XLSAA201310');
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_crosslists', $params));
+        $this->assertEquals($expected[0], $dbrecord, 'Multiple XLS DB Record 1');
+
+        $params = array('coursesourcedidsource' => 'Test XML Banner', 'coursesourcedid' => '10002.201310',
+            'crosssourcedidsource' => 'Test XML Banner', 'crosslistsourcedid' => 'XLSAA201310');
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_crosslists', $params));
+        $this->assertEquals($expected[1], $dbrecord, 'Multiple XLS DB Record 2');
+
+        // -----------------------------------------------------------------------------------------
+        // Check forced type
+        // -----------------------------------------------------------------------------------------
+        $this->resetAllData();
+
+        $lmb->get_config('meta');
+        $xmlmembersarray = enrol_lmb_xml_to_array($this->xlsmembersmerge);
+
+        $expected = array();
+        $expected[0] = new stdClass();
+        $expected[0]->coursesourcedidsource = 'Test XML Banner';
+        $expected[0]->coursesourcedid = '10001.201310';
+        $expected[0]->crosssourcedidsource = 'Test XML Banner';
+        $expected[0]->crosslistsourcedid = 'XLSAA201310';
+        $expected[0]->status = '1';
+        $expected[0]->type = 'merge';
+        $expected[0]->id = 1;
+
+        $expected[1] = new stdClass();
+        $expected[1]->coursesourcedidsource = 'Test XML Banner';
+        $expected[1]->coursesourcedid = '10002.201310';
+        $expected[1]->crosssourcedidsource = 'Test XML Banner';
+        $expected[1]->crosslistsourcedid = 'XLSAA201310';
+        $expected[1]->status = '1';
+        $expected[1]->type = 'merge';
+        $expected[1]->id = 1;
+
+        $result = $this->clean_array_of_objects($lmb->xml_to_xls_memberships($xmlmembersarray));
+        $this->assertEquals($expected, $result, 'Multiple XLS records merge');
+
+        $expected[0]->manual = '0'; // TODO - Is this even used?
+        $expected[0]->crosslistgroupid = null; // TODO - Is this even used?
+        $expected[0]->timemodified = 1;
+
+        $expected[1]->manual = '0'; // TODO - Is this even used?
+        $expected[1]->crosslistgroupid = null; // TODO - Is this even used?
+        $expected[1]->timemodified = 1;
+
+        $params = array('coursesourcedidsource' => 'Test XML Banner', 'coursesourcedid' => '10001.201310',
+            'crosssourcedidsource' => 'Test XML Banner', 'crosslistsourcedid' => 'XLSAA201310');
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_crosslists', $params));
+        $this->assertEquals($expected[0], $dbrecord, 'Multiple XLS Merge DB Record 1');
+
+        $params = array('coursesourcedidsource' => 'Test XML Banner', 'coursesourcedid' => '10002.201310',
+            'crosssourcedidsource' => 'Test XML Banner', 'crosslistsourcedid' => 'XLSAA201310');
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_crosslists', $params));
+        $this->assertEquals($expected[1], $dbrecord, 'Multiple XLS Merge DB Record 2');
+
     }
 
     private function clean_user_result($user) {
@@ -687,8 +826,27 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
     }
 
     private function clean_person_result($person) {
-
         return $this->clean_lmb_object($person);
+    }
+
+    private function clean_course_result($course) {
+        unset($course->category);
+        unset($course->sortorder);
+        unset($course->summary);
+        unset($course->summaryformat);
+        unset($course->sectioncache);
+        unset($course->modinfo);
+        unset($course->marker);
+        unset($course->maxbytes);
+        unset($course->legacyfiles);
+        unset($course->groupmode);
+        unset($course->groupmodeforce);
+        unset($course->defaultgroupingid);
+        unset($course->requested);
+        unset($course->enablecompletion);
+        unset($course->completionnotify);
+
+        return $this->clean_lmb_object($course);
     }
 
     private function clean_array_of_objects($arr) {
@@ -705,6 +863,9 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         }
         if (isset($obj->timemodified)) {
             $obj->timemodified = 1;
+        }
+        if (isset($obj->timecreated)) {
+            $obj->timecreated = 1;
         }
 
         return $obj;
