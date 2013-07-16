@@ -2791,9 +2791,11 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param int $courseid id of the course to assign
      * @param int $userid id of the moodle user
      * @param string $logline passed logline object to append log entries to
+     * @param int $restrictstart Start date of the enrolment
+     * @param int $restrictend End date of the enrolment
      * @return bool success or failure of the role assignment
      */
-    public function lmb_assign_role_log($roleid, $courseid, $userid, &$logline) {
+    public function lmb_assign_role_log($roleid, $courseid, $userid, &$logline, $restrictstart = 0; $restrictend = 0) {
         if (!$courseid) {
             $logline .= 'missing courseid:';
         }
@@ -2804,11 +2806,19 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
 
             // TODO catch exceptions thrown.
-            $this->enrol_user($instance, $userid, $roleid, 0, 0, ENROL_USER_ACTIVE);
             if ($this->get_config('recovergrades') && !$wasenrolled) {
                 $logline .= 'recovering grades:';
-                grade_recover_history_grades($userid, $courseid);
+                $recover = true;
+            } else {
+                $recover = false;
             }
+
+            if ((($restrictstart =0= 0) && ($restrictend === 0)) || ($restrictstart < time() < $restrictend)) {
+                $userstatus = ENROL_USER_ACTIVE;
+            } else {
+                $userstatus = ENROL_USER_SUSPENDED;
+            }
+            $this->enrol_user($instance, $userid, $roleid, $restrictstart, $restrictend, $userstatus, $recover);
             $logline .= 'enrolled:';
             return true;
         } else {
