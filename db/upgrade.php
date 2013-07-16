@@ -833,5 +833,40 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2012091201, 'enrol', 'lmb');
     }
 
+    if ($oldversion < 2013071601) {
+        // Define field beginrestrict to be added to enrol_lmb_enrolments.
+        $table = new xmldb_table('enrol_lmb_enrolments');
+        $field = new xmldb_field('beginrestrict', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'status');
+
+        // Conditionally launch add field beginrestrict.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('beginrestricttime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'beginrestrict');
+
+        // Conditionally launch add field beginrestricttime.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('endrestrict', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'beginrestricttime');
+
+        // Conditionally launch add field endrestrict.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('endrestricttime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'endrestrict');
+
+        // Conditionally launch add field endrestricttime.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Lmb savepoint reached.
+        upgrade_plugin_savepoint(true, 2013071601, 'enrol', 'lmb');
+    }
+
     return $result;
 }
