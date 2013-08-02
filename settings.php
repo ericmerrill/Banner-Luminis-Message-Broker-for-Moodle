@@ -403,6 +403,8 @@ if ($ADMIN->fulltree) {
         }
     }
 
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/userestrictdates', get_string('userestrictdates', 'enrol_lmb'),
+            get_string('userestrictdateshelp', 'enrol_lmb'), 0));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/unenrolmember', get_string('unenrolmember', 'enrol_lmb'),
             get_string('unenrolmemberhelp', 'enrol_lmb'), 0));
