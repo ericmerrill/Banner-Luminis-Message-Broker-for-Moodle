@@ -2710,7 +2710,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                 if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
                     if ($enrol->status) {
-                        $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline);
+                        $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline, );
                         if ($status && $groupid && !groups_is_member($groupid, $userid)) {
                             global $CFG;
                             require_once($CFG->dirroot.'/group/lib.php');
@@ -2814,10 +2814,16 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $recover = false;
             }
 
-            if ((($restrictstart === 0) && ($restrictend === 0)) || (($restrictstart < time()) && (time() < $restrictend))) {
-                $userstatus = ENROL_USER_ACTIVE;
+            if ($this->get_config('userestrictdates')) {
+                if ((($restrictstart === 0) && ($restrictend === 0)) || (($restrictstart < time()) && (time() < $restrictend))) {
+                    $userstatus = ENROL_USER_ACTIVE;
+                } else {
+                    $userstatus = ENROL_USER_SUSPENDED;
+                }
             } else {
-                $userstatus = ENROL_USER_SUSPENDED;
+                $userstatus = ENROL_USER_ACTIVE;
+                $restrictstart = 0;
+                $restrictend = 0;
             }
             $this->enrol_user($instance, $userid, $roleid, $restrictstart, $restrictend, $userstatus, $recover);
             $logline .= 'enrolled:';
