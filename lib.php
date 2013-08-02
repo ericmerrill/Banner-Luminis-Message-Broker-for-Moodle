@@ -2710,7 +2710,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                 if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
                     if ($enrol->status) {
-                        $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline, );
+                        $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline);
                         if ($status && $groupid && !groups_is_member($groupid, $userid)) {
                             global $CFG;
                             require_once($CFG->dirroot.'/group/lib.php');
