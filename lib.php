@@ -2407,7 +2407,8 @@ class enrol_lmb_plugin extends enrol_plugin {
      */
     public function open_log_file () {
         $this->logfp = false; // File pointer for writing log data to.
-        if ($this->get_config('logtolocation') !== null) {
+        $path = $this->get_config('logtolocation');
+        if (($path !== null) && (!empty($path))) {
             $this->logfp = fopen($this->get_config('logtolocation'), 'a');
         }
     }
@@ -2795,7 +2796,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param int $restrictend End date of the enrolment
      * @return bool success or failure of the role assignment
      */
-    public function lmb_assign_role_log($roleid, $courseid, $userid, &$logline, $restrictstart = 0; $restrictend = 0) {
+    public function lmb_assign_role_log($roleid, $courseid, $userid, &$logline, $restrictstart = 0, $restrictend = 0) {
         if (!$courseid) {
             $logline .= 'missing courseid:';
         }
@@ -2813,7 +2814,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $recover = false;
             }
 
-            if ((($restrictstart =0= 0) && ($restrictend === 0)) || ($restrictstart < time() < $restrictend)) {
+            if ((($restrictstart === 0) && ($restrictend === 0)) || (($restrictstart < time()) && (time() < $restrictend))) {
                 $userstatus = ENROL_USER_ACTIVE;
             } else {
                 $userstatus = ENROL_USER_SUSPENDED;

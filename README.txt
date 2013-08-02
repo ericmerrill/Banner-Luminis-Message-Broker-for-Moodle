@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.5.0
+Version: 2.5.1 alpha
 Moodle version: 2.2.0 throught 2.5.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -13,6 +13,10 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 2.5.1
+Fixing error when logging path location is blank.
+
 
 Release 2.5.0
 Fixing lmbcheck variable name (Good catch from Chris Folin CONTRIB-4263)
