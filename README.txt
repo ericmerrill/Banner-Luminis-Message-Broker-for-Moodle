@@ -18,6 +18,7 @@ Release 2.5.1
 Option to obey enrolment restriction dates.
 Addition of 3 extra roletypes (03, 04, 05).
 Fixing error when logging path location is blank.
+Sort the menu of term in Reprocess Enrolments and PrUne Tables.
 
 
 Release 2.5.0
