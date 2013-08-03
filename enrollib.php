@@ -510,7 +510,7 @@ function enrol_lmb_get_terms() {
     global $DB;
     $out = array();
 
-    if ($terms = $DB->get_records('enrol_lmb_terms', null, 'id DESC')) {
+    if ($terms = $DB->get_records('enrol_lmb_terms', null, 'sourcedid DESC')) {
         foreach ($terms as $term) {
             $out[] = $term->sourcedid;
         }
