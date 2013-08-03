@@ -62,6 +62,9 @@ if ($ADMIN->fulltree) {
     // LMB Security --------------------------------------------------------------------------------.
     $settingslmb->add(new admin_setting_heading('enrol_lmb_lmbsecurity', get_string('lmbsecurity', 'enrol_lmb'), ''));
 
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/disablesecurity', get_string('disablesecurity', 'enrol_lmb'),
+            get_string('disablesecurityhelp', 'enrol_lmb'), 0));
+
     $settingslmb->add(new admin_setting_configtext('enrol_lmb/lmbusername', get_string('lmbusername', 'enrol_lmb'),
             get_string('lmbusernamehelp', 'enrol_lmb'), ''));
 

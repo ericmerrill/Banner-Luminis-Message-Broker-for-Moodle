@@ -868,5 +868,17 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2013071601, 'enrol', 'lmb');
     }
 
+    if ($oldversion < 2013080202) {
+        if (enrol_is_enabled('lmb')) {
+            $config = get_config('enrol_lmb');
+            if (!$config->lmbusername && !$config->lmbpasswd) {
+                set_config('disablesecurity', 1, 'enrol_lmb');
+            }
+        }
+
+        // Lmb savepoint reached.
+        upgrade_plugin_savepoint(true, 2013080202, 'enrol', 'lmb');
+    }
+
     return $result;
 }

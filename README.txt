@@ -18,7 +18,9 @@ Release 2.5.1
 Option to obey enrolment restriction dates.
 Addition of 3 extra roletypes (03, 04, 05).
 Fixing error when logging path location is blank.
-Sort the menu of term in Reprocess Enrolments and PrUne Tables.
+Sort the menu of term in Reprocess Enrolments and Prune Tables.
+LMB endpoint security must now be explicitly disabled. 
+  For backwards compatibility, if LMB is enabled and no username or password is set, security is set as disabled during the upgrade.
 
 
 Release 2.5.0
