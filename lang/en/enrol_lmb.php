@@ -35,6 +35,7 @@ $string['always'] = 'Always';
 $string['lmbsecurity'] = 'LMB Live Import Security';
 $string['lmbusername'] = 'Username';
 $string['lmbpasswd'] = 'Password';
+$string['disablesecurity'] = 'Disable Security';
 
 $string['lmbcheck'] = 'LMB Downtime Notification';
 $string['performlmbcheck'] = 'Perform LMB downtime check';
@@ -178,6 +179,7 @@ $string['storexmlhelp'] = 'This dictates when XML messages from Luminis Message 
 
 $string['lmbusernamehelp'] = 'This is the password setting used to limit access to the LMB interface. Should match settings in Luminis Message Broker config.';
 $string['lmbpasswdhelp'] = 'This is the password setting used to limit access to the LMB interface. Should match settings in Luminis Message Broker config.';
+$string['disablesecurityhelp'] = 'When checked, authentication on the LMB will be disabled. This creates a security hole, but may be needed for some connection setups, or testing.';
 
 $string['lmbcheckhelp'] = 'When this box is checked, a check will be run during each cron period, to verify that Luminis Message Broker is sending messages to Moodle.';
 $string['startbiztimehelp'] = 'This is the starting time for what you consider business (peak) hours (Monday-Friday). This allows you to set different time allowences before LMB is considered down, depending on time of day.';
