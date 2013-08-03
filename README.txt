@@ -16,6 +16,7 @@ View full change log at https://github.com/merrill-oakland/Banner-Luminis-Messag
 
 Release 2.5.1
 Option to obey enrolment restriction dates.
+Addition of 3 extra roletypes (03, 04, 05).
 Fixing error when logging path location is blank.
 
 

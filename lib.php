@@ -35,12 +35,6 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     private $log;
 
-    // The "roles" hard-coded in the Banner XML specification are.
-    private $imsroles = array(
-    '01'=>'Learner',
-    '02'=>'Instructor',
-    );
-
     public $silent = false;
     public $islmb = false;
 
@@ -48,31 +42,6 @@ class enrol_lmb_plugin extends enrol_plugin {
     private $terms = array();
 
     private $customfields = array();
-
-    /**
-     * This public function is only used when first setting up the plugin, to
-     * decide which role assignments to recommend by default.
-     * For example, IMS role '01' is 'Learner', so may map to 'student' in Moodle.
-     *
-     * @param int $imscode This is the XML code for the role type
-     * @return int the moodle role id
-     */
-    public function determine_default_rolemapping($imscode) {
-        global $DB;
-
-        switch($imscode) {
-            case '01':
-                $shortname = 'student';
-                break;
-            case '02':
-                $shortname = 'editingteacher';
-                break;
-            default:
-                return 0; // Zero for no match.
-        }
-        return $DB->get_field('role', 'id', array('shortname' => $shortname));
-    }
-
 
 
     /**

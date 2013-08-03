@@ -364,11 +364,17 @@ if ($ADMIN->fulltree) {
         $imsroles = array(
         '01'=>'Learner',
         '02'=>'Instructor',
+        '03'=>'Extra 1',
+        '04'=>'Extra 2',
+        '05'=>'Extra 3'
         );
 
         $imsmappings = array(
         '01'=>'student',
         '02'=>'editingteacher',
+        '03'=>'student',
+        '04'=>'student',
+        '05'=>'student'
         );
 
         foreach ($imsroles as $imsrolenum => $imsrolename) {
