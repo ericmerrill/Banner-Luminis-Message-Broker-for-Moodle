@@ -2266,6 +2266,26 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $status = false;
             }
 
+            if (preg_match('{<timeframe>.*?<begin.*?restrict *= *"(.*?)".*?\>.*?</begin>.*?</timeframe>}is', $member, $matches)) {
+                $enrolment->beginrestrict = (int)trim($matches[1]);
+            }
+
+            if (preg_match('{<timeframe>.*?<begin.*?restrict *= *".*?".*?\>(.*?)</begin>.*?</timeframe>}is', $member, $matches)) {
+                $date = explode('-', trim($matches[1]));
+
+                $enrolment->beginrestricttime = make_timestamp($date[0], $date[1], $date[2]);
+            }
+
+            if (preg_match('{<timeframe>.*?<end.*?restrict *= *"(.*?)".*?\>.*?</end>.*?</timeframe>}is', $member, $matches)) {
+                $enrolment->endrestrict = (int)trim($matches[1]);
+            }
+
+            if (preg_match('{<timeframe>.*?<end.*?restrict *= *".*?".*?\>(.*?)</end>.*?</timeframe>}is', $member, $matches)) {
+                $date = explode('-', trim($matches[1]));
+
+                $enrolment->endrestricttime = make_timestamp($date[0], $date[1], $date[2], 23, 59, 59);
+            }
+
             if (preg_match('{<interimresult.*?\>.*?<mode>(.+?)</mode>.*?</interimresult>}is', $member, $matches)) {
                 $enrolment->midtermgrademode = trim($matches[1]);
             }
@@ -2710,7 +2730,17 @@ class enrol_lmb_plugin extends enrol_plugin {
             if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                 if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
                     if ($enrol->status) {
-                        $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline);
+                        if (isset($enrol->beginrestrict) && $enrol->beginrestrict) {
+                            $beginrestricttime = $enrol->beginrestricttime;
+                        } else {
+                            $beginrestricttime = 0;
+                        }
+                        if (isset($enrol->endrestrict) && $enrol->endrestrict) {
+                            $endrestricttime = $enrol->endrestricttime;
+                        } else {
+                            $endrestricttime = 0;
+                        }
+                        $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline, $beginrestricttime, $endrestricttime);
                         if ($status && $groupid && !groups_is_member($groupid, $userid)) {
                             global $CFG;
                             require_once($CFG->dirroot.'/group/lib.php');
@@ -2815,7 +2845,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
 
             if ($this->get_config('userestrictdates')) {
-                if ((($restrictstart === 0) && ($restrictend === 0)) || (($restrictstart < time()) && (time() < $restrictend))) {
+                if ((($restrictstart === 0) && ($restrictend === 0)) || (($restrictstart < time()) && (($restrictend === 0) || (time() < $restrictend)))) {
                     $userstatus = ENROL_USER_ACTIVE;
                 } else {
                     $userstatus = ENROL_USER_SUSPENDED;

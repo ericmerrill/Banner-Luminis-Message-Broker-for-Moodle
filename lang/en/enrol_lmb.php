@@ -153,6 +153,7 @@ $string['forceadr'] = 'Force address/city on update';
 $string['parseenrol'] = 'XML Parse - Enrolment';
 $string['parseenrolxml'] = 'Parse Enrolment XML';
 $string['assignroles'] = 'Assign Roles';
+$string['userestrictdates'] = 'Use Restrict Dates';
 $string['unenrolmember'] = 'Unenrol members from course when directed';
 $string['disableenrol'] = 'Disable Enrolments on Drop';
 $string['recovergrades'] = 'Recover olds grades for re-enrolled users';
@@ -306,8 +307,8 @@ $string['passwordsourcehelp'] = "This determines what will be the password of cr
 <li>useridtype - Other: Use the value supplied in the password field of the userid tag marked as indicated in the text box.
 </ul>";
 $string['otherpasswordhelp'] = '';
-$string['forcepasswordhelp'] = 'When set and when a propper auth type and source are set, the users password is set to the LMB password whenever a message is received. If unchecked, the password will only be set on user creation.';
-$string['nicknamehelp'] = 'If the nickname is included XML, use it instead of the propper name first name.';
+$string['forcepasswordhelp'] = 'When set and when a proper auth type and source are set, the users password is set to the LMB password whenever a message is received. If unchecked, the password will only be set on user creation.';
+$string['nicknamehelp'] = 'If the nickname is included XML, use it instead of the proper name first name.';
 $string['forcenamehelp'] = 'Always force the users name to match the XML, even if it has been manually changed.';
 $string['forceemailhelp'] = 'Always force the users email address to match the XML, even if it has been manually changed.';
 $string['includetelehelp'] = 'Include the users telephone number in the Moodle profile, if supplied by the XML.';
@@ -324,9 +325,10 @@ $string['standardcityhelp'] = '';
 $string['forceadrhelp'] = 'Always force the users address/city to match the XML, even if it has been manually changed.';
 
 $string['parseenrolxmlhelp'] = 'Process enrolment records. Parse Course and Parse Person must be on. When unchecked, records will be completely skipped.';
+$string['userestrictdateshelp'] = 'If specified in the enrolment, set enrolment begin and end dates in Moodle.';
 $string['unenrolmemberhelp'] = "Unenrol (or 'drop') members from a course when an appropriate XML message is received.";
 $string['disableenrolhelp'] = 'Disable enrolments instead of unenroling them. Prevents possible data loss in some versions and configurations of Moodle when users are dropped and re-added to a course.';
-$string['recovergradeshelp'] = 'If users are being re-enrolled in a course, try and recover old grades. This was the standard behaviour in Moodle 1.9.x and below.';
+$string['recovergradeshelp'] = 'If users are being re-enrolled in a course, try and recover old grades. This was the standard behavior in Moodle 1.9.x and below.';
 
 $string['page_lmbstatus'] = 'LMB Status';
 $string['page_importnow'] = 'Process File';

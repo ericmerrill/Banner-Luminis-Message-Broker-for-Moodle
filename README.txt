@@ -15,6 +15,7 @@ RECENT CHANGES
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
 Release 2.5.1
+Option to obey enrolment restriction dates.
 Fixing error when logging path location is blank.
 
 
