@@ -389,21 +389,21 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_membership_tag_error($tagcontents, &$errorcode, &$errormessage) {
         $xmlarray = enrol_lmb_xml_to_array($tagcontents);
 
-        if (stripos($xmlarray['membership']['#']['sourcedid']['#'][0]['id']['#'][0], 'XLS') === 0) {
+        if (stripos($xmlarray['membership']['#']['sourcedid'][0]['#']['id'][0]['#'], 'XLS') === 0) {
             $this->xml_to_xls_memberships($xmlarray);
-        } else if ($xmlarray['membership']['#']['sourcedid']['#'][0]['source']['#'][0] === 'Plugin Internal') {
+        } else if ($xmlarray['membership']['#']['sourcedid'][0]['#']['source'][0]['#'] === 'Plugin Internal') {
             $this->xml_to_xls_memberships($xmlarray);
         } else {
             $this->xml_to_person_memberships($xmlarray);
         }
 
-        if (preg_match('{<sourcedid>.*?<id>XLS(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
+        /*if (preg_match('{<sourcedid>.*?<id>XLS(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
             return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
         } else if (preg_match('{<sourcedid>.*?<source>Plugin Internal</source>.*?</sourcedid>}is', $tagcontents, $matches)) {
             return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
         } else {
             return $this->process_person_membership_tag($tagcontents);
-        }
+        }*/
 
     }
 
@@ -932,6 +932,22 @@ class enrol_lmb_plugin extends enrol_plugin {
                 if ($recstatus==3) {
                     $output[$key]->status = 0;
                 }
+            }
+
+            // Being Restrict.
+            if (isset($member['role'][0]['#']['timeframe'][0]['#']['begin'])) {
+                $output[$key]->beginrestrict = $member['role'][0]['#']['timeframe'][0]['#']['begin'][0]['@']['restrict'];
+
+                $date = explode('-', trim($member['role'][0]['#']['timeframe'][0]['#']['begin'][0]['#']));
+                $output[$key]->beginrestricttime = make_timestamp($date[0], $date[1], $date[2]);
+            }
+
+            // End Restrict.
+            if (isset($member['role'][0]['#']['timeframe'][0]['#']['end'])) {
+                $output[$key]->endrestrict = $member['role'][0]['#']['timeframe'][0]['#']['end'][0]['@']['restrict'];
+
+                $date = explode('-', trim($member['role'][0]['#']['timeframe'][0]['#']['end'][0]['#']));
+                $output[$key]->endrestricttime = make_timestamp($date[0], $date[1], $date[2], 23, 59, 59);
             }
 
             // Interm Grade Type.
@@ -2498,7 +2514,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
 
             if ($this->get_config('userestrictdates')) {
-                if ((($restrictstart === 0) && ($restrictend === 0)) || (($restrictstart < time()) && (time() < $restrictend))) {
+                if ((($restrictstart === 0) && ($restrictend === 0)) || (($restrictstart < time()) && (($restrictend === 0) || (time() < $restrictend)))) {
                     $userstatus = ENROL_USER_ACTIVE;
                 } else {
                     $userstatus = ENROL_USER_SUSPENDED;
@@ -2767,6 +2783,16 @@ class enrol_lmb_plugin extends enrol_plugin {
             if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                 if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
                     if ($enrol->status) {
+                        if (isset($enrol->beginrestrict) && $enrol->beginrestrict) {
+                            $beginrestricttime = $enrol->beginrestricttime;
+                        } else {
+                            $beginrestricttime = 0;
+                        }
+                        if (isset($enrol->endrestrict) && $enrol->endrestrict) {
+                            $endrestricttime = $enrol->endrestricttime;
+                        } else {
+                            $endrestricttime = 0;
+                        }
                         $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline);
                         if ($status && $groupid && !groups_is_member($groupid, $userid)) {
                             global $CFG;
