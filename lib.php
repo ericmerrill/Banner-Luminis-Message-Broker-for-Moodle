@@ -744,10 +744,16 @@ class enrol_lmb_plugin extends enrol_plugin {
             $moodlecourse->numsections = $length;
         }
 
-        if ($moodlecourse = create_course($moodlecourse)) {
-            $logline .= 'created course:';
-        } else {
-            $logline .= 'error adding course:';
+        try {
+            if ($moodlecourse = create_course($moodlecourse)) {
+                $logline .= 'created course:';
+            } else {
+                $logline .= 'error adding course:';
+                $status = false;
+                return false;
+            }
+        } catch (Exception $e) {
+            $logline .= 'exception - '.$e->getMessage()':';
             $status = false;
             return false;
         }

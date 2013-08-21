@@ -21,6 +21,7 @@ Fixing error when logging path location is blank.
 Sort the menu of term in Reprocess Enrolments and Prune Tables.
 LMB endpoint security must now be explicitly disabled. 
   For backwards compatibility, if LMB is enabled and no username or password is set, security is set as disabled during the upgrade.
+Catch exception thrown when course shortname or idnumbers collide. (CONTRIB-4559)
 
 
 Release 2.5.0
