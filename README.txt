@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.5.1 alpha
+Version: 2.5.1
 Moodle version: 2.2.0 throught 2.5.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
