@@ -1546,7 +1546,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 return false;
             }
         } catch (Exception $e) {
-            $logline .= 'exception - '.$e->getMessage()':';
+            $logline .= 'exception - '.$e->getMessage().':';
             $status = false;
             return false;
         }
