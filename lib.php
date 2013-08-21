@@ -2490,7 +2490,8 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
 
             if ($this->get_config('userestrictdates')) {
-                if ((($restrictstart === 0) && ($restrictend === 0)) || (($restrictstart < time()) && (($restrictend === 0) || (time() < $restrictend)))) {
+                if ((($restrictstart === 0) && ($restrictend === 0)) || (($restrictstart < time())
+                        && (($restrictend === 0) || (time() < $restrictend)))) {
                     $userstatus = ENROL_USER_ACTIVE;
                 } else {
                     $userstatus = ENROL_USER_SUSPENDED;

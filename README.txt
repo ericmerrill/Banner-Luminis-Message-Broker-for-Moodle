@@ -20,10 +20,12 @@ Addition of 3 extra roletypes (03, 04, 05).
 Fixing error when logging path location is blank.
 Sort the menu of term in Reprocess Enrolments and Prune Tables.
 LMB endpoint security must now be explicitly disabled. 
-  For backwards compatibility, if LMB is enabled and no username or password is set, security is set as disabled during the upgrade.
+    For backwards compatibility, if LMB is enabled and no username or password is set, 
+    security is set as disabled during the upgrade.
 Catch exception thrown when course shortname or idnumbers collide. (CONTRIB-4559)
 Less strict status checking when making crosslists. Prevents partial completion.
-Records are no longer saved in enrol_lmb_raw_xml when storexml is set to never. (https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/issues/3)
+Records are no longer saved in enrol_lmb_raw_xml when storexml is set to never.
+    https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/issues/3
 secure/xmlservice.php (which you probably shouldn't be using...) applies the same security as liveimport.php
 
 
