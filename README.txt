@@ -14,6 +14,16 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
+Release 2.5.1
+Option to obey enrolment restriction dates.
+Addition of 3 extra roletypes (03, 04, 05).
+Fixing error when logging path location is blank.
+*Sort the menu of term in Reprocess Enrolments and Prune Tables.
+*LMB endpoint security must now be explicitly disabled. 
+  For backwards compatibility, if LMB is enabled and no username or password is set, security is set as disabled during the upgrade.
+Catch exception thrown when course shortname or idnumbers collide. (CONTRIB-4559)
+
+
 Release 2.5.0
 Fixing lmbcheck variable name (Good catch from Chris Folin CONTRIB-4263)
 Remove depreciated use of make_categories_list (CONTRIB-4299)
