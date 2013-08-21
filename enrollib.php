@@ -185,26 +185,18 @@ function enrol_lmb_expand_course_title($lmbcourse, $titledef) {
  */
 function enrol_lmb_restore_users_to_course($idnumber) {
     global $DB, $CFG;
-    $config = enrol_lmb_get_config();
-    $status = true;
 
     if (!class_exists('enrol_lmb_plugin')) {
         require_once($CFG->dirroot.'/enrol/lmb/lib.php');
     }
 
     $enrolmod = new enrol_lmb_plugin();
-
     if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('status' => 1, 'coursesourcedid' => $idnumber))) {
-
-        foreach ($enrols as $enrol) {
-            $logline = '';
-            $status = $enrolmod->process_enrolment_log($enrol, $logline, $config) && $status;
-        }
-
+        $enrolmod->person_memberships_to_enrolments($enrols);
         unset($enrols);
     }
 
-    return $status;
+    return $enrolmod->get_line_status();
 }
 
 /**
@@ -228,8 +220,7 @@ function enrol_lmb_drop_crosslist_users($xlist) {
             foreach ($enrols as $enrol) {
                 if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                     if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
-                        $logline = '';
-                        $status = $enrolmod->lmb_unassign_role_log($roleid, $courseid, $userid, $logline) && $status;
+                        $status = $enrolmod->lmb_unassign_role_log($roleid, $courseid, $userid) && $status;
                     }
                 }
 
@@ -275,8 +266,7 @@ function enrol_lmb_drop_all_users($idnumber, $role = null, $original = false) {
 
                 if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                     if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
-                        $logline = '';
-                        $status = $enrolmod->lmb_unassign_role_log($roleid, $courseid, $userid, $logline) && $status;
+                        $status = $enrolmod->lmb_unassign_role_log($roleid, $courseid, $userid) && $status;
                     } else {
                         $status = false;
                     }
@@ -346,31 +336,28 @@ function enrol_lmb_force_course_to_db($idnumber, $print = false) {
     $status = true;
 
     if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('coursesourcedid' => $idnumber))) {
+        $enrolmod = new enrol_lmb_plugin();
 
         if ($print) {
-            print $idnumber."<br>\n";
+            $enrolmod->log_line_new($idnumber);
         }
 
         if (!class_exists('enrol_lmb_plugin')) {
             require_once($CFG->dirroot.'/enrol/lmb/lib.php');
         }
 
-        $enrolmod = new enrol_lmb_plugin();
-
         foreach ($enrols as $enrol) {
-            $logline = $enrol->personsourcedid.':';
+            $enrolmod->append_log_line($enrol->personsourcedid);
 
-            $status = $enrolmod->process_enrolment_log($enrol, $logline) && $status;
-
-            $logline .= "<br>\n";
+            $enrolmod->person_membership_to_enrolments($enrol);
+            $status = $status && $enrolmod->get_line_status();
             if ($print) {
-                print $logline;
+                $enrolmod->log_line_new();
             }
-            unset($logline);
         }
     } else {
         if ($print) {
-            print 'No enrolments for this course'."<br>\n";
+            $enrolmod->log_line_new('No enrolments for this course');
         }
     }
 

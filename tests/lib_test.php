@@ -740,9 +740,11 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $params = array('coursesourcedid' => '10001.201310', 'personsourcedid' => 'usersourcedid2');
         $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_enrolments', $params));
         $this->assertEquals($expected[1], $dbrecord, 'Multiple people conversion DB Record 2');
+
+        // TODO - restricted dates.
     }
 
-    public function test_xml_to_xls_memberships() {
+    public function test_lmb_xml_to_xls_memberships() {
         global $DB, $CFG;
         $this->resetAfterTest(true);
 

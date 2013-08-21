@@ -14,6 +14,12 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
+
+Rewrite
+Changed lmb_assign_role_log and lmb_unassign_role_log to lmb_assign_role and lmb_unassign_role.
+Removed process_enrolment_log.
+
+
 Release 2.5.1
 Option to obey enrolment restriction dates.
 Addition of 3 extra roletypes (03, 04, 05).

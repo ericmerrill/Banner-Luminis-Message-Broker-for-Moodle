@@ -388,15 +388,17 @@ class enrol_lmb_plugin extends enrol_plugin {
         } else if ($xmlarray['membership']['#']['sourcedid'][0]['#']['source'][0]['#'] === 'Plugin Internal') {
             $this->xml_to_xls_memberships($xmlarray);
         } else {
-            $this->xml_to_person_memberships($xmlarray);
+            $memberships = $this->xml_to_person_memberships($xmlarray);
+            $this->person_memberships_to_enrolments($memberships);
         }
 
+        $this->log_line_new();
+        return $this->linestatus;
         /*if (preg_match('{<sourcedid>.*?<id>XLS(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
             return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
         } else if (preg_match('{<sourcedid>.*?<source>Plugin Internal</source>.*?</sourcedid>}is', $tagcontents, $matches)) {
             return $this->process_crosslist_membership_tag_error($tagcontents, $errorcode, $errormessage);
         } else {
-            return $this->process_person_membership_tag($tagcontents);
         }*/
 
     }
@@ -1388,7 +1390,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $moodleuser->id = $id;
                             $newuser = true;
 
-                            $this->linestatus = $this->linestatus && $this->restore_user_enrolments($lmbperson->sourcedid);
+                            $this->restore_user_enrolments($lmbperson->sourcedid);
 
                         } else {
                             $this->append_log_line('failed to insert new user:');
@@ -1443,6 +1445,92 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $moodleuser;
 
     } // End process_person_tag().
+
+    public function person_memberships_to_enrolments($input) {
+        if (!is_array($input)) {
+            $this->person_membership_to_enrolment($input);
+            return;
+        } else {
+            $memberships = $input;
+        }
+
+        foreach ($memberships as $key => $member) {
+            $this->person_membership_to_enrolment($member);
+        }
+    }
+
+    public function person_membership_to_enrolment($member) {
+        global $DB;
+        $status = true;
+
+        $this->append_log_line($member->coursesourcedid);
+        $this->append_log_line($member->personsourcedid);
+
+        $newcoursedid = enrol_lmb_get_course_id($member->coursesourcedid);
+
+        $params = array('status' => 1, 'coursesourcedid' => $member->coursesourcedid);
+        if ($this->get_config('xlsmergegroups') && $xlist = $DB->get_record('enrol_lmb_crosslists', $params)) {
+            $groupid = enrol_lmb_get_crosslist_groupid($member->coursesourcedid, $xlist->crosslistsourcedid);
+        } else {
+            $groupid = false;
+        }
+
+        $enrolup = new object();
+        $enrolup->id = $member->id;
+
+        if ($newcoursedid) {
+            if ($userid = $DB->get_field('user', 'id', array('idnumber' => $member->personsourcedid))) {
+                if ($roleid = enrol_lmb_get_roleid($member->role)) {
+                    if ($member->status) {
+                        if (isset($member->beginrestrict) && $member->beginrestrict) {
+                            $beginrestricttime = $member->beginrestricttime;
+                        } else {
+                            $beginrestricttime = 0;
+                        }
+                        if (isset($member->endrestrict) && $member->endrestrict) {
+                            $endrestricttime = $member->endrestricttime;
+                        } else {
+                            $endrestricttime = 0;
+                        }
+                        $status = $this->lmb_assign_role($roleid, $newcoursedid, $userid,
+                                $beginrestricttime, $endrestricttime);
+                        if ($status && $groupid && !groups_is_member($groupid, $userid)) {
+                            global $CFG;
+                            require_once($CFG->dirroot.'/group/lib.php');
+                            groups_add_member($groupid, $userid);
+                            $this->append_log_line('added user to group');
+                        }
+                    } else {
+                        $status = $this->lmb_unassign_role($roleid, $newcoursedid, $userid);
+                        if ($status && $groupid && groups_is_member($groupid, $userid)) {
+                            global $CFG;
+                            require_once($CFG->dirroot.'/group/lib.php');
+                            groups_remove_member($groupid, $userid);
+                            $this->append_log_line('removed user from group');
+                        }
+                    }
+                } else {
+                    $this->append_log_line('roleid not found');
+                    $status = false;
+                }
+            } else {
+                $this->append_log_line('user not found');
+                $status = false;
+            }
+        } else {
+            $this->append_log_line('course not found');
+            $status = false;
+        }
+
+        if ($status) {
+            $enrolup->succeeded = 1;
+        } else {
+            $this->linestatus = false;
+            $enrolup->succeeded = 0;
+        }
+
+        $this->update_or_insert_lmb($enrolup, 'enrol_lmb_enrolments');
+    }
 
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -2020,16 +2108,21 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function update_or_insert_lmb(&$object, $table) {
         global $DB;
         $args = array();
-        if ($table === 'enrol_lmb_enrolments') {
-            $args['coursesourcedid'] = $object->coursesourcedid;
-            $args['personsourcedid'] = $object->personsourcedid;
-        } else if ($table === 'enrol_lmb_crosslists') {
-            $args['coursesourcedidsource'] = $object->coursesourcedidsource;
-            $args['coursesourcedid'] = $object->coursesourcedid;
-            $args['crosssourcedidsource'] = $object->crosssourcedidsource;
-            $args['crosslistsourcedid'] = $object->crosslistsourcedid;
+
+        if (isset($object->id)) {
+            $args['id'] = $object->id;
         } else {
-            $args['sourcedid'] = $object->sourcedid;
+            if ($table === 'enrol_lmb_enrolments') {
+                $args['coursesourcedid'] = $object->coursesourcedid;
+                $args['personsourcedid'] = $object->personsourcedid;
+            } else if ($table === 'enrol_lmb_crosslists') {
+                $args['coursesourcedidsource'] = $object->coursesourcedidsource;
+                $args['coursesourcedid'] = $object->coursesourcedid;
+                $args['crosssourcedidsource'] = $object->crosssourcedidsource;
+                $args['crosslistsourcedid'] = $object->crosslistsourcedid;
+            } else {
+                $args['sourcedid'] = $object->sourcedid;
+            }
         }
 
         if ($oldobject = $DB->get_record($table, $args)) {
@@ -2108,6 +2201,10 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $this->logline = '';
         $this->logerror = false;
+    }
+
+    public function get_line_status() {
+        return $this->linestatus;
     }
 
     /**
@@ -2321,6 +2418,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      *
      * @return bool success or failure of the drops
      */
+    // TODO Convert logging.
     public function process_extract_drops() {
         global $CFG, $DB;
         $status = true;
@@ -2383,7 +2481,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         if ($courseid) {
                             if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
                                 if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
-                                    if (!$this->lmb_unassign_role_log($roleid, $courseid, $userid, $logline)) {
+                                    if (!$this->lmb_unassign_role($roleid, $courseid, $userid)) {
                                         $logline .= 'could not drop user:';
                                         $enrolup->succeeded = 0;
                                         $enrolstatus = false;
@@ -2450,11 +2548,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         $status = true;
 
         if ($enrols = $DB->get_records('enrol_lmb_enrolments', array('personsourcedid' => $idnumber))) {
-            foreach ($enrols as $enrol) {
-                $logline = '';
-                $status = $this->process_enrolment_log($enrol, $logline) && $status;
-            }
-
+            $this->person_memberships_to_enrolments($enrols);
         }
 
         return $status;
@@ -2466,14 +2560,14 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param int $roleid id of the moodle role to assign
      * @param int $courseid id of the course to assign
      * @param int $userid id of the moodle user
-     * @param string $logline passed logline object to append log entries to
      * @param int $restrictstart Start date of the enrolment
      * @param int $restrictend End date of the enrolment
      * @return bool success or failure of the role assignment
      */
-    public function lmb_assign_role_log($roleid, $courseid, $userid, &$logline, $restrictstart = 0, $restrictend = 0) {
+    public function lmb_assign_role($roleid, $courseid, $userid, $restrictstart = 0, $restrictend = 0) {
         if (!$courseid) {
-            $logline .= 'missing courseid:';
+            $this->append_log_line('missing courseid');
+            return false;
         }
 
         if ($instance = $this->get_instance($courseid)) {
@@ -2483,7 +2577,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             // TODO catch exceptions thrown.
             if ($this->get_config('recovergrades') && !$wasenrolled) {
-                $logline .= 'recovering grades:';
+                $this->append_log_line('recovering grades');
                 $recover = true;
             } else {
                 $recover = false;
@@ -2502,10 +2596,10 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $restrictend = 0;
             }
             $this->enrol_user($instance, $userid, $roleid, $restrictstart, $restrictend, $userstatus, $recover);
-            $logline .= 'enrolled:';
+            $this->append_log_line('enrolled');
             return true;
         } else {
-            $logline .= 'course lmb instance not found:';
+            $this->append_log_line('course lmb instance not found');
             return false;
         }
     }
@@ -2516,17 +2610,16 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param int $roleid id of the moodle role to unassign
      * @param int $courseid id of the course to unassign
      * @param int $userid id of the moodle user
-     * @param string $logline passed logline object to append log entries to
      * @return bool success or failure of the role assignment
      */
-    public function lmb_unassign_role_log($roleid, $courseid, $userid, &$logline) {
+    public function lmb_unassign_role($roleid, $courseid, $userid) {
         if (!$courseid) {
-            $logline .= 'missing courseid:';
+            $this->append_log_line('missing courseid');
             return false;
         }
 
         if (enrol_lmb_check_enrolled_in_xls_merged($userid, $courseid)) {
-            $logline .= 'xls still enroled:';
+            $this->append_log_line('xls still enroled');
             return true;
         }
 
@@ -2537,10 +2630,10 @@ class enrol_lmb_plugin extends enrol_plugin {
             } else {
                 $this->unenrol_user($instance, $userid, $roleid);
             }
-            $logline .= 'unenrolled:';
+            $this->append_log_line('unenrolled');
             return true;
         } else {
-            $logline .= 'course lmb instance not found:';
+            $this->append_log_line('course lmb instance not found');
             return false;
         }
     }
@@ -2731,94 +2824,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     }
 
-
-    /**
-     * Processes an enrol object, executing the associated assign or
-     * unassign and update the lmb entry for success or failure
-     *
-     * @param object $enrol an enrol object representing a record in enrol_lmb_enrolments
-     * @param string $logline passed logline object to append log entries to
-     * @return bool success or failure of the role assignments
-     */ // TODO2.
-    public function process_enrolment_log($enrol, &$logline) {
-        global $DB;
-        $status = true;
-
-        $newcoursedid = enrol_lmb_get_course_id($enrol->coursesourcedid);
-
-        $params = array('status' => 1, 'coursesourcedid' => $enrol->coursesourcedid);
-        if ($this->get_config('xlsmergegroups') && $xlist = $DB->get_record('enrol_lmb_crosslists', $params)) {
-            $groupid = enrol_lmb_get_crosslist_groupid($enrol->coursesourcedid, $xlist->crosslistsourcedid);
-        } else {
-            $groupid = false;
-        }
-
-        $enrolup = new object();
-        $enrolup->id = $enrol->id;
-
-        if ($newcoursedid) {
-            if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
-                if ($roleid = enrol_lmb_get_roleid($enrol->role)) {
-                    if ($enrol->status) {
-                        if (isset($enrol->beginrestrict) && $enrol->beginrestrict) {
-                            $beginrestricttime = $enrol->beginrestricttime;
-                        } else {
-                            $beginrestricttime = 0;
-                        }
-                        if (isset($enrol->endrestrict) && $enrol->endrestrict) {
-                            $endrestricttime = $enrol->endrestricttime;
-                        } else {
-                            $endrestricttime = 0;
-                        }
-                        $status = $this->lmb_assign_role_log($roleid, $newcoursedid, $userid, $logline);
-                        if ($status && $groupid && !groups_is_member($groupid, $userid)) {
-                            global $CFG;
-                            require_once($CFG->dirroot.'/group/lib.php');
-                            groups_add_member($groupid, $userid);
-                            $logline .= 'added user to group:';
-                        }
-                    } else {
-                        $status = $this->lmb_unassign_role_log($roleid, $newcoursedid, $userid, $logline);
-                        if ($status && $groupid && groups_is_member($groupid, $userid)) {
-                            global $CFG;
-                            require_once($CFG->dirroot.'/group/lib.php');
-                            groups_remove_member($groupid, $userid);
-                            $logline .= 'removed user from group:';
-                        }
-                    }
-                } else {
-                    $logline .= 'roleid not found:';
-                    $status = false;
-                }
-            } else {
-                $logline .= 'user not found:';
-                $status = false;
-            }
-        } else {
-            $logline .= 'course not found:';
-            $status = false;
-        }
-
-        if ($status) {
-            $enrolup->succeeded = 1;
-        } else {
-            $enrolup->succeeded = 0;
-        }
-
-        if (enrol_lmb_compare_objects($enrolup, $enrol)) {
-            if (!$DB->update_record('enrol_lmb_enrolments', $enrolup)) {
-                $logline .= 'error updating in enrol_lmb_enrolments:';
-                $status = false;
-            } else {
-                $logline .= 'lmb updated:';
-            }
-        }
-
-        unset($enrolup);
-
-        return $status;
-
-    }
 
     /**
      * Used to call process_crosslist_membership_tag_error() without passing
@@ -3171,147 +3176,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         return $status;
     }
 
-    /**
-     * Process a tag that is a membership of a person
-     *
-     * @param string $tagconents The raw contents of the XML element
-     * @return bool success or failure of the processing
-     */
-    public function process_person_membership_tag($tagcontents) {
-        global $DB;
-
-        if ((!$this->get_config('parsepersonxml')) || (!$this->get_config('parsecoursexml'))
-                || (!$this->get_config('parsepersonxml'))) {
-            $this->log_line('Enrolment:skipping.');
-            return true;
-        }
-
-        $status = true;
-        $logline = 'Enrolment:';
-        $enrolment = new stdClass();
-
-        if (preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
-            $enrolment->coursesourcedid = trim($matches[1]);
-
-            if (preg_match('{.....\.(.+?)$}is', $enrolment->coursesourcedid, $matches)) {
-                $enrolment->term = trim($matches[1]);
-                if (!isset($this->terms[$enrolment->term])) {
-                    $this->terms[$enrolment->term] = 0;
-                }
-                $this->terms[$enrolment->term]++;
-            }
-
-            $logline .= 'course id '.$enrolment->coursesourcedid.':';
-        } else {
-            $logline .= 'course id not found:';
-            $status = false;
-        }
-
-        if (preg_match('{<member>(.*?)</member>}is', $tagcontents, $membermatches)) {
-
-            $member = $membermatches[1];
-
-            /*
-            if (preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $member, $matches)) {
-                $enrolment->personsourcedid = trim($matches[1]);
-                $logline .= 'person id '.$enrolment->personsourcedid.':';
-            } else {
-                $logline .= 'person id not found:';
-                $status = false;
-            }
-
-            if (preg_match('{<role.*?roletype *= *"(.*?)".*?\>.*?</role>}is', $member, $matches)) {
-                $enrolment->role = (int)trim($matches[1]);
-            } else {
-                $logline .= 'person role not found:';
-                $status = false;
-            }
-            */
-
-            /*
-            if (preg_match('{<interimresult.*?\>.*?<mode>(.+?)</mode>.*?</interimresult>}is', $member, $matches)) {
-                $enrolment->midtermgrademode = trim($matches[1]);
-            }
-
-            if (preg_match('{<finalresult.*?\>.*?<mode>(.+?)</mode>.*?</finalresult>}is', $member, $matches)) {
-                $enrolment->finalgrademode = trim($matches[1]);
-            }
-
-            if (preg_match('{<extension.*?\>.*?<gradable>(.+?)</gradable>.*?</extension>}is', $member, $matches)) {
-                $enrolment->gradable = (int)trim($matches[1]);
-            } else {
-                // Per e-learn docs, if ommited, then membership is gradable.
-                if (isset($enrolment->midtermgrademode) || isset($enrolment->finalgrademode)) {
-                    $enrolment->gradable = 1;
-                }
-            }
-            */
-
-            /*
-            $recstatus = ($this->get_recstatus($member, 'role'));
-            if ($recstatus==3) {
-                $enrolment->status = 0;
-            }
-            */
-
-            /*
-            if (preg_match('{<role.*?\>.*?<status>(.+?)</status>.*?</role>}is', $member, $matches)) {
-                $enrolment->status = trim($matches[1]);
-            } else {
-                $logline .= 'person status not found:';
-                $status = false;
-            }
-            */
-
-            if ($this->processid) {
-                $enrolment->extractstatus = $this->processid;
-            }
-        } else {
-            $logline .= 'member not found:';
-            $status = false;
-        }
-
-        $enrolment->timemodified = time();
-
-        if ($status) {
-            $params = array('coursesourcedid' => $enrolment->coursesourcedid, 'personsourcedid' => $enrolment->personsourcedid);
-            if ($oldenrolment = $DB->get_record('enrol_lmb_enrolments', $params)) {
-                $enrolment->id = $oldenrolment->id;
-                $enrolment->succeeded = $oldenrolment->succeeded;
-
-                if (enrol_lmb_compare_objects($enrolment, $oldenrolment)) {
-                    if (!$DB->update_record('enrol_lmb_enrolments', $enrolment)) {
-                        $logline .= 'error updating in enrol_lmb_enrolments:';
-                        $status = false;
-                    } else {
-                        $logline .= 'lmb updated:';
-                    }
-                } else {
-                    $logline .= 'no lmb changes to make:';
-                }
-
-            } else {
-                if (!$enrolment->id = $DB->insert_record('enrol_lmb_enrolments', $enrolment, true)) {
-                    $logline .= 'error inserting into enrol_lmb_enrolments:';
-                    $status = false;
-                } else {
-                    $logline .= 'lmb inserted:';
-                }
-            }
-        }
-
-        $status = $status && $this->process_enrolment_log($enrolment, $logline);
-
-        if ($status) {
-            if (!$this->get_config('logerrors')) {
-                $this->log_line($logline.'complete');
-            }
-        } else {
-            $this->log_line($logline.'error');
-        }
-
-        return $status;
-    }
 
 } // End of class.
 
