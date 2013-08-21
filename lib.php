@@ -1197,20 +1197,21 @@ class enrol_lmb_plugin extends enrol_plugin {
         // Course cant be merged multiple times?
         if ($status) {
             foreach ($xlists as $xlist) {
+                $substatus = true;
                 // Setup the course.
                 unset($moodlecourse);
                 $moodlecourse = new stdClass();
 
                 $enddate = $this->get_crosslist_endtime($xlist->crosslistsourcedid);
                 $params = array('idnumber' => $xlist->crosslistsourcedid);
-                if ($status && !$moodlecourse->id = $DB->get_field('course', 'id', $params)) {
+                if ($substatus && !$moodlecourse->id = $DB->get_field('course', 'id', $params)) {
                     $starttime = $this->get_crosslist_starttime($xlist->crosslistsourcedid);
                     $moodlecourse->id = $this->create_shell_course($xlist->crosslistsourcedid, 'Crosslisted Course',
                                                 $xlist->crosslistsourcedid, $catid,
-                                                $logline, $status, $meta, $starttime, $enddate);
+                                                $logline, $substatus, $meta, $starttime, $enddate);
                 }
 
-                if ($status && $moodlecourse->id) {
+                if ($substatus && $moodlecourse->id) {
                     $moodlecourse->fullname = $this->expand_crosslist_title($xlist->crosslistsourcedid,
                             $this->get_config('xlstitle'), $this->get_config('xlstitlerepeat'),
                             $this->get_config('xlstitledivider'));
@@ -1240,28 +1241,28 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $logline .= 'error setting course name:';
                         $errormessage = 'Failed when updating course record';
                         $errorcode = 7;
-                        $status = false;
+                        $substatus = false;
                     }
-                } else if ($status) {
+                } else if ($substatus) {
                     $logline .= 'no course id for name update:';
                     $errormessage = 'No moodle course found';
                     $errorcode = 8;
-                    $status = false;
+                    $substatus = false;
                 }
 
-                if (($status) && $meta) {
+                if (($substatus) && $meta) {
                     if ($addid = $DB->get_field('course', 'id', array('idnumber' => $xlist->coursesourcedid))) {
                         if ($xlist->status) {
                             if (!$this->add_to_metacourse($moodlecourse->id, $addid)) {
                                 $logline .= 'could not join course to meta course:';
-                                $status = false;
+                                $substatus = false;
                                 $errormessage = 'Error adding course '.$xlist->coursesourcedid.' to metacourse';
                                 $errorcode = 9;
                             }
                         } else {
                             if (!$this->remove_from_metacourse($moodlecourse->id, $addid)) {
                                 $logline .= 'could not unjoin course from meta course:';
-                                $status = false;
+                                $substatus = false;
                                 $errormessage = 'Error removing course '.$xlist->coursesourcedid.' from metacourse';
                                 $errorcode = 9;
                             }
@@ -1270,7 +1271,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                 }
 
-                if ($status && !$meta && isset($xlist->newrecord) && $xlist->newrecord) {
+                if ($substatus && !$meta && isset($xlist->newrecord) && $xlist->newrecord) {
                     if (!$modinfo = $DB->get_field('course', 'modinfo', array('idnumber' => $xlist->coursesourcedid))) {
                         $modinfo = '';
                     }
@@ -1281,21 +1282,21 @@ class enrol_lmb_plugin extends enrol_plugin {
                         enrol_lmb_drop_all_users($xlist->coursesourcedid, 2, true);
                     }
 
-                    $status = $status && enrol_lmb_drop_all_users($xlist->coursesourcedid, 1, true);
-                    if (!$status) {
+                    $substatus = $substatus && enrol_lmb_drop_all_users($xlist->coursesourcedid, 1, true);
+                    if (!$substatus) {
                         $errormessage = 'Error removing students from course '.$xlist->coursesourcedid;
                         $errorcode = 10;
                     }
 
-                    $status = $status && enrol_lmb_restore_users_to_course($xlist->coursesourcedid);
-                    if (!$status) {
+                    $substatus = $substatus && enrol_lmb_restore_users_to_course($xlist->coursesourcedid);
+                    if (!$substatus) {
                         $errormessage .= 'Error adding students to course '.$xlist->crosslistsourcedid;
                         $errorcode = 10;
                     }
                 }
 
                 // Uncrosslist a course.
-                if ($status && !$meta && ($xlist->status == 0)) {
+                if ($substatus && !$meta && ($xlist->status == 0)) {
                     $logline .= 'removing from crosslist:';
                     // Restore users to individual course.
                     enrol_lmb_restore_users_to_course($xlist->coursesourcedid);
@@ -1305,7 +1306,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                     $droppedusers = true;
                 }
-
+                $status = $status && $substatus;
             } // Close foreach loop.
         } // Close status check.
 
