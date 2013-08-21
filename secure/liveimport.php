@@ -109,34 +109,39 @@ if (!$xml) {
 }
 
 
-$xmlstorage = new stdClass();
-$xmlstorage->headers = addslashes($headers);
-$xmlstorage->timereceived = time();
+set_config('lastlmbmessagetime', time(), 'enrol_lmb');
 
 // Place the XML if not set to 'Never'.
 if ($config->storexml != 'never') {
+    $xmlstorage = new stdClass();
+    $xmlstorage->headers = addslashes($headers);
+    $xmlstorage->timereceived = time();
+
     $xmlstorage->xml = addslashes($xml);
+    $xmlstorage->id = $DB->insert_record('enrol_lmb_raw_xml', $xmlstorage, true);
+
 }
-
-set_config('lastlmbmessagetime', time(), 'enrol_lmb');
-
-$xmlstorage->id = $DB->insert_record('enrol_lmb_raw_xml', $xmlstorage, true);
 
 
 $result = $enrol->process_xml_line($xml);
 
 // If we have a good result, update the processed flag.
 if ($result) {
-    $xmlupdate = new stdClass();
+    switch ($config->storexml) {
+        case "always":
+            $xmlupdate = new stdClass();
 
-    $xmlupdate->id = $xmlstorage->id;
-    $xmlupdate->processed = 1;
+            $xmlupdate->id = $xmlstorage->id;
+            $xmlupdate->processed = 1;
+            $DB->update_record('enrol_lmb_raw_xml', $xmlupdate);
+            break;
+        case "onerror":
+            // Delete the good record.
+            $DB->delete_records('enrol_lmb_raw_xml', array('id' => $xmlstorage->id));
+            break;
 
-    // If we only store on error, then remove the XML from the table.
-    if ($config->storexml == 'onerror') {
-        $xmlupdate->xml = ''; // Can we set this to NULL? Update record doesn't seem to support it.
+        default:
+            break;
     }
-
-    $DB->update_record('enrol_lmb_raw_xml', $xmlupdate);
 }
 
