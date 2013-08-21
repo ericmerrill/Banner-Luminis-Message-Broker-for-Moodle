@@ -871,7 +871,7 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
     if ($oldversion < 2013080202) {
         if (enrol_is_enabled('lmb')) {
             $config = get_config('enrol_lmb');
-            if (!$config->lmbusername && !$config->lmbpasswd) {
+            if (((!isset($config->lmbusername)) || empty($config->lmbusername)) && ((!isset($config->lmbpasswd)) || empty($config->lmbpasswd))) {
                 set_config('disablesecurity', 1, 'enrol_lmb');
             }
         }
