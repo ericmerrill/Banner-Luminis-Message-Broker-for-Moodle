@@ -514,56 +514,78 @@ class enrol_lmb_plugin extends enrol_plugin {
         // Full Name.
         if (isset($xmlperson['name'][0]['#']['fn'][0]['#'])) {
             $person->fullname = $xmlperson['name'][0]['#']['fn'][0]['#'];
+        } else {
+            $person->fullname = null;
         }
 
         // Nickname.
         if (isset($xmlperson['name'][0]['#']['nickname'][0]['#'])) {
             $person->nickname = $xmlperson['name'][0]['#']['nickname'][0]['#'];
+        } else {
+            $person->nickname = null;
         }
 
         // Given Name.
         if (isset($xmlperson['name'][0]['#']['n'][0]['#']['given'][0]['#'])) {
             $person->givenname = $xmlperson['name'][0]['#']['n'][0]['#']['given'][0]['#'];
+        } else {
+            $person->givenname = null;
         }
 
         // Family Name.
         if (isset($xmlperson['name'][0]['#']['n'][0]['#']['family'][0]['#'])) {
             $person->familyname = $xmlperson['name'][0]['#']['n'][0]['#']['family'][0]['#'];
+        } else {
+            $person->familyname = null;
         }
 
         // Email.
         if (isset($xmlperson['email'][0]['#'])) {
             $person->email = $xmlperson['email'][0]['#'];
+        } else {
+            $person->email = null;
         }
 
         // Telephone.
         if (isset($xmlperson['tel'][0]['#'])) {
             $person->telephone = $xmlperson['tel'][0]['#'];
+        } else {
+            $person->telephone = null;
         }
 
         // Street.
         if (isset($xmlperson['adr'][0]['#']['street'][0]['#'])) {
             $person->adrstreet = $xmlperson['adr'][0]['#']['street'][0]['#'];
+        } else {
+            $person->adrstreet = null;
         }
 
         // Locality.
         if (isset($xmlperson['adr'][0]['#']['locality'][0]['#'])) {
             $person->locality = $xmlperson['adr'][0]['#']['locality'][0]['#'];
+        } else {
+            $person->locality = null;
         }
 
         // Region.
         if (isset($xmlperson['adr'][0]['#']['region'][0]['#'])) {
             $person->region = $xmlperson['adr'][0]['#']['region'][0]['#'];
+        } else {
+            $person->region = null;
         }
 
         // Country.
         if (isset($xmlperson['adr'][0]['#']['country'][0]['#'])) {
             $person->country = $xmlperson['adr'][0]['#']['country'][0]['#'];
+        } else {
+            $person->country = null;
         }
 
         // Academic Major.
         if (isset($xmlperson['extension'][0]['#']['luminisperson'][0]['#']['academicmajor'][0]['#'])) {
             $person->academicmajor = $xmlperson['extension'][0]['#']['luminisperson'][0]['#']['academicmajor'][0]['#'];
+        } else {
+            $person->academicmajor = null;
         }
 
         // Select the username.
@@ -1854,8 +1876,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $lmbcat->cattype = 'dept';
                         $lmbcat->dept = $depttitle;
 
-                        $cat->context = get_context_instance(CONTEXT_COURSECAT, $cat->id);
-                        mark_context_dirty($cat->context->path);
+                        $cat->context = context_coursecat::instance($cat->id);
+                        $cat->context->mark_dirty();
                         fix_course_sortorder();
                         if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
                             $logline .= "error saving category to enrol_lmb_categories:";
@@ -1889,8 +1911,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $lmbcat->termsourcedid = $term;
                             $lmbcat->dept = $depttitle;
 
-                            $cat->context = get_context_instance(CONTEXT_COURSECAT, $cat->id);
-                            mark_context_dirty($cat->context->path);
+                            $cat->context = context_coursecat::instance($cat->id);
+                            $cat->context->mark_dirty();
                             fix_course_sortorder();
                             if (!$DB->insert_record('enrol_lmb_categories', $lmbcat, true)) {
                                 $logline .= "error saving category to enrol_lmb_categories:";
@@ -1957,8 +1979,8 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $lmbcat->sourcedidsource = $lmbterm->sourcedidsource;
                     $lmbcat->cattype = 'term';
 
-                    $cat->context = get_context_instance(CONTEXT_COURSECAT, $cat->id);
-                    mark_context_dirty($cat->context->path);
+                    $cat->context = context_coursecat::instance($cat->id);
+                    $cat->context->mark_dirty();
                     fix_course_sortorder();
 
                     if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
