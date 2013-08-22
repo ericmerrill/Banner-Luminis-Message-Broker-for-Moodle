@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="enrol/lmb/db" VERSION="20130716" COMMENT="XMLDB file for Moodle enrol/lmb"
+<XMLDB PATH="enrol/lmb/db" VERSION="20130822" COMMENT="XMLDB file for Moodle enrol/lmb"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -110,6 +110,7 @@
         <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="The current status of the enrolment"/>
         <FIELD NAME="manual" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Is a manual XLS"/>
         <FIELD NAME="type" TYPE="char" LENGTH="8" NOTNULL="false" SEQUENCE="false" COMMENT="Is this a merged or meta crosslist?"/>
+        <FIELD NAME="succeeded" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

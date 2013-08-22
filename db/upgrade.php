@@ -881,5 +881,25 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2013080202, 'enrol', 'lmb');
     }
 
+    if ($oldversion < 2013093001) {
+
+        // Define field succeeded to be added to enrol_lmb_crosslists.
+        $table = new xmldb_table('enrol_lmb_crosslists');
+        $field = new xmldb_field('succeeded', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'type');
+
+        // Conditionally launch add field succeeded.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('succeeded', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'type');
+
+        // Launch change of default for field succeeded.
+        $dbman->change_field_default($table, $field);
+
+        // Lmb savepoint reached.
+        upgrade_plugin_savepoint(true, 2013093001, 'enrol', 'lmb');
+    }
+
     return $result;
 }

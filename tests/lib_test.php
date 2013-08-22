@@ -756,18 +756,18 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $this->assertEquals(false, $result, 'Verify not enrolled');
 
         // TODO Enrol, unenrol, restrict - start,end,active,inactive, recover grades
-        // TODO Roles
+        // TODO Roles.
 
         // Basic enrol.
         $enrols = $lmb->xml_to_person_memberships($membershiparray);
-        $lmb->person_memberships_to_enrolments($enrols);        
+        $lmb->person_memberships_to_enrolments($enrols);
         $result = is_enrolled($coursecontext, $user->id);
         $this->assertEquals(true, $result, 'Basic enrolled');
 
         // Basic unenrol.
         $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['status'][0]['#'] = 0;
         $enrols = $lmb->xml_to_person_memberships($membershiparray);
-        $lmb->person_memberships_to_enrolments($enrols);        
+        $lmb->person_memberships_to_enrolments($enrols);
         $result = is_enrolled($coursecontext, $user->id);
         $this->assertEquals(false, $result, 'Basic enrolled');
 
@@ -782,8 +782,6 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
                 ['end'][0]['@']['restrict'] = 0;
         $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
                 ['end'][0]['#'] = date('Y-m-d', time()+7200);
-
-
 
         $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
                 ['begin'][0]['@']['restrict'] = 1;
@@ -805,6 +803,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
 
         $expected = array();
         $expected[0] = new stdClass();
+        $expected[0]->succeeded = 0;
         $expected[0]->coursesourcedidsource = 'Test XML Banner';
         $expected[0]->coursesourcedid = '10001.201310';
         $expected[0]->crosssourcedidsource = 'Test XML Banner';
@@ -814,6 +813,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected[0]->id = 1;
 
         $expected[1] = new stdClass();
+        $expected[1]->succeeded = 0;
         $expected[1]->coursesourcedidsource = 'Test XML Banner';
         $expected[1]->coursesourcedid = '10002.201310';
         $expected[1]->crosssourcedidsource = 'Test XML Banner';
@@ -853,6 +853,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
 
         $expected = array();
         $expected[0] = new stdClass();
+        $expected[0]->succeeded = 0;
         $expected[0]->coursesourcedidsource = 'Test XML Banner';
         $expected[0]->coursesourcedid = '10001.201310';
         $expected[0]->crosssourcedidsource = 'Test XML Banner';
@@ -862,6 +863,7 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected[0]->id = 1;
 
         $expected[1] = new stdClass();
+        $expected[1]->succeeded = 0;
         $expected[1]->coursesourcedidsource = 'Test XML Banner';
         $expected[1]->coursesourcedid = '10002.201310';
         $expected[1]->crosssourcedidsource = 'Test XML Banner';
@@ -890,6 +892,8 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
             'crosssourcedidsource' => 'Test XML Banner', 'crosslistsourcedid' => 'XLSAA201310');
         $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_crosslists', $params));
         $this->assertEquals($expected[1], $dbrecord, 'Multiple XLS Merge DB Record 2');
+
+        // TODO check conflict handling. Internal ID issue.
 
     }
 
