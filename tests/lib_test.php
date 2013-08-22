@@ -651,11 +651,15 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected[0]->coursesourcedid = '10001.201310';
         $expected[0]->personsourcedid = 'usersourcedid';
         $expected[0]->term = '201310';
-        $expected[0]->role = '1';
+        $expected[0]->role = 1;
         $expected[0]->status = '1';
-        $expected[0]->gradable = '1';
+        $expected[0]->gradable = 1;
         $expected[0]->midtermgrademode = 'Standard Numeric';
         $expected[0]->finalgrademode = 'Standard Numeric';
+        $expected[0]->beginrestrict = 0;
+        $expected[0]->beginrestricttime = 1367812800;
+        $expected[0]->endrestrict = 0;
+        $expected[0]->endrestricttime = 1372305599;
         $expected[0]->id = 1;
 
         $result = $this->clean_array_of_objects($lmb->xml_to_person_memberships($membershiparray));
@@ -680,19 +684,27 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $expected[0]->coursesourcedid = '10001.201310';
         $expected[0]->personsourcedid = 'usersourcedid';
         $expected[0]->term = '201310';
-        $expected[0]->role = '1';
+        $expected[0]->role = 1;
         $expected[0]->status = '1';
-        $expected[0]->gradable = '1';
+        $expected[0]->gradable = 1;
         $expected[0]->midtermgrademode = 'Standard Numeric';
         $expected[0]->finalgrademode = 'Standard Numeric';
+        $expected[0]->beginrestrict = 0;
+        $expected[0]->beginrestricttime = 1367812800;
+        $expected[0]->endrestrict = 0;
+        $expected[0]->endrestricttime = 1372305599;
         $expected[0]->id = 1;
 
         $expected[1] = new stdClass();
         $expected[1]->coursesourcedid = '10001.201310';
         $expected[1]->personsourcedid = 'usersourcedid2';
         $expected[1]->term = '201310';
-        $expected[1]->role = '2';
+        $expected[1]->role = 2;
         $expected[1]->status = '1';
+        $expected[1]->beginrestrict = 0;
+        $expected[1]->beginrestricttime = 0;
+        $expected[1]->endrestrict = 0;
+        $expected[1]->endrestricttime = 0;
         $expected[1]->id = 1;
 
         $result = $this->clean_array_of_objects($lmb->xml_to_person_memberships($membershiparray));
@@ -721,8 +733,67 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $params = array('coursesourcedid' => '10001.201310', 'personsourcedid' => 'usersourcedid2');
         $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_enrolments', $params));
         $this->assertEquals($expected[1], $dbrecord, 'Multiple people conversion DB Record 2');
+    }
 
-        // TODO - restricted dates.
+    public function test_lmb_person_memberships_to_enrolments() {
+        global $DB, $CFG;
+        $this->resetAfterTest(true);
+
+        $this->setup_term();
+        $this->setup_course();
+        $this->setup_person();
+
+        $lmb = new enrol_lmb_plugin();
+        $membershiparray = enrol_lmb_xml_to_array($this->personmemberxml);
+
+        $user = $DB->get_record('user', array('idnumber' => 'usersourcedid'));
+        $this->assertEquals(true, is_object($user), 'Verify user exists');
+        $course = $DB->get_record('course', array('idnumber' => '10001.201310'));
+        $this->assertEquals(true, is_object($course), 'Verify course exists');
+        $coursecontext = context_course::instance($course->id);
+
+        $result = is_enrolled($coursecontext, $user->id);
+        $this->assertEquals(false, $result, 'Verify not enrolled');
+
+        // TODO Enrol, unenrol, restrict - start,end,active,inactive, recover grades
+        // TODO Roles
+
+        // Basic enrol.
+        $enrols = $lmb->xml_to_person_memberships($membershiparray);
+        $lmb->person_memberships_to_enrolments($enrols);        
+        $result = is_enrolled($coursecontext, $user->id);
+        $this->assertEquals(true, $result, 'Basic enrolled');
+
+        // Basic unenrol.
+        $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['status'][0]['#'] = 0;
+        $enrols = $lmb->xml_to_person_memberships($membershiparray);
+        $lmb->person_memberships_to_enrolments($enrols);        
+        $result = is_enrolled($coursecontext, $user->id);
+        $this->assertEquals(false, $result, 'Basic enrolled');
+
+        $lmb->set_config('userestrictdates', 1);
+        // Verify restrict = 0 is respected.
+        $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
+                ['begin'][0]['@']['restrict'] = 0;
+        $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
+                ['begin'][0]['#'] = date('Y-m-d', time()+3600);
+
+        $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
+                ['end'][0]['@']['restrict'] = 0;
+        $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
+                ['end'][0]['#'] = date('Y-m-d', time()+7200);
+
+
+
+        $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
+                ['begin'][0]['@']['restrict'] = 1;
+        $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
+                ['begin'][0]['#'] = date('Y-m-d', time()-3600);
+
+        $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
+                ['end'][0]['@']['restrict'] = 1;
+        $membershiparray['membership']['#']['member'][0]['#']['role'][0]['#']['timeframe'][0]['#']
+                ['end'][0]['#'] = date('Y-m-d', time()+3600);
     }
 
     public function test_lmb_xml_to_xls_memberships() {
@@ -871,5 +942,28 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         }
 
         return $obj;
+    }
+
+    private function setup_term() {
+        $lmb = new enrol_lmb_plugin();
+        $termxmlarray = enrol_lmb_xml_to_array($this->termxml);
+
+        $lmb->xml_to_term($termxmlarray);
+    }
+
+    private function setup_course() {
+        $lmb = new enrol_lmb_plugin();
+        $coursexmlarray = enrol_lmb_xml_to_array($this->coursexml);
+
+        $course = $lmb->xml_to_course($coursexmlarray);
+        $lmb->course_to_moodlecourse($course);
+    }
+
+    private function setup_person() {
+        $lmb = new enrol_lmb_plugin();
+        $personxmlarray = enrol_lmb_xml_to_array($this->personxml);
+
+        $person = $lmb->xml_to_person($personxmlarray);
+        $lmb->person_to_moodleuser($person);
     }
 }

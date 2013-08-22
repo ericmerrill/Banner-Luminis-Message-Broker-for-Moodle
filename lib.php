@@ -954,18 +954,24 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             // Being Restrict.
             if (isset($member['role'][0]['#']['timeframe'][0]['#']['begin'])) {
-                $output[$key]->beginrestrict = $member['role'][0]['#']['timeframe'][0]['#']['begin'][0]['@']['restrict'];
+                $output[$key]->beginrestrict = (int)$member['role'][0]['#']['timeframe'][0]['#']['begin'][0]['@']['restrict'];
 
                 $date = explode('-', trim($member['role'][0]['#']['timeframe'][0]['#']['begin'][0]['#']));
                 $output[$key]->beginrestricttime = make_timestamp($date[0], $date[1], $date[2]);
+            } else {
+                $output[$key]->beginrestrict = 0;
+                $output[$key]->beginrestricttime = 0;
             }
 
             // End Restrict.
             if (isset($member['role'][0]['#']['timeframe'][0]['#']['end'])) {
-                $output[$key]->endrestrict = $member['role'][0]['#']['timeframe'][0]['#']['end'][0]['@']['restrict'];
+                $output[$key]->endrestrict = (int)$member['role'][0]['#']['timeframe'][0]['#']['end'][0]['@']['restrict'];
 
                 $date = explode('-', trim($member['role'][0]['#']['timeframe'][0]['#']['end'][0]['#']));
                 $output[$key]->endrestricttime = make_timestamp($date[0], $date[1], $date[2], 23, 59, 59);
+            } else {
+                $output[$key]->endrestrict = 0;
+                $output[$key]->endrestricttime = 0;
             }
 
             // Interm Grade Type.

@@ -20,6 +20,7 @@ Changed lmb_assign_role_log and lmb_unassign_role_log to lmb_assign_role and lmb
 Removed process_enrolment_log.
 
 
+
 Release 2.5.1
 Option to obey enrolment restriction dates.
 Addition of 3 extra roletypes (03, 04, 05).
