@@ -35,126 +35,125 @@ require_once($CFG->dirroot . '/enrol/lmb/tests/testlib.php');
  * @group enrol_lmb
  */
 class enrol_lmb_lib_testcase extends advanced_testcase {
-    // TODO expand XML to include more items, like address.
-
-    private $personxmlserial = 'a:1:{s:6:"person";a:2:{s:1:"@";a:1:{s:9:"recstatus";s:1:"0";}s:1:"#";a:9:{s:9:"sourcedid";a:1:{i:0;a:1:{s:1:"#";a:2:{s:6:"source";a:1:{i:0;a:1:{s:1:"#";s:15:"Test SCT Banner";}}s:2:"id";a:1:{i:0;a:1:{s:1:"#";s:13:"usersourcedid";}}}}}s:6:"userid";a:4:{i:0;a:2:{s:1:"#";s:11:"loginuserid";s:1:"@";a:2:{s:10:"useridtype";s:8:"Logon ID";s:8:"password";s:9:"loginpass";}}i:1;a:2:{s:1:"#";s:9:"sctuserid";s:1:"@";a:2:{s:10:"useridtype";s:5:"SCTID";s:8:"password";s:7:"sctpass";}}i:2;a:2:{s:1:"#";s:11:"emailuserid";s:1:"@";a:2:{s:10:"useridtype";s:8:"Email ID";s:8:"password";s:9:"emailpass";}}i:3;a:2:{s:1:"#";s:10:"custuserid";s:1:"@";a:2:{s:10:"useridtype";s:12:"CustomUserId";s:8:"password";s:8:"custpass";}}}s:4:"name";a:1:{i:0;a:1:{s:1:"#";a:3:{s:2:"fn";a:1:{i:0;a:1:{s:1:"#";s:12:"First M Last";}}s:8:"nickname";a:1:{i:0;a:1:{s:1:"#";s:9:"Nick Last";}}s:1:"n";a:1:{i:0;a:1:{s:1:"#";a:3:{s:6:"family";a:1:{i:0;a:1:{s:1:"#";s:4:"Last";}}s:5:"given";a:1:{i:0;a:1:{s:1:"#";s:5:"First";}}s:8:"partname";a:1:{i:0;a:2:{s:1:"#";s:1:"M";s:1:"@";a:1:{s:12:"partnametype";s:10:"MiddleName";}}}}}}}}}s:12:"demographics";a:1:{i:0;a:1:{s:1:"#";a:1:{s:6:"gender";a:1:{i:0;a:1:{s:1:"#";s:1:"2";}}}}}s:5:"email";a:1:{i:0;a:1:{s:1:"#";s:16:"test@example.edu";}}s:3:"tel";a:1:{i:0;a:2:{s:1:"#";s:12:"555-555-5555";s:1:"@";a:1:{s:7:"teltype";s:1:"1";}}}s:3:"adr";a:1:{i:0;a:1:{s:1:"#";a:5:{s:6:"street";a:1:{i:0;a:1:{s:1:"#";s:10:"430 Kresge";}}s:8:"locality";a:1:{i:0;a:1:{s:1:"#";s:9:"Rochester";}}s:6:"region";a:1:{i:0;a:1:{s:1:"#";s:2:"MI";}}s:5:"pcode";a:1:{i:0;a:1:{s:1:"#";s:5:"48309";}}s:7:"country";a:1:{i:0;a:1:{s:1:"#";s:3:"USA";}}}}}s:15:"institutionrole";a:3:{i:0;a:2:{s:1:"#";s:0:"";s:1:"@";a:2:{s:11:"primaryrole";s:2:"No";s:19:"institutionroletype";s:18:"ProspectiveStudent";}}i:1;a:2:{s:1:"#";s:0:"";s:1:"@";a:2:{s:11:"primaryrole";s:2:"No";s:19:"institutionroletype";s:5:"Staff";}}i:2;a:2:{s:1:"#";s:0:"";s:1:"@";a:2:{s:11:"primaryrole";s:2:"No";s:19:"institutionroletype";s:7:"Student";}}}s:9:"extension";a:1:{i:0;a:1:{s:1:"#";a:1:{s:13:"luminisperson";a:1:{i:0;a:1:{s:1:"#";a:2:{s:13:"academicmajor";a:1:{i:0;a:1:{s:1:"#";s:10:"Undeclared";}}s:10:"customrole";a:2:{i:0;a:1:{s:1:"#";s:15:"ApplicantAccept";}i:1;a:1:{s:1:"#";s:9:"BannerINB";}}}}}}}}}}}';
-
-    private $personxmlarray;
 
     public function test_lmb_xml_to_array() {
         $this->resetAfterTest(false);
 
-        $this->personxmlarray = unserialize($this->personxmlserial);
-
-        $this->assertEquals(enrol_lmb_xml_to_array(lmb_tests_person_xml()), $this->personxmlarray);
+        $this->assertEquals(enrol_lmb_xml_to_array(lmb_tests_person_xml()), lmb_test_person_expected_array());
     }
 
     public function test_lmb_xml_to_person() {
         global $DB, $CFG;
 
         $this->resetAfterTest(true);
-        $this->personxmlarray = unserialize($this->personxmlserial);
+        $xmlparams = array();
+        lmb_tests_person_merge_defaults($xmlparams);
+        $personarray = enrol_lmb_xml_to_array(lmb_tests_person_xml($xmlparams));
+
+        $emailname = explode('@', $xmlparams['email']);
+        $emailname = $emailname[0];
 
         $expected = new stdClass();
-        $expected->sourcedidsource = 'Test SCT Banner';
-        $expected->sourcedid = 'usersourcedid';
-        $expected->recstatus = '0';
-        $expected->fullname = 'First M Last';
-        $expected->familyname = 'Last';
-        $expected->givenname = 'First';
-        $expected->email = 'test@example.edu';
-        $expected->academicmajor = 'Undeclared';
-        $expected->username = 'test';
-        $expected->auth = 'manual';
-        $expected->nickname = 'Nick Last';
-        $expected->telephone = '555-555-5555';
-        $expected->adrstreet = '430 Kresge';
-        $expected->locality = 'Rochester';
-        $expected->region = 'MI';
-        $expected->country = 'USA';
+        $expected->sourcedidsource = $xmlparams['sourcedidsource'];
+        $expected->sourcedid = $xmlparams['sourcedid'];
+        $expected->recstatus = $xmlparams['recstatus'];
+        $expected->fullname = $xmlparams['fullname'];
+        $expected->familyname = $xmlparams['lastname'];
+        $expected->givenname = $xmlparams['firstname'];
+        $expected->email = $xmlparams['email'];
+        $expected->academicmajor = $xmlparams['major'];
+        $expected->username = $emailname;
+        $expected->nickname = $xmlparams['nickname'];
+        $expected->telephone = $xmlparams['phone'];
+        $expected->adrstreet = $xmlparams['street'];
+        $expected->locality = $xmlparams['city'];
+        $expected->region = $xmlparams['region'];
+        $expected->country = $xmlparams['country'];
         $expected->timemodified = 1;
         $expected->id = 1;
 
         $lmb = new enrol_lmb_plugin();
         $lmb->set_config('auth', 'manual');
+        $expected->auth = $lmb->get_config('auth');
 
         // Password settings.
         $lmb->set_config('passwordnamesource', 'none');
 
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('passwordnamesource', 'sctid');
-        $expected->password = 'sctpass';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->password = $xmlparams['sctpass'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('passwordnamesource', 'loginid');
-        $expected->password = 'loginpass';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->password = $xmlparams['loginpass'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('passwordnamesource', 'other');
         $lmb->set_config('passworduseridtypeother', 'CustomUserId');
-        $expected->password = 'custpass';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->password = $xmlparams['custpass'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         // Username Settings.
         // Custom field Settings.
         $lmb->set_config('usernamesource', 'loginid');
-        $expected->username = 'loginuserid';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->username = $xmlparams['loginuserid'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('usernamesource', 'sctid');
-        $expected->username = 'sctuserid';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->username = $xmlparams['sctuserid'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('usernamesource', 'emailid');
-        $expected->username = 'emailuserid';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->username = $xmlparams['emailuserid'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('usernamesource', 'email');
-        $expected->username = 'test@example.edu';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->username = $xmlparams['email'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('usernamesource', 'emailname');
-        $expected->username = 'test';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->username = $emailname;
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('usernamesource', 'other');
         $lmb->set_config('useridtypeother', 'CustomUserId');
-        $expected->username = 'custuserid';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->username = $xmlparams['custuserid'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         // Custom field Settings.
         $lmb->set_config('customfield1mapping', 1);
 
         $lmb->set_config('customfield1source', 'loginid');
-        $expected->customfield1 = 'loginuserid';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->customfield1 = $xmlparams['loginuserid'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('customfield1source', 'sctid');
-        $expected->customfield1 = 'sctuserid';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->customfield1 = $xmlparams['sctuserid'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
         $lmb->set_config('customfield1source', 'emailid');
-        $expected->customfield1 = 'emailuserid';
-        $result = $this->clean_person_result($lmb->xml_to_person($this->personxmlarray));
+        $expected->customfield1 = $xmlparams['emailuserid'];
+        $result = $this->clean_person_result($lmb->xml_to_person($personarray));
         $this->assertEquals($expected, $result);
 
-        // TODO 'sourcedidsource' => 'Test SCT Banner'.
         unset($expected->password);
         unset($expected->auth);
-        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_people', array('sourcedid' => 'usersourcedid')));
+        // TODO $params = array('sourcedid' => $xmlparams['sourcedid'], 'sourcedidsource' => $xmlparams['sourcedidsource']);
+        $params = array('sourcedid' => $xmlparams['sourcedid']);
+        $dbrecord = $this->clean_lmb_object($DB->get_record('enrol_lmb_people', $params));
         $this->assertEquals($expected, $dbrecord);
     }
 
@@ -162,22 +161,30 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         // TODO expand for settings, conflicts, etc.
         global $CFG;
         $this->resetAfterTest(true);
-        $this->personxmlarray = unserialize($this->personxmlserial);
-
         $lmb = new enrol_lmb_plugin();
-        $lmbperson = $lmb->xml_to_person($this->personxmlarray);
+
+        $xmlparams = array();
+        lmb_tests_person_merge_defaults($xmlparams);
+        $personarray = enrol_lmb_xml_to_array(lmb_tests_person_xml($xmlparams));
+
+        $emailname = explode('@', $xmlparams['email']);
+        $emailname = $emailname[0];
+        $pos = strrpos($xmlparams['nickname'], ' '.$xmlparams['lastname']);
+        $nickfirstname = substr($xmlparams['nickname'], 0, $pos);
+
+        $lmbperson = $lmb->xml_to_person($personarray);
 
         $expected = new stdClass();
-        $expected->idnumber = 'usersourcedid';
+        $expected->idnumber = $xmlparams['sourcedid'];
         $expected->auth = $lmb->get_config('auth');
         $expected->id = 1;
         $expected->timemodified = 1;
         $expected->mnethostid = $CFG->mnet_localhost_id;
         $expected->country = $CFG->country;
-        $expected->firstname = 'First';
-        $expected->lastname = 'Last';
-        $expected->email = 'test@example.edu';
-        $expected->username = 'test';
+        $expected->firstname = $xmlparams['firstname'];
+        $expected->lastname = $xmlparams['lastname'];
+        $expected->email = $xmlparams['email'];
+        $expected->username = $emailname;
         $expected->confirmed = 1;
         $expected->address = '';
         $expected->lang = $CFG->lang;
@@ -193,13 +200,13 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         $this->resetAllData();
 
         $lmb->set_config('includetelephone', 1);
-        $expected->phone1 = '555-555-5555';
+        $expected->phone1 = $xmlparams['phone'];
         $lmb->set_config('includeaddress', 1);
-        $expected->address = '430 Kresge';
+        $expected->address = $xmlparams['street'];
         $lmb->set_config('includecity', 1);
-        $expected->city = 'Rochester';
+        $expected->city = $xmlparams['city'];
         $lmb->set_config('nickname', 1);
-        $expected->firstname = 'Nick';
+        $expected->firstname = $nickfirstname;
 
         $result = $this->clean_user_result($lmb->person_to_moodleuser($lmbperson));
         $this->assertEquals($expected, $result, 'Error in moodle user creation test - with options');
@@ -239,7 +246,10 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         global $DB;
         $this->resetAfterTest(true);
         $lmb = new enrol_lmb_plugin();
-        $termxmlarray = enrol_lmb_xml_to_array(lmb_tests_term_xml());
+
+        $xmlparams = array();
+        lmb_tests_term_merge_defaults($xmlparams);
+        $termxmlarray = enrol_lmb_xml_to_array(lmb_tests_term_xml($xmlparams));
 
         $expected = new stdClass();
         $expected->sourcedidsource = 'Test SCT Banner';
@@ -649,6 +659,15 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
 
     }
 
+    public function test_lmb_xml_memberships_to_moodlecourse() {
+        global $DB, $CFG;
+        $this->resetAfterTest(true);
+
+        $this->setup_term();
+        $this->setup_course();
+        $this->setup_person();
+    }
+
     private function clean_user_result($user) {
 
         return $this->clean_lmb_object($user);
@@ -700,23 +719,23 @@ class enrol_lmb_lib_testcase extends advanced_testcase {
         return $obj;
     }
 
-    private function setup_term() {
+    private function setup_term($params = array()) {
         $lmb = new enrol_lmb_plugin();
-        $termxmlarray = enrol_lmb_xml_to_array(lmb_tests_term_xml());
+        $termxmlarray = enrol_lmb_xml_to_array(lmb_tests_term_xml($params));
 
         $lmb->xml_to_term($termxmlarray);
     }
 
-    private function setup_course() {
+    private function setup_course($params = array()) {
         $lmb = new enrol_lmb_plugin();
-        $coursexmlarray = enrol_lmb_xml_to_array(lmb_tests_course_xml());
+        $coursexmlarray = enrol_lmb_xml_to_array(lmb_tests_course_xml($params));
 
         $course = $lmb->xml_to_course($coursexmlarray);
         $lmb->course_to_moodlecourse($course);
     }
 
-    private function setup_person() {
-        $lmb = new enrol_lmb_plugin();
+    private function setup_person($params = array()) {
+        $lmb = new enrol_lmb_plugin($params);
         $personxmlarray = enrol_lmb_xml_to_array(lmb_tests_person_xml());
 
         $person = $lmb->xml_to_person($personxmlarray);
