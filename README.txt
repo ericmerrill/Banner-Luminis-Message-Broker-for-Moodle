@@ -19,6 +19,7 @@ Rewrite
 Changed lmb_assign_role_log and lmb_unassign_role_log to lmb_assign_role and lmb_unassign_role.
 Removed process_enrolment_log.
 Removed process_crosslist_membership_tag/process_crosslist_membership_tag_error
+Use the moodle core function for user deleting.
 
 
 

@@ -1512,20 +1512,17 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         } else if (($this->get_config('imsdeleteusers')) && ($lmbperson->recstatus == 3)
                 && ($moodleuser = $DB->get_record('user', array('idnumber' => $lmbperson->idnumber)))) {
-            $deleteuser = new object();
-            $deleteuser->id           = $moodleuser->id;
-            $deleteuser->deleted      = 1;
-            // TODO2 $deleteuser->username     = addslashes("$moodleuser->email.".time());  // Remember it just in case.
-            $deleteuser->username     = "$moodleuser->email.".time();  // Remember it just in case
-            $deleteuser->email        = '';               // Clear this field to free it up.
-            $deleteuser->idnumber     = '';               // Clear this field to free it up.
-            $deleteuser->timemodified = time();
 
-            if ($id = $DB->update_record('user', $deleteuser)) {
-                $this->append_log_line('deleted user');
-                $deleted = true;
-            } else {
-                $this->append_log_line('failed to delete user');
+            try {
+                if (delete_user($moodleuser)) {
+                    $this->append_log_line('deleted user');
+                    $deleted = true;
+                } else {
+                    $this->append_log_line('failed to delete user');
+                    $this->linestatus = false;
+                }
+            } catch (Exception $e) {
+                $this->append_log_ling('exception deleting user - '.$e->getMessage());
                 $this->linestatus = false;
             }
 
@@ -2841,7 +2838,6 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $wasenrolled = is_enrolled(context_course::instance($courseid), $userid);
             }
 
-            // TODO catch exceptions thrown.
             if ($this->get_config('recovergrades') && !$wasenrolled) {
                 $this->append_log_line('recovering grades');
                 $recover = true;
@@ -2890,7 +2886,6 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         if ($instance = $this->get_instance($courseid)) {
-            // TODO catch exceptions thrown.
             if ($this->get_config('disableenrol')) {
                 $this->update_user_enrol($instance, $userid, ENROL_USER_SUSPENDED);
             } else {
