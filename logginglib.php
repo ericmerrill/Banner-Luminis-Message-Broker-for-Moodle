@@ -25,7 +25,6 @@
  * Based on enrol_imsenterprise from Dan Stowell.
  */
 require_once('enrollib.php');
-require_once('logginglib.php');
 require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->libdir.'/gradelib.php');
 
