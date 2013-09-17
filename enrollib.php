@@ -523,7 +523,7 @@ function enrol_lmb_make_terms_menu_array() {
     global $DB;
     $out = array();
 
-    if ($terms = $DB->get_records('enrol_lmb_terms', null, 'id DESC')) {
+    if ($terms = $DB->get_records('enrol_lmb_terms', null, 'sourcedid DESC')) {
         foreach ($terms as $term) {
             $out[$term->sourcedid] = $term->title.' ('.$term->sourcedid.')';
         }
