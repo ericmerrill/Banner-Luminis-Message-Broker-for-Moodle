@@ -22,6 +22,10 @@ Removed process_crosslist_membership_tag/process_crosslist_membership_tag_error
 Use the moodle core function for user deleting.
 
 
+Release 2.5.2
+Fixing problem where clean install couldn't be done in Moodle version before 2.5 - Thanks to MDL-37726.
+Actually make the list of terms to sort by id number - was supposed to happen in 2.5.1.
+
 
 Release 2.5.1
 Option to obey enrolment restriction dates.
