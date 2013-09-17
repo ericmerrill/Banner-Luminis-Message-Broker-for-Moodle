@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.5.1
+Version: 2.5.2
 Moodle version: 2.2.0 throught 2.5.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -13,6 +13,10 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 2.5.2
+Fixing problem where clean install couldn't be done in Moodle version before 2.5 - Thanks to MDL-37726.
+Actually make the list of terms to sort by id number - was supposed to happen in 2.5.1.
 
 Release 2.5.1
 Option to obey enrolment restriction dates.
