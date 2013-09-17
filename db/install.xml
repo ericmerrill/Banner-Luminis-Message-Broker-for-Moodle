@@ -59,24 +59,24 @@
     </TABLE>
     <TABLE NAME="enrol_lmb_enrolments" COMMENT="Enrolments from LMB/Banner">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="id of the table, please edit me"/>
-        <FIELD NAME="coursesourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The courses unique identifier"/>
-        <FIELD NAME="personsourcedid" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The persons unique id number"/>
-        <FIELD NAME="term" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Banner term code for which this enrolment applies"/>
-        <FIELD NAME="role" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="The role code for the enrolment"/>
-        <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="The current status of the enrolment"/>
-        <FIELD NAME="beginrestrict" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="beginrestricttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="endrestrict" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="endrestricttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="extractstatus" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A status field used to track enrolments from an extract"/>
-        <FIELD NAME="succeeded" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If the enrolment was added to the moodle db properly"/>
-        <FIELD NAME="gradable" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if this membership is gradable"/>
-        <FIELD NAME="midtermgrademode" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The grade mode for the midterm result"/>
-        <FIELD NAME="midtermsubmitted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if the midterm grade has been submitted"/>
-        <FIELD NAME="finalgrademode" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The grade mode for the final grade"/>
-        <FIELD NAME="finalsubmitted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if the final grade has been submitted"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="id of the table, please edit me" NEXT="coursesourcedid"/>
+        <FIELD NAME="coursesourcedid" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false" COMMENT="The courses unique identifier" PREVIOUS="id" NEXT="personsourcedid"/>
+        <FIELD NAME="personsourcedid" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The persons unique id number" PREVIOUS="coursesourcedid" NEXT="term"/>
+        <FIELD NAME="term" TYPE="char" LENGTH="128" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Banner term code for which this enrolment applies" PREVIOUS="personsourcedid" NEXT="role"/>
+        <FIELD NAME="role" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="The role code for the enrolment" PREVIOUS="term" NEXT="status"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="The current status of the enrolment" PREVIOUS="role" NEXT="beginrestrict"/>
+        <FIELD NAME="beginrestrict" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="status" NEXT="beginrestricttime"/>
+        <FIELD NAME="beginrestricttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="beginrestrict" NEXT="endrestrict"/>
+        <FIELD NAME="endrestrict" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="beginrestricttime" NEXT="endrestricttime"/>
+        <FIELD NAME="endrestricttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="endrestrict" NEXT="extractstatus"/>
+        <FIELD NAME="extractstatus" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A status field used to track enrolments from an extract" PREVIOUS="endrestricttime" NEXT="succeeded"/>
+        <FIELD NAME="succeeded" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If the enrolment was added to the moodle db properly" PREVIOUS="extractstatus" NEXT="gradable"/>
+        <FIELD NAME="gradable" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if this membership is gradable" PREVIOUS="succeeded" NEXT="midtermgrademode"/>
+        <FIELD NAME="midtermgrademode" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The grade mode for the midterm result" PREVIOUS="gradable" NEXT="midtermsubmitted"/>
+        <FIELD NAME="midtermsubmitted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if the midterm grade has been submitted" PREVIOUS="midtermgrademode" NEXT="finalgrademode"/>
+        <FIELD NAME="finalgrademode" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The grade mode for the final grade" PREVIOUS="midtermsubmitted" NEXT="finalsubmitted"/>
+        <FIELD NAME="finalsubmitted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if the final grade has been submitted" PREVIOUS="finalgrademode" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="finalsubmitted"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="primary key of the table, please edit me"/>
