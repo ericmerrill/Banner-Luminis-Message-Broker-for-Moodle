@@ -24,10 +24,11 @@
  */
 const ENROL_LMB_LOG_NONE    = 0;
 const ENROL_LMB_LOG_INFO    = 1;
-const ENROL_LMB_LOG_NOTICE  = 2;
-const ENROL_LMB_LOG_WARN    = 3;
-const ENROL_LMB_LOG_FAILURE = 4;
-const ENROL_LMB_LOG_FATAL   = 5;
+const ENROL_LMB_LOG_UPDATE  = 2;
+const ENROL_LMB_LOG_NOTICE  = 3;
+const ENROL_LMB_LOG_WARN    = 4;
+const ENROL_LMB_LOG_FAIL    = 5;
+const ENROL_LMB_LOG_FATAL   = 6;
 
 
 class enrol_lmb_logging {
@@ -39,7 +40,7 @@ class enrol_lmb_logging {
 class enrol_lmb_log_record {
     private $currentlevel = ENROL_LMB_LOG_NONE;
 
-    $message = '';
+    //$message = '';
 
     // Append a level and possibly a new level.
     public function append_message($msg, $lvl = ENROL_LMB_LOG_NONE) {
