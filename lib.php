@@ -48,6 +48,8 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     private $customfields = array();
 
+    private $loggers = array();
+
 
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -3067,6 +3069,20 @@ class enrol_lmb_plugin extends enrol_plugin {
     }
 
     public function log($line, $level, $force = false) {
+        if (!$this->silent) {
+            mtrace($line);
+        }
+
+        if (isset($this->logfp) && $this->logfp) {
+            fwrite($this->logfp, date('Y-m-d\TH:i:s - ') . $level. ':' . $line . "\n");
+        }
+    }
+
+    public function log($line, $level, $key = false, $force = false) {
+        if (!isset($this->loggers[$key])) {
+            $this->loggers[$key] = new enrol_lmb_log_record();
+        }
+
         if (!$this->silent) {
             mtrace($line);
         }

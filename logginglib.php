@@ -40,7 +40,7 @@ class enrol_lmb_logging {
 class enrol_lmb_log_record {
     private $currentlevel = ENROL_LMB_LOG_NONE;
 
-    //$message = '';
+    private $message = '';
 
     // Append a level and possibly a new level.
     public function append_message($msg, $lvl = ENROL_LMB_LOG_NONE) {
@@ -55,6 +55,13 @@ class enrol_lmb_log_record {
         }
     }
 
+    public function get_line() {
+        return $this->message;
+    }
+
+    public function get_level() {
+        return $this->currentlevel;
+    }
 
     public function write_to_log() {
 
