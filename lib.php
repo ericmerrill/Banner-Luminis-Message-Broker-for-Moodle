@@ -809,7 +809,11 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $cat->id = $lmbcat->categoryid;
                 } else {
                     $cat->name = $depttitle;
-                    $cat->visible = 0;
+                    if ($this->get_config('cathidden')) {
+                        $cat->visible = 0;
+                    } else {
+                        $cat->visible = 1;
+                    }
                     $cat->sortorder = 999;
                     if ($cat->id = $DB->insert_record('course_categories', $cat, true)) {
                         $lmbcat = new Object();
@@ -842,7 +846,11 @@ class enrol_lmb_plugin extends enrol_plugin {
                 } else {
                     if ($termid = $this->get_term_category_id($term, $logline, $status)) {
                         $cat->name = $depttitle;
-                        $cat->visible = 0;
+                        if ($this->get_config('cathidden')) {
+                            $cat->visible = 0;
+                        } else {
+                            $cat->visible = 1;
+                        }
                         $cat->parent = $termid;
                         $cat->sortorder = 999;
                         if ($cat->id = $DB->insert_record('course_categories', $cat, true)) {
