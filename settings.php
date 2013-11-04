@@ -360,7 +360,7 @@ if ($ADMIN->fulltree) {
 
     if (!during_initial_install()) {
 
-        $coursecontext = get_context_instance(CONTEXT_COURSE, SITEID);
+        $coursecontext = context_course::instance(SITEID);
         $assignableroles = get_assignable_roles($coursecontext);
         $assignableroles = array('0' => get_string('ignore', 'enrol_imsenterprise')) + $assignableroles;
 

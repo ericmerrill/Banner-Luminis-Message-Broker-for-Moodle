@@ -821,7 +821,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $lmbcat->cattype = 'dept';
                         $lmbcat->dept = $depttitle;
 
-                        $cat->context = get_context_instance(CONTEXT_COURSECAT, $cat->id);
+                        $cat->context = context_coursecat::instance($cat->id);
                         mark_context_dirty($cat->context->path);
                         fix_course_sortorder();
                         if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
@@ -860,7 +860,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $lmbcat->termsourcedid = $term;
                             $lmbcat->dept = $depttitle;
 
-                            $cat->context = get_context_instance(CONTEXT_COURSECAT, $cat->id);
+                            $cat->context = context_coursecat::instance($cat->id);
                             mark_context_dirty($cat->context->path);
                             fix_course_sortorder();
                             if (!$DB->insert_record('enrol_lmb_categories', $lmbcat, true)) {
@@ -929,7 +929,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $lmbcat->sourcedidsource = $lmbterm->sourcedidsource;
                     $lmbcat->cattype = 'term';
 
-                    $cat->context = get_context_instance(CONTEXT_COURSECAT, $cat->id);
+                    $cat->context = context_coursecat::instance($cat->id);
                     mark_context_dirty($cat->context->path);
                     fix_course_sortorder();
 

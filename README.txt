@@ -1,6 +1,6 @@
 Luminis Message Broker enrollment Module.
-Version: 2.5.3
-Moodle version: 2.2.0 throught 2.5.x
+Version: 2.6.0b
+Moodle version: 2.2.0 throught 2.6.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
@@ -13,6 +13,10 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 2.6.0
+Converting all get_context_instance() to context_xxx::instance().
+
 
 Release 2.5.3
 Fix problem where categories were always created hidden with some settings. CONTRIB-4728.
@@ -50,95 +54,9 @@ Improve drop for crosslisted courses when crosslist is removed. Rerun XLS Drop T
 Fixed DB error in some crosslist cases.
 
 
-Release 2.1.8
-Fix enrol_lmb_plugin->get_config to meet E_STRICT requirements.
-Fixed flaw in logic for dropping users from crosslists (and when crosslists are removed) (CONTRIB-3913).
-Added tool to cleanup the incorrectly dropped crosslists.
-Grades are only recovered if the user is not already installed. Significantly improves bulk import times.
-Added custom field mapping. Map XML data to a user custom field. (CONTRIB-3618 - Thanks to Charles Fulton!)
-Fixes to group enrolments if courses are deleted and recreated.
+If upgrading from a version before 2.1.0, be sure to read the full change log at:
+https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
-
-Release 2.1.7
-Significant performance increase when processing on large site. Added indexes to common columns.
-Add option force password, or set it only on user creation.
-Fix to cron file processing (CONTRIB-3702)
-Possible problem with crosslist groupings. (CONTRIB-3698)
-Problem during call process_enrolment_log in enrol_lmb_force_course_to_db. (CONTRIB-3699)
-Removed calls to print_header (depreciated). (CONTRIB-3701)
-Fix various missing variable errors. (CONTRIB-3700)
-
-
-Release 2.1.6
-Option to restore old user grades during re-enrollements.
-Fixed problem where settings may be lost during upgrade from Moodle 1.9.x and below to Moodle 2.x (CONTRIB-3626).
-
-
-Release 2.1.5
-Fixed problem where users may be dropped from cross lists when dropped from one member course (CONTRIB-1728).
-Option to set domain comparison to case-insensitive.
-Added option to ignore capitalization for email domains. (Thanks to Charles Fulton)
-Option to disable enrolments instead of deleting them.
-Tools moved into the settings block hierarchy (Site Administration>Plugins>Enrolments>Banner/Luminis Message Broker>Tools).
-
-
-Release 2.1.1
-Changed code to match moodle style guidelines.
-Changed storage of raw XML to serialize format instead of print_r
-Fixed possible fetal error with add and drop. Fixed bug that cause skipping of cross lists.
-Fixed error with handeling of course section count calculation.
-Adds lmb instance to courses found without it.
-Added code to process folder on cron.
-Add option to disable % logging for batch operations.
-Logging made more efficient.
-Added tools to process folders and files from the command line. See enrol/lmb/cli.
-
-
-Release 2.1.0
-IMPORTANT!:
-Renamed tables to match Moodle conventions, adding enrol_ to the front of table names:
-lmb_courses    => enrol_lmb_courses
-lmb_people     => enrol_lmb_people
-lmb_enrolments => enrol_lmb_enrolments
-lmb_raw_xml    => enrol_lmb_raw_xml
-lmb_crosslist  => enrol_lmb_crosslists   (NOTE: added 's' to the end also)
-lmb_terms      => enrol_lmb_terms
-lmb_categories => enrol_lmb_categories
-
-If you use any additional scripts that access these tables, they will need to be updated. You can find them
-by using the regular expression: (?<!enrol_)\b(?:OLDNAME) and then replace with the new name for that table.
-
-Removed unused functions - check code compatibility:
-enrol_lmb->lmb_assign_role
-enrol_lmb->lmb_unassign_role
-enrol_lmb->process_enrolment
-enrol_lmb->lmb_assign_role (use lmb_assign_role_log)
-enrol_lmb->lmb_unassign_role (use lmb_unassign_role_log)
-
-enrol_lmb_assign_role_log
-enrol_lmb_unassign_role
-enrol_lmb_unassign_role_log
-enrol_lmb_get_course_contextid
-enrol_lmb_reset_all_term_enrolments renamed to enrol_lmb_retry_term_enrolments
-
-
-Fixed Version display and link to tools on LMB settings page.
-Fixed error in drop percent calculation for bulk processing.
-Fix get string errors in tools.
-Fix errors in tools breadcrumbs.
-Fix set_url() error on tool pages.
-Fixed context errors on tool pages.
-Enrollment processing during course update does not show creation/update error.
-Set some missing defaults in upgrade.php.
-Fixes to some settings using the incorrect enrol/lmb plugin name. Settings migrated to enrol_lmb.
-Fixed Buisness hours minute fields not working correctly.
-Fixed defaults in various setting items.
-Defaults now shown for ims role mapping.
-Sets new users default country to whatever the sitewide config is.
-Completed prune raw xml in "Prune LMB Tables" tool.
-Decresed insert count on enrolment update.
-Added optional_param to importnow.php to skip filetime check (add ?force=1 to url).
-Added options to skip parsing of different types (person, course, crosslist, enrolments)
 
 
 
