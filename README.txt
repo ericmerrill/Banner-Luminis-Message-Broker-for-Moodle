@@ -1,8 +1,7 @@
 Luminis Message Broker enrollment Module.
-Version: 2.6.0b
+Version: 2.6.0
 Moodle version: 2.2.0 throught 2.6.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
-
 
 
 Project Maintained at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/
@@ -59,44 +58,29 @@ https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki
 
 
 
-
-
-
-
-
-
-
 GENERAL
 -------
 This enrollment plugin can digest XML from the Luminis Message Broker, allowing realtime Banner to Moodle integration,
 as well as full XML extractions from Banner.
 
-You can use this module with or with Luminis Message Broker. If you do not use Luminis Message Broker, you can instead use
+You can use this module with or without Luminis Message Broker. If you do not use Luminis Message Broker, you can instead use
 this module to import XML files from banner on a manual or automated basis.
 
-This is a heavily modified version of the IMS Enterprise plugin.
-
-Unlike the Moodle 1.5 version of this module, the current can be almost completely customized from with the standard Moodle
-configuration pages. If you need to make changes for your specific install, please let me know, so I can look into making it
-into a preference item (also take a look at the todo list below).
+I have tried to make this module as customizable as possible. If you need to make changes for your specific install, please let
+me know, so I can look into making it into a preference item (also take a look at the todo list below).
 
 
 INSTALLATION
 ------------
-1. Copy enrol/lmb into the enrol/ directory on your Moodle server.
+1. Make sure the folder is named lmb, then copy to the enrol/ directory on your Moodle server.
 
-2. Login to your Moodle server as an admin user, and visit the 'Notifications' page. Moodle will automatically setup the
-tables for this module.
+2. Login to your Moodle server as an admin user, and visit the 'Notifications' page. Moodle will run through the install process.
 
-3. Under Course->Enrolments edit the settings for Luminis Message Broker.
+3. Under Site Administration > Plugins > Enrolments > Manage enrol plugins, enable Banner/Luminis Message Broker.
+
+4. Click settings Banner/Luminis Message Broker, and configure as desired.
 NOTE: You must save the setting at least once, even if you don't make any changes, before you use this module. This is a
 bug that will be fixed later.
-
-
-UPDATING
-________
-If you are updating from a version of the Banner/LMB module before 0.8.1, please delete moodle/lang/en_utf8/enrol_lmb.php
-and moodle/lang/en_utf8/help/enrol/lmb
 
 
 LMB
@@ -112,32 +96,31 @@ When used with the Luminis Message Broker, you will generally import a complete 
 term/semester, and the Luminis Message Broker will continuously send messages that will keep Moodle up-to-date throughout the term. 
 
 If you are using this module without Luminis Message Broker, you can configure the module to import a full XML file on a regular
-basis. To do this, call importnow.php from a script or cron, much in the same way that the Moodle cron is polled.
+basis. To do this, call cli/fileprocess.php or cli/folderprocess.php from a script or cron, much in the same way that the Moodle
+cron is polled.
 
-You should disable users from being able to change the course and user idnumber fields, these are used to reference courses.
+You should disable users from being able to change the course and user idnumber fields, these are used by this module to track users
+and courses.
 
 When doing mass imports, terms should come before courses and then crosslisted courses, users should come before enrolments (which
-need to come courses and crosslistsing). There are tools in work that will make this order less important.
+need to come courses and crosslistsing). 
+
 
 MULTI-FILE EXTRACTS
 -------------------
 Place a directory at the XML Folder path that you have specified in the settings. In this folder, place any XML files to be
-processed (must end in .xml), as well as a empty file called 'start'. The 'start' file and directory must be writable by
-the webserver.
+processed (only files that end in .xml will be processed).
 
-When this is complete, you call extractprocess.php to preform the extract. 
+When this is complete, you call extractprocess.php or cli/folderprocess.php to preform the extract.
+
+If you want to use status files, the folder and all files need to be writable by the web user. When the files are ready, add a file
+named 'start' to the folder.
 
 When the processing starts, the module will remove the file 'start', and create a file called 'processing'. After extract processing
 has completed, the 'processing' will be removed, and a 'done' file created. These status files allow people/scripts to check the
 state of the run. It is important that the XML files are not modified/replaced while the extract is processing, or inconsistent
-results may occur. Should a problem occur during extract, such as the processor dies, or the XML files are inadvertently
+results may occur. Should a problem occur during extract, such as the process dies, or the XML files are inadvertently
 modified/removed, it is safe to re-process the extract with a consistent set of XML. 
 
 In the event an incomplete XML set is processed, students/instructors may be inadvertently removed from their courses. Re-processing
 with a complete XML set will reinstate users into their courses and no data is lost.
-
-
-CHANGES
-_______
-View github for newly changed items
-https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/commits/Release
