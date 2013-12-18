@@ -13,6 +13,10 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
+Next Release
+Define xmlcache.
+
+
 Release 2.6.1
 Replace all instances of mark_context_dirty.
 Replace access to modinfo with course_modinfo for Moodle 2.6 and above.

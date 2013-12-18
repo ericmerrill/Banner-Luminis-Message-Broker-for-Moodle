@@ -43,6 +43,8 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     private $customfields = array();
 
+    private $xmlcache = '';
+
 
     /**
      * Preform any cron tasks for the module.
