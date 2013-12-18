@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.6.0
+Version: 2.6.1
 Moodle version: 2.2.0 throught 2.6.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -12,6 +12,11 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 2.6.1
+Replace all instances of mark_context_dirty.
+Replace access to modinfo with course_modinfo for Moodle 2.6 and above.
+
 
 Release 2.6.0
 Converting all get_context_instance() to context_xxx::instance().

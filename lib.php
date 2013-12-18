@@ -822,7 +822,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $lmbcat->dept = $depttitle;
 
                         $cat->context = context_coursecat::instance($cat->id);
-                        mark_context_dirty($cat->context->path);
+                        $cat->context->mark_dirty();
                         fix_course_sortorder();
                         if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
                             $logline .= "error saving category to enrol_lmb_categories:";
@@ -861,7 +861,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $lmbcat->dept = $depttitle;
 
                             $cat->context = context_coursecat::instance($cat->id);
-                            mark_context_dirty($cat->context->path);
+                            $cat->context->mark_dirty();
                             fix_course_sortorder();
                             if (!$DB->insert_record('enrol_lmb_categories', $lmbcat, true)) {
                                 $logline .= "error saving category to enrol_lmb_categories:";
@@ -930,7 +930,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $lmbcat->cattype = 'term';
 
                     $cat->context = context_coursecat::instance($cat->id);
-                    mark_context_dirty($cat->context->path);
+                    $cat->context->mark_dirty();
                     fix_course_sortorder();
 
                     if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
@@ -1012,7 +1012,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @return bool success or failure of the processing
      */
     public function process_crosslist_membership_tag_error($tagcontents, &$errorcode, &$errormessage) {
-        global $DB;
+        global $DB, $CFG;
 
         if ((!$this->get_config('parsexlsxml')) || (!$this->get_config('parsecoursexml'))) {
             $this->log_line('Crosslist Group:skipping.');
@@ -1280,13 +1280,28 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
 
                 if ($substatus && !$meta && isset($xlist->newrecord) && $xlist->newrecord) {
-                    if (!$modinfo = $DB->get_field('course', 'modinfo', array('idnumber' => $xlist->coursesourcedid))) {
-                        $modinfo = '';
+                    $count = 0;
+                    // TODO - removing at some future version.
+                    if ($CFG->version >= 2013111800) {
+                        $courseid = $DB->get_field('course', 'id', array('idnumber' => $xlist->coursesourcedid));
+                        $coursemodinfo = course_modinfo::instance($courseid, -1);
+
+                        $instances = $coursemodinfo->get_instances();
+                        if (!empty($instances)) {
+                            foreach($instances as $instance) {
+                                $count += count($instance);
+                            }
+                        }
+                    } else {
+                        if (!$modinfo = $DB->get_field('course', 'modinfo', array('idnumber' => $xlist->coursesourcedid))) {
+                            $modinfo = '';
+                        }
+    
+                        $modinfo = unserialize($modinfo);
+                        $count = count($modinfo);
                     }
 
-                    $modinfo = unserialize($modinfo);
-
-                    if (count($modinfo) <= 1) {
+                    if ($count <= 1) {
                         enrol_lmb_drop_all_users($xlist->coursesourcedid, 2, true);
                     }
 
