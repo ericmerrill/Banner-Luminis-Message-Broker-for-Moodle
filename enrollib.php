@@ -385,10 +385,9 @@ function enrol_lmb_get_course_id($idnumber, $original = false) {
 
     $newidnumber = $idnumber;
 
-    if (!$original && $xlist = $DB->get_record('enrol_lmb_crosslists', array('status' => 1, 'coursesourcedid' => $idnumber))) {
-        if ($xlist->type == 'merge') {
-            $newidnumber = $xlist->crosslistsourcedid;
-        }
+    $params = array('status' => 1, 'coursesourcedid' => $idnumber, 'type' => 'merge');
+    if (!$original && $xlist = $DB->get_record('enrol_lmb_crosslists', $params)) {
+        $newidnumber = $xlist->crosslistsourcedid;
     }
 
     return $DB->get_field('course', 'id', array('idnumber' => $newidnumber));

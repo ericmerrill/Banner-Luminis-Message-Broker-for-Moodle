@@ -2609,11 +2609,14 @@ class enrol_lmb_plugin extends enrol_plugin {
                 continue;
             }
 
-            $sqlparams = array('extractstatus' => $this->processid, 'termid' => $termid);
+            $sqlparams = array('processid' => $this->processid, 'termid' => $termid);
 
-            if ($enrols = $DB->get_records_select('enrol_lmb_enrolments',
-                    'extractstatus < :extractstatus AND term = :termid', $sqlparams, 'coursesourcedid ASC')) {
-                $count = count($enrols);
+            $enrols = $DB->get_recordset_select('enrol_lmb_enrolments',
+                    'extractstatus < :processid AND term = :termid', $sqlparams, 'coursesourcedid ASC');
+            $count = $DB->count_records_select('enrol_lmb_enrolments',
+                    'extractstatus < :processid AND term = :termid', $sqlparams);
+
+            if ($enrols->valid()) {
                 $curr = 0;
                 $percent = 0;
                 $csourcedid = '';
@@ -2645,6 +2648,10 @@ class enrol_lmb_plugin extends enrol_plugin {
                         $enrolup->timemodified = time();
                         $enrolup->status = 0;
                         $enrolup->succeeded = 0;
+
+                        if (enrol_lmb_compare_objects($enrolup, $enrol)) {
+                            $DB->update_record('enrol_lmb_enrolments', $enrolup);
+                        }
 
                         if ($courseid) {
                             if ($userid = $DB->get_field('user', 'id', array('idnumber' => $enrol->personsourcedid))) {
@@ -2696,7 +2703,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
 
             }
-
+            $enrols->close();
             $this->log_line('Completed with term '.$termid);
         }
 

@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 2.6.1
+Version: 2.6.2
 Moodle version: 2.2.0 throught 2.6.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -13,8 +13,10 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
-Next Release
-Define xmlcache.
+Release 2.6.2
+Fix problem where users were not dropped from crosslists during an extract processing.
+Improve performance in extract drops by using a recordset.
+Define xmlcache variable.
 
 
 Release 2.6.1
