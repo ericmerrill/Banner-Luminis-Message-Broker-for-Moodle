@@ -146,7 +146,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             $this->set_config('processingfile', $starttime);
 
-            $this->log('Found file '.$filename, ENROL_LMB_LOG_INFO);
+            logger::log('Found file '.$filename, ENROL_LMB_LOG_INFO);
             $this->xmlcache = '';
 
             // The list of tags which should trigger action (even if only cache trimming).
@@ -172,7 +172,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     if ($cperc > $percent) {
                         $percent = $cperc;
                         if (($this->get_config('logpercent') !== null) && $this->get_config('logpercent')) {
-                            $this->log($percent.'% complete', ENROL_LMB_LOG_INFO, true);
+                            logger::log($percent.'% complete', ENROL_LMB_LOG_INFO, true);
                         }
                     }
 
@@ -208,14 +208,14 @@ class enrol_lmb_plugin extends enrol_plugin {
             $this->set_config('xmlfiletime', $filetime);
             $this->set_config('processingfile', 0);
 
-            $this->log('Process has completed. Time taken: '.$timeelapsed.' seconds.', ENROL_LMB_LOG_INFO);
+            logger::log('Process has completed. Time taken: '.$timeelapsed.' seconds.', ENROL_LMB_LOG_INFO);
 
             if ($comp) {
                 $this->process_extract_drops();
             }
 
         } else { // End of if (file_exists).
-            $this->log('File not found: '.$filename, ENROL_LMB_LOG_WARN);
+            logger::log('File not found: '.$filename, ENROL_LMB_LOG_WARN);
         }
 
     }
@@ -347,7 +347,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         // TODO status flags?
 
         if (!$this->get_config('parsepersonxml')) {
-            $this->log('Person messages disabled, skipping.', ENROL_LMB_LOG_INFO);
+            logger::log('Person messages disabled, skipping.', ENROL_LMB_LOG_INFO);
             return true;
         }
 
@@ -411,7 +411,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_group_tag($tagcontents) {
         $xmlarray = enrol_lmb_xml_to_array($tagcontents);
         if (!is_array($xmlarray) || !isset($xmlarray['group']) || !isset($xmlarray['group']['#'])) {
-            $this->log('Malformed group XML message.', ENROL_LMB_LOG_FAIL);
+            logger::log('Malformed group XML message.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -446,7 +446,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function process_crosslisted_group_tag($xmlarray) {
         //$this->append_log_line('Crosslist Group');
         if ((!$this->get_config('parsexlsxml')) || (!$this->get_config('parsecoursexml'))) {
-            $this->log('Crosslist messages disabled, skipping.', ENROL_LMB_LOG_INFO);
+            logger::log('Crosslist messages disabled, skipping.', ENROL_LMB_LOG_INFO);
             return true;
         }
 
@@ -480,7 +480,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         $person = new stdClass();
 
         if (!is_array($xmlarray) || !isset($xmlarray['person']) || !isset($xmlarray['person']['#'])) {
-            $this->log('Malformed person XML message.', ENROL_LMB_LOG_FAIL);
+            logger::log('Malformed person XML message.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -489,7 +489,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Sourcedid Source.
         if (!isset($xmlperson['sourcedid'][0]['#']['source'][0]['#'])) {
-            $this->log('Person sourcedid>source not found.', ENROL_LMB_LOG_FAIL);
+            logger::log('Person sourcedid>source not found.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -497,7 +497,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Sourcedid Id.
         if (!isset($xmlperson['sourcedid'][0]['#']['id'][0]['#'])) {
-            $this->log('Person sourcedid not found.', ENROL_LMB_LOG_FAIL);
+            logger::log('Person sourcedid not found.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -630,7 +630,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 break;
 
             default:
-                $this->log('Bad enrol_lmb_usernamesource setting.', ENROL_LMB_LOG_WARN);
+                logger::log('Bad enrol_lmb_usernamesource setting.', ENROL_LMB_LOG_WARN);
 
                 //$this->linestatus = false; // TODO?
 
@@ -672,7 +672,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     break;
 
                 default:
-                    $this->log('Bad enrol_lmb_customfield1mapping setting.', ENROL_LMB_LOG_WARN);
+                    logger::log('Bad enrol_lmb_customfield1mapping setting.', ENROL_LMB_LOG_WARN);
             }
         }
         unset($type);
@@ -716,7 +716,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             default:
                 //$this->linestatus = false;
-                $this->log('Bad enrol_lmb_passwordnamesource setting.', ENROL_LMB_LOG_WARN);
+                logger::log('Bad enrol_lmb_passwordnamesource setting.', ENROL_LMB_LOG_WARN);
 
         }
         unset($type);
@@ -744,7 +744,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         $this->append_log_line('Term');
 
         if (!is_array($xmlarray) || !isset($xmlarray['group']) || !isset($xmlarray['group']['#'])) {
-            $this->log('Malformed group XML message for term.', ENROL_LMB_LOG_FAIL);
+            logger::log('Malformed group XML message for term.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -753,7 +753,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Sourcedid Source.
         if (!isset($xmlgroup['sourcedid'][0]['#']['source'][0]['#'])) {
-            $this->log('Term sourcedid>source not found.', ENROL_LMB_LOG_FAIL);
+            logger::log('Term sourcedid>source not found.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -761,7 +761,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Sourcedid.
         if (!isset($xmlgroup['sourcedid'][0]['#']['id'][0]['#'])) {
-            $this->log('Term sourcedid not found.', ENROL_LMB_LOG_FAIL);
+            logger::log('Term sourcedid not found.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -771,7 +771,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         if (isset($xmlgroup['description'][0]['#']['long'][0]['#'])) {
             $term->title = $xmlgroup['description'][0]['#']['long'][0]['#'];
         } else {
-            $this->log('Long description not found', ENROL_LMB_LOG_WARN);
+            logger::log('Long description not found', ENROL_LMB_LOG_WARN);
             $this->linestatus = false;
         }
 
@@ -810,7 +810,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Sourcedid Source.
         if (!isset($xmlgroup['sourcedid'][0]['#']['source'][0]['#'])) {
-            $this->log('Course sourcedid>source not found.', ENROL_LMB_LOG_FAIL);
+            logger::log('Course sourcedid>source not found.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -818,7 +818,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Sourcedid.
         if (!isset($xmlgroup['sourcedid'][0]['#']['id'][0]['#'])) {
-            $this->log('Course sourcedid not found.', ENROL_LMB_LOG_FAIL);
+            logger::log('Course sourcedid not found.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -865,7 +865,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             $course->depttitle = trim($xmlgroup['org'][0]['#']['orgunit'][0]['#']);
         } else {
             $course->depttitle = '';
-            $this->log('Course '.$course->sourcedid.' org/orgunit not defined.', ENROL_LMB_LOG_NOTICE);
+            logger::log('Course '.$course->sourcedid.' org/orgunit not defined.', ENROL_LMB_LOG_NOTICE);
         }
 
         $course->timemodified = time();
@@ -880,7 +880,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         if ((!$this->get_config('parsepersonxml')) || (!$this->get_config('parsecoursexml'))
                 || (!$this->get_config('parsepersonxml'))) {
-            $this->log('Enrolments disabled, skipping.', ENROL_LMB_LOG_INFO);
+            logger::log('Enrolments disabled, skipping.', ENROL_LMB_LOG_INFO);
             return array();
         }
 
@@ -901,7 +901,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Sourcedid.
         if (!isset($xmlmembership['sourcedid'][0]['#']['id'][0]['#'])) {
-            $this->log('Person enrolment parent sourcedid not found.', ENROL_LMB_LOG_FAIL);
+            logger::log('Person enrolment parent sourcedid not found.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -918,7 +918,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             // Sourcedid.
             // Todo, shouldn't error out if one member fails.
             if (!isset($member['sourcedid'][0]['#']['id'][0]['#'])) {
-                $this->log('Person enrolment child sourcedid not found.', ENROL_LMB_LOG_WARN);
+                logger::log('Person enrolment child sourcedid not found.', ENROL_LMB_LOG_WARN);
                 $this->linestatus = false;
                 unset($output[$key]);
                 continue;
@@ -927,7 +927,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             // Role.
             if (!isset($member['role'][0]['@']['roletype'])) {
-                $this->log('Person enrolment role not found.', ENROL_LMB_LOG_WARN);
+                logger::log('Person enrolment role not found.', ENROL_LMB_LOG_WARN);
                 $this->linestatus = false;
                 unset($output[$key]);
                 continue;
@@ -936,7 +936,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             // Status.
             if (!isset($member['role'][0]['#']['status'][0]['#'])) {
-                $this->log('Person enrolment status not found.', ENROL_LMB_LOG_WARN);
+                logger::log('Person enrolment status not found.', ENROL_LMB_LOG_WARN);
                 $this->linestatus = false;
                 unset($output[$key]);
                 continue;
@@ -1025,7 +1025,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         // Sourcedid Source.
         if (!isset($xmlmembership['sourcedid'][0]['#']['source'][0]['#'])) {
-            $this->log('Crosslist membership sourcedid>source not found.', ENROL_LMB_LOG_FAIL);
+            logger::log('Crosslist membership sourcedid>source not found.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             return false;
         }
@@ -1044,7 +1044,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         } else {
             // Sourcedid.
             if (!isset($xmlmembership['sourcedid'][0]['#']['id'][0]['#'])) {
-                $this->log('Crosslist membership sourcedid not found.', ENROL_LMB_LOG_FAIL);
+                logger::log('Crosslist membership sourcedid not found.', ENROL_LMB_LOG_FAIL);
                 $this->linestatus = false;
                 return false;
             }
@@ -1064,7 +1064,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 (($xmlmembership['type'][0]['#'] == 'meta') || ($xmlmembership['type'][0]['#'] == 'merge'))) {
             $membership->type = $xmlmembership['type'][0]['#'];
             if (isset($existing_type) && ($existing_type != $membership->type)) {
-                $this->log('Croslist membership type mismatch with existing members.', ENROL_LMB_LOG_FAIL);
+                logger::log('Croslist membership type mismatch with existing members.', ENROL_LMB_LOG_FAIL);
                 $this->line_status = false;
                 $errormessage = 'Other existing members of this xlist are of a different type';
                 $errorcode = 4;
@@ -1085,7 +1085,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             // Sourcedid Source.
             // Todo, shouldn't error out if one member fails.
             if (!isset($member['sourcedid'][0]['#']['source'][0]['#'])) {
-                $this->log('Crosslist '.$member->crosslistsourcedid.' member sourcedid>source not found.', ENROL_LMB_LOG_WARN);
+                logger::log('Crosslist '.$member->crosslistsourcedid.' member sourcedid>source not found.', ENROL_LMB_LOG_WARN);
                 $this->linestatus = false;
                 unset($output[$key]);
                 continue;
@@ -1095,7 +1095,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             // Sourcedid.
             // Todo, shouldn't error out if one member fails.
             if (!isset($member['sourcedid'][0]['#']['id'][0]['#'])) {
-                $this->log('Crosslist '.$member->crosslistsourcedid.' member sourcedid not found.', ENROL_LMB_LOG_WARN);
+                logger::log('Crosslist '.$member->crosslistsourcedid.' member sourcedid not found.', ENROL_LMB_LOG_WARN);
                 $this->linestatus = false;
                 unset($output[$key]);
                 continue;
@@ -1104,7 +1104,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             // Status.
             if (!isset($member['role'][0]['#']['status'][0]['#'])) {
-                $this->log('Crosslist '.$member->crosslistsourcedid.' member status not found.', ENROL_LMB_LOG_WARN);
+                logger::log('Crosslist '.$member->crosslistsourcedid.' member status not found.', ENROL_LMB_LOG_WARN);
                 $this->linestatus = false;
                 unset($output[$key]);
                 continue;
@@ -1131,7 +1131,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 foreach ($existing_members as $existing_member) {
                     if ($existing_members->crosslistsourcedid != $output[$key]->crosslistsourcedid) {
                         $str = $output[$key]->coursesourcedid. ' already in xlist '.$existing_members->crosslistsourcedid;
-                        $this->log($str, ENROL_LMB_LOG_WARN);
+                        logger::log($str, ENROL_LMB_LOG_WARN);
                         $this->linestatus = false;
                         unset($output[$key]);
                         continue 2;
@@ -1223,9 +1223,9 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             if ($update) {
                 update_course($moodlecourse);
-                $this->log('Moodle course '.$course->sourcedid.' updated.', ENROL_LMB_LOG_UPDATE);
+                logger::log('Moodle course '.$course->sourcedid.' updated.', ENROL_LMB_LOG_UPDATE);
             } else {
-                $this->log('Moodle course '.$course->sourcedid.' update not needed.', ENROL_LMB_LOG_INFO);
+                logger::log('Moodle course '.$course->sourcedid.' update not needed.', ENROL_LMB_LOG_INFO);
             }
 
         } else {
@@ -1239,7 +1239,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         // TODO make optional.
         $tmpstatus = enrol_lmb_restore_users_to_course($course->sourcedid);
         if (!$tmpstatus) {
-            $this->log('Error restoring some enrolments.', ENROL_LMB_LOG_WARN); // TODOLog remove?
+            logger::log('Error restoring some enrolments.', ENROL_LMB_LOG_WARN); // TODOLog remove?
             $this->logerror = true;
             $this->linestatus = false;
         }
@@ -1278,7 +1278,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             if (!$this->get_config('createusersemaildomain')) { // TODOLog?
                 $this->linestatus = false;
             }
-            $this->log($logprefix.'username not found.', ENROL_LMB_LOG_FAIL);
+            logger::log($logprefix.'username not found.', ENROL_LMB_LOG_FAIL);
 
             return false;
         }
@@ -1289,7 +1289,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $level = ENROL_LMB_LOG_INFO;
                 $this->linestatus = false;
             }
-            $this->log($logprefix.'no email found.', $level);
+            logger::log($logprefix.'no email found.', $level);
 
             return false;
         }
@@ -1402,23 +1402,23 @@ class enrol_lmb_plugin extends enrol_plugin {
                     if (($oldmoodleuser->username != $moodleuser->username)
                             && ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username)))) {
                         $log = 'Username collision while trying to update from '.$oldmoodleuser->username.' to '.$moodleuser->username.'.';
-                        $this->log($log, ENROL_LMB_LOG_FAIL);
+                        logger::log($log, ENROL_LMB_LOG_FAIL);
                         $this->linestatus = false;
                     } else {
                         if ($DB->update_record('user', $moodleuser)) {
-                            $this->log($logprefix.'updated Moodle user.', ENROL_LMB_LOG_UPDATE);
+                            logger::log($logprefix.'updated Moodle user.', ENROL_LMB_LOG_UPDATE);
                             // Update custom fields.
                             if ($this->get_config('customfield1mapping')) {
                                 $this->update_custom_mapping($moodleuser->id, $lmbperson->customfield1,
                                     $this->get_config('customfield1mapping'));
                             }
                         } else {
-                            $this->log('Person '.$lmbperson->sourcedid.' failed to update Moodle user.', ENROL_LMB_LOG_FAIL);
+                            logger::log('Person '.$lmbperson->sourcedid.' failed to update Moodle user.', ENROL_LMB_LOG_FAIL);
                             $this->linestatus = false;
                         }
                     }
                 } else {
-                    $this->log($logprefix.'no Moodle changes to make.', ENROL_LMB_LOG_INFO);
+                    logger::log($logprefix.'no Moodle changes to make.', ENROL_LMB_LOG_INFO);
                 }
             } else {
                 // Set some default prefs.
@@ -1476,11 +1476,11 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                 if ($this->get_config('createnewusers')) {
                     if ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username))) {
-                        $this->log($logprefix.'username collision, could not create user', ENROL_LMB_LOG_FAIL);
+                        logger::log($logprefix.'username collision, could not create user', ENROL_LMB_LOG_FAIL);
                         $this->linestatus = false;
                     } else {
                         if ($id = $DB->insert_record('user', $moodleuser, true)) {
-                            $this->log($logprefix.'created new Moodle user.', ENROL_LMB_LOG_UPDATE);
+                            logger::log($logprefix.'created new Moodle user.', ENROL_LMB_LOG_UPDATE);
                             if (isset($lmbperson->customfield1)) {
                                 $this->update_custom_mapping($id, $lmbperson->customfield1,
                                         $this->get_config('customfield1mapping'));
@@ -1491,12 +1491,12 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $this->restore_user_enrolments($lmbperson->sourcedid);
 
                         } else {
-                            $this->log($logprefix.'failed to insert new user.', ENROL_LMB_LOG_FAIL);
+                            logger::log($logprefix.'failed to insert new user.', ENROL_LMB_LOG_FAIL);
                             $this->linestatus = false;
                         }
                     }
                 } else {
-                    $this->log($logprefix.'did not create new user.', ENROL_LMB_LOG_INFO);
+                    logger::log($logprefix.'did not create new user.', ENROL_LMB_LOG_INFO);
                     return false;
                 }
             }
@@ -1509,7 +1509,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                             // TODO2 - what happens if password is blank?
                             if (isset($person->password) && ($person->password != '')) {
                                 if (!$userauth->user_update_password($user, $person->password)) {
-                                    $this->log($logprefix.'error setting password.', ENROL_LMB_LOG_NOTICE);
+                                    logger::log($logprefix.'error setting password.', ENROL_LMB_LOG_NOTICE);
                                     $this->linestatus = false;
                                 }
                             }
@@ -1523,10 +1523,10 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             try {
                 if (delete_user($moodleuser)) {
-                    $this->log($logprefix.'deleted Moodle user.', ENROL_LMB_LOG_WARN);
+                    logger::log($logprefix.'deleted Moodle user.', ENROL_LMB_LOG_WARN);
                     $deleted = true;
                 } else {
-                    $this->log($logprefix.'failed to delete Moodle user.', ENROL_LMB_LOG_FAIL);
+                    logger::log($logprefix.'failed to delete Moodle user.', ENROL_LMB_LOG_FAIL);
                     $this->linestatus = false;
                 }
             } catch (Exception $e) {
@@ -1594,7 +1594,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                             global $CFG;
                             require_once($CFG->dirroot.'/group/lib.php');
                             groups_add_member($groupid, $userid);
-                            $this->log($logprefix.'added user to group.', ENROL_LMB_LOG_INFO);
+                            logger::log($logprefix.'added user to group.', ENROL_LMB_LOG_INFO);
                         }
                     } else {
                         $status = $this->lmb_unassign_role($roleid, $newcoursedid, $userid);
@@ -1602,19 +1602,19 @@ class enrol_lmb_plugin extends enrol_plugin {
                             global $CFG;
                             require_once($CFG->dirroot.'/group/lib.php');
                             groups_remove_member($groupid, $userid);
-                            $this->log($logprefix.'removed user from group.', ENROL_LMB_LOG_INFO);
+                            logger::log($logprefix.'removed user from group.', ENROL_LMB_LOG_INFO);
                         }
                     }
                 } else {
-                    $this->log($logprefix.'roleid not found.', ENROL_LMB_LOG_FAIL);
+                    logger::log($logprefix.'roleid not found.', ENROL_LMB_LOG_FAIL);
                     $status = false;
                 }
             } else {
-                $this->log($logprefix.'user not found.', ENROL_LMB_LOG_FAIL);
+                logger::log($logprefix.'user not found.', ENROL_LMB_LOG_FAIL);
                 $status = false;
             }
         } else {
-            $this->log($logprefix.'course not found.', ENROL_LMB_LOG_FAIL);
+            logger::log($logprefix.'course not found.', ENROL_LMB_LOG_FAIL);
             $status = false;
         }
 
@@ -1674,7 +1674,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         if (!$moodlecourse->id) {
-            $this->log($logprefix.'could not find or create course.', ENROL_LMB_LOG_FAIL);
+            logger::log($logprefix.'could not find or create course.', ENROL_LMB_LOG_FAIL);
             $this->linestatus = false;
             $errormessage = 'No moodle course found'; // TODOLog Remove?
             $errorcode = 8;
@@ -1705,7 +1705,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
 
         if (!$DB->update_record('course', $moodlecourse)) {
-            $this->log($logprefix.'Error setting course name', ENROL_LMB_LOG_WARN);
+            logger::log($logprefix.'Error setting course name', ENROL_LMB_LOG_WARN);
             $this->line_status = false;
             $errormessage = 'Failed when updating course record';
             $errorcode = 7;
@@ -1719,7 +1719,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     if ($xlist->status) {
                         if (!$this->add_to_metacourse($moodlecourse->id, $addid)) {
                             $succeeded = 0;
-                            $this->log($logprefix.'could not join course to meta course.', ENROL_LMB_LOG_FAIL);
+                            logger::log($logprefix.'could not join course to meta course.', ENROL_LMB_LOG_FAIL);
                             $this->line_status = false;
                             $status = false;
                             $errormessage = 'Error adding course '.$xlist->coursesourcedid.' to metacourse';
@@ -1728,7 +1728,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     } else {
                         if (!$this->remove_from_metacourse($moodlecourse->id, $addid)) {
                             $succeeded = 0;
-                            $this->log($logprefix.'could not unjoin course from meta course.', ENROL_LMB_LOG_FAIL);
+                            logger::log($logprefix.'could not unjoin course from meta course.', ENROL_LMB_LOG_FAIL);
                             $this->line_status = false;
                             $status = false;
                             $errormessage = 'Error removing course '.$xlist->coursesourcedid.' from metacourse';
@@ -1737,7 +1737,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     }
                 } else {
                     $succeeded = 0;
-                    $this->log($logprefix.'could not find child course.', ENROL_LMB_LOG_FAIL);
+                    logger::log($logprefix.'could not find child course.', ENROL_LMB_LOG_FAIL);
                     $this->line_status = false;
                     $errormessage = 'Could not find child course';
                     $errorcode = 7;
@@ -1757,7 +1757,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     }
 
                     if (!enrol_lmb_drop_all_users($membership->coursesourcedid, 1, true)) {
-                        $this->log($logprefix.'error dropping old users.', ENROL_LMB_LOG_WARN);
+                        logger::log($logprefix.'error dropping old users.', ENROL_LMB_LOG_WARN);
                         $this->line_status = false;
                         $succeeded = 0;
                         $status = false;
@@ -1766,7 +1766,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     }
 
                     if (!enrol_lmb_restore_users_to_course($membership->coursesourcedid)) {
-                        $this->log($logprefix.'error adding new users to crosslist.', ENROL_LMB_LOG_WARN);
+                        logger::log($logprefix.'error adding new users to crosslist.', ENROL_LMB_LOG_WARN);
                         $this->line_status = false;
                         $succeeded = 0;
                         $status = false;
@@ -1776,7 +1776,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 } else {
                     // Restore users to individual course.
                     if (!enrol_lmb_restore_users_to_course($membership->coursesourcedid)) {
-                        $this->log($logprefix.'error enrolling users in child course.', ENROL_LMB_LOG_WARN);
+                        logger::log($logprefix.'error enrolling users in child course.', ENROL_LMB_LOG_WARN);
                         $this->line_status = false;
                         $succeeded = 0;
                         $status = false;
@@ -1784,7 +1784,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                     // Drop users from crosslist.
                     if (!enrol_lmb_drop_crosslist_users($membership)) {
-                        $this->log($logprefix.'error dropping users from crosslist', ENROL_LMB_LOG_WARN);
+                        logger::log($logprefix.'error dropping users from crosslist', ENROL_LMB_LOG_WARN);
                         $this->line_status = false;
                         $succeeded = 0;
                         $status = false;
@@ -1900,13 +1900,13 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         try {
             if ($moodlecourse = create_course($moodlecourse)) {
-                $this->log('Created Moodle course '.$moodlecourse->idnumber.'.', ENROL_LMB_LOG_UPDATE);
+                logger::log('Created Moodle course '.$moodlecourse->idnumber.'.', ENROL_LMB_LOG_UPDATE);
             } else {
-                $this->log('Error creating course '.$moodlecourse->idnumber.'.', ENROL_LMB_LOG_FAIL);
+                logger::log('Error creating course '.$moodlecourse->idnumber.'.', ENROL_LMB_LOG_FAIL);
                 return false;
             }
         } catch (Exception $e) {
-            $this->log('Exception thrown while creating course '.$moodlecourse->idnumber.'. '.$e->getMessage(), ENROL_LMB_LOG_FAIL);
+            logger::log('Exception thrown while creating course '.$moodlecourse->idnumber.'. '.$e->getMessage(), ENROL_LMB_LOG_FAIL);
             return false;
         }
 
@@ -2400,20 +2400,20 @@ class enrol_lmb_plugin extends enrol_plugin {
             $object->id = $oldobject->id;
             if (enrol_lmb_compare_objects($object, $oldobject)) {
                 if ($DB->update_record($table, $object)) {
-                    $this->log('Updated '.$table.'.', ENROL_LMB_LOG_UPDATE);
+                    logger::log('Updated '.$table.'.', ENROL_LMB_LOG_UPDATE);
                 } else {
-                    $this->log('Failed to update '.$table.'.', ENROL_LMB_LOG_FAIL);
+                    logger::log('Failed to update '.$table.'.', ENROL_LMB_LOG_FAIL);
                     $this->linestatus = false;
                     return false;
                 }
             } else {
-                $this->log('No LMB changes to make.', ENROL_LMB_LOG_INFO);
+                logger::log('No LMB changes to make.', ENROL_LMB_LOG_INFO);
             }
         } else {
             if ($object->id = $DB->insert_record($table, $object, true)) {
-                $this->log('Inserted into '.$table.'.', ENROL_LMB_LOG_UPDATE);
+                logger::log('Inserted into '.$table.'.', ENROL_LMB_LOG_UPDATE);
             } else {
-                $this->log('Failed to insert into '.$table.'.', ENROL_LMB_LOG_FAIL);
+                logger::log('Failed to insert into '.$table.'.', ENROL_LMB_LOG_FAIL);
                 $this->linestatus = false;
                 return false;
             }
@@ -3078,7 +3078,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         }
     }
 
-    public function log($line, $level, $key = false, $force = false) {
+/*    public function log($line, $level, $key = false, $force = false) {
         if (!isset($this->loggers[$key])) {
             $this->loggers[$key] = new enrol_lmb_log_record();
         }
@@ -3090,7 +3090,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         if (isset($this->logfp) && $this->logfp) {
             fwrite($this->logfp, date('Y-m-d\TH:i:s - ') . $level. ':' . $line . "\n");
         }
-    }
+    }*/
 
 
     // -----------------------------------------------------------------------------------------------------------------
