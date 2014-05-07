@@ -2468,7 +2468,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $emails = explode(',', $this->get_config('emails'));
 
                     foreach ($emails as $email) {
-                        $this->email_luminis_error(floor($difftime/60), trim($email));
+                        $this->email_luminis_error($difftime, trim($email));
                     }
                 }
             } else {
@@ -2479,7 +2479,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $emails = explode(',', $this->get_config('emails'));
 
                     foreach ($emails as $email) {
-                        $this->email_luminis_error(floor($difftime/60), trim($email));
+                        $this->email_luminis_error($difftime, trim($email));
                     }
                 }
             }
@@ -2491,86 +2491,23 @@ class enrol_lmb_plugin extends enrol_plugin {
     /**
      * Email a luminis downtime message to the provided email
      *
-     * TODO - replace with mesaging system?
-     *
-     * @param int $minutes the number of minutes since the last message was received
+     * @param int $timeelapsed the number of seconds since the last message was received
      * @param string $emailaddress the email address to send the message to
      * @return bool success of failure of the email send
      */
-    public function email_luminis_error($minutes, $emailaddress) {
-        global $CFG, $FULLME;
-        include_once($CFG->libdir .'/phpmailer/class.phpmailer.php');
+    public function email_luminis_error($timeelapsed, $emailaddress) {
+        $fromuser = get_admin();
 
-        $messagetext = get_string('nomessagefull', 'enrol_lmb').$minutes.get_string('minutes');
+        $touser = new stdClass();
+        $touser->id = $fromuser->id;
+        $touser->email = $emailaddress;
+
+        $time = format_time($timeelapsed);
+
+        $messagetext = get_string('nomessagefull', 'enrol_lmb', $time);
         $subject = get_string("nomessage", "enrol_lmb");
 
-        $mail = new phpmailer;
-
-        $mail->Version = 'Moodle '. $CFG->version;           // Mailer version.
-        $mail->PluginDir = $CFG->libdir .'/phpmailer/';      // Plugin directory (eg smtp plugin).
-
-        if (current_language() != 'en') {
-            $mail->CharSet = get_string('thischarset');
-        }
-
-        if ($CFG->smtphosts == 'qmail') {
-            $mail->IsQmail();                              // Sse Qmail system.
-
-        } else if (empty($CFG->smtphosts)) {
-            $mail->IsMail();                               // Use PHP mail() = sendmail.
-
-        } else {
-            $mail->IsSMTP();                               // Use SMTP directly.
-            if ($CFG->debug > 7) {
-                echo '<pre>' . "\n";
-                $mail->SMTPDebug = true;
-            }
-            $mail->Host = $CFG->smtphosts;               // Specify main and backup servers.
-
-            if ($CFG->smtpuser) {                          // Use SMTP authentication.
-                $mail->SMTPAuth = true;
-                $mail->Username = $CFG->smtpuser;
-                $mail->Password = $CFG->smtppass;
-            }
-        }
-
-        $adminuser = get_admin();
-
-        // Make up an email address for handling bounces.
-        if (!empty($CFG->handlebounces)) {
-            $modargs = 'B'.base64_encode(pack('V', $adminuser->id)).substr(md5($adminuser->email), 0, 16);
-            $mail->Sender = generate_email_processing_address(0, $modargs);
-        } else {
-            $mail->Sender   = $adminuser->email;
-        }
-
-        $mail->From     = $CFG->noreplyaddress;
-        if (empty($replyto)) {
-            $mail->AddReplyTo($CFG->noreplyaddress, get_string('noreplyname'));
-        }
-
-        if (!empty($replyto)) {
-            $mail->AddReplyTo($replyto);
-        }
-
-        $mail->Subject = $subject;
-
-        $mail->AddAddress($emailaddress, "" );
-
-        $mail->WordWrap = 79;                               // Set word wrap.
-
-        $mail->IsHTML(false);
-        $mail->Body =  "\n$messagetext\n";
-
-        if ($mail->Send()) {
-            set_send_count($adminuser);
-            return true;
-        } else {
-            mtrace('ERROR: '. $mail->ErrorInfo);
-            add_to_log(SITEID, 'library', 'mailer', $FULLME, 'ERROR: '. $mail->ErrorInfo);
-            $this->log_line("Error emailing");
-            return false;
-        }
+        return email_to_user($touser, $fromuser, $subject, $messagetext);
     }
 
 

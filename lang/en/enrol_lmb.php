@@ -161,7 +161,7 @@ $string['recovergrades'] = 'Recover olds grades for re-enrolled users';
 
 
 $string['nomessage'] ='No messages received from Luminis Message Broker';
-$string['nomessagefull'] = 'Moodle has not received a message from Luminis Message Broker in ';
+$string['nomessagefull'] = 'Moodle has not received a message from Luminis Message Broker in {$a}.';
 
 $string['aftersaving'] = 'Once you have saved your settings, you may wish to ';
 $string['importnow'] = 'import right now';
