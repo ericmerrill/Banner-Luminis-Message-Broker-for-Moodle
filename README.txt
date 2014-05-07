@@ -1,6 +1,6 @@
 Luminis Message Broker enrollment Module.
-Version: 2.6.2
-Moodle version: 2.2.0 through 2.6.x
+Version: 2.7.0
+Moodle version: 2.2.0 through 2.7.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
@@ -12,6 +12,9 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 2.7.0
+Fix LMB down notification emails.
 
 Release 2.6.2
 Fix problem where users were not dropped from crosslists during an extract processing.
