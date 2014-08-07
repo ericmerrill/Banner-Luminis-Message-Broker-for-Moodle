@@ -1050,9 +1050,9 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $crosslistsourcedid = trim($matches[1]);
                 $logline .= $crosslistsourcedid.':';
 
-                /*if (preg_match('{XLS..?(.{6})$}is', $xlist->crosslistsourcedid, $matches)) {
+                if (preg_match('{XLS.+([0-9]{6})$}is', $crosslistsourcedid, $matches)) {
                     $term = trim($matches[1]);
-                }*/
+                }
             }
         }
 
@@ -1089,7 +1089,9 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
 
                 $parts = explode('.', $xlist->coursesourcedid);
-                $term = $parts[1];
+                if (!$term) {
+                    $term = $parts[1];
+                }
 
                 if ($crosslistsourcedid == '') {
                     $crosslistsourcedid = $internalid.$term;
