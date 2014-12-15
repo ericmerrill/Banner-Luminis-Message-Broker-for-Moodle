@@ -1471,7 +1471,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $title = str_replace('[XLSID]', $idnumber, $title);
 
-        return $title;
+        return substr($title, 0, 254);
     }
 
 

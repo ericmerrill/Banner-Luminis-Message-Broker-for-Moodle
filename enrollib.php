@@ -166,7 +166,7 @@ function enrol_lmb_expand_course_title($lmbcourse, $titledef) {
     $title = str_replace('[NUM]', $lmbcourse->num, $title);
     $title = str_replace('[SECTION]', $lmbcourse->section, $title);
 
-    return $title;
+    return substr($title, 0, 254);
 }
 
 
