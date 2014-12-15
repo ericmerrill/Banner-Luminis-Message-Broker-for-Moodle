@@ -1,6 +1,6 @@
 Luminis Message Broker enrollment Module.
-Version: 2.7.0
-Moodle version: 2.2.0 through 2.7.x
+Version: 2.7.1
+Moodle version: 2.4.0 through 2.8.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
@@ -12,6 +12,11 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 2.7.1
+Get the term code from the XLS code if possible.
+Prevent course names longer than 255 characters.
+Moving minimum Moodle version to 2.4.
 
 Release 2.7.0
 Fix LMB down notification emails.
