@@ -1300,7 +1300,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         if (!$modinfo = $DB->get_field('course', 'modinfo', array('idnumber' => $xlist->coursesourcedid))) {
                             $modinfo = '';
                         }
-    
+
                         $modinfo = unserialize($modinfo);
                         $count = count($modinfo);
                     }
@@ -1931,8 +1931,6 @@ class enrol_lmb_plugin extends enrol_plugin {
                         } else if ($this->get_config('defaultcity') == 'standard') {
                             $moodleuser->city = $this->get_config('standardcity');
                         }
-                    } else {
-                        $moodleuser->address = '';
                     }
 
                     if (enrol_lmb_compare_objects($moodleuser, $oldmoodleuser) || ($this->get_config('customfield1mapping')
