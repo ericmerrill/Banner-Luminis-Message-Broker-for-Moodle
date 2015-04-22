@@ -880,5 +880,19 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2013080202, 'enrol', 'lmb');
     }
 
+    if ($oldversion < 2014121402) {
+        $config = get_config('enrol_lmb');
+        if (isset($config->includeaddress)) {
+            set_config('includecity', $config->includeaddress, 'enrol_lmb');
+            unset_config('includeaddress', 'enrol_lmb');
+        }
+        if (isset($config->forceaddress)) {
+            set_config('forcecity', $config->forceaddress, 'enrol_lmb');
+            unset_config('forceaddress', 'enrol_lmb');
+        }
+
+        // Lmb savepoint reached.
+        upgrade_plugin_savepoint(true, 2014121402, 'enrol', 'lmb');
+    }
     return $result;
 }

@@ -336,6 +336,12 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/includeaddress', get_string('includeadr', 'enrol_lmb'),
             get_string('includeadrhelp', 'enrol_lmb'), 0));
 
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/forceaddress', get_string('forceadr', 'enrol_lmb'),
+            get_string('forceadrhelp', 'enrol_lmb'), 0));
+
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/includecity', get_string('includecity', 'enrol_lmb'),
+            get_string('includecityhelp', 'enrol_lmb'), 0));
+
     unset($options);
     $options = array();
     $options['xml'] = get_string('locality', 'enrol_lmb');
@@ -347,8 +353,8 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configtext('enrol_lmb/standardcity', get_string('standardcity', 'enrol_lmb'),
             get_string('standardcityhelp', 'enrol_lmb'), ''));
 
-    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/forceaddress', get_string('forceadr', 'enrol_lmb'),
-            get_string('forceadrhelp', 'enrol_lmb'), 0));
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/forcecity', get_string('forcecity', 'enrol_lmb'),
+            get_string('forcecityhelp', 'enrol_lmb'), 0));
 
 
 

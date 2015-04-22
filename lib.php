@@ -1919,7 +1919,9 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                     if ($this->get_config('includeaddress') && $this->get_config('forceaddress')) {
                         $moodleuser->address = $lmbperson->adrstreet;
+                    }
 
+                    if ($this->get_config('includecity') && $this->get_config('forcecity')) {
                         if ($this->get_config('defaultcity') == 'standardxml') {
                             if ($lmbperson->locality) {
                                 $moodleuser->city = $lmbperson->locality;
@@ -1992,7 +1994,11 @@ class enrol_lmb_plugin extends enrol_plugin {
                         } else {
                             $moodleuser->address = '';
                         }
+                    } else {
+                        $moodleuser->address = '';
+                    }
 
+                    if ($this->get_config('includecity')) {
                         if ($this->get_config('defaultcity') == 'standardxml') {
                             if ($lmbperson->locality) {
                                 $moodleuser->city = $lmbperson->locality;
@@ -2006,7 +2012,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                         }
 
                     } else {
-                        $moodleuser->address = '';
+                        $moodleuser->city = '';
                     }
 
                     $moodleuser->country = $CFG->country;
