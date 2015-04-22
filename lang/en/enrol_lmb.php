@@ -311,15 +311,15 @@ $string['passwordsourcehelp'] = "This determines what will be the password of cr
 <li>useridtype - Other: Use the value supplied in the password field of the userid tag marked as indicated in the text box.
 </ul>";
 $string['otherpasswordhelp'] = '';
-$string['forcepasswordhelp'] = 'When set and when a proper auth type and source are set, the users password is set to the LMB password whenever a message is received. If unchecked, the password will only be set on user creation.';
+$string['forcepasswordhelp'] = 'When set and when a proper auth type and source are set, the user\'s password is set to the LMB password whenever a message is received. If unchecked, the password will only be set on user creation.';
 $string['nicknamehelp'] = 'If the nickname is included XML, use it instead of the proper name first name.';
-$string['forcenamehelp'] = 'Always force the users name to match the XML, even if it has been manually changed.';
-$string['forceemailhelp'] = 'Always force the users email address to match the XML, even if it has been manually changed.';
-$string['includetelehelp'] = 'Include the users telephone number in the Moodle profile, if supplied by the XML.';
-$string['forcetelehelp'] = 'Always force the users telephone number to match the XML, even if it has been manually changed.';
-$string['includeadrhelp'] = 'Include the users street address in the Moodle profile.';
-$string['forceadrhelp'] = 'Always force the users street address to match the XML, even if it has been manually changed.';
-$string['includecityhelp'] = 'Include the users city in the Moodle profile.';
+$string['forcenamehelp'] = 'Always force the user\'s name to match the XML, even if it has been manually changed.';
+$string['forceemailhelp'] = 'Always force the user\'s email address to match the XML, even if it has been manually changed.';
+$string['includetelehelp'] = 'Include the user\'s telephone number in the Moodle profile, if supplied by the XML.';
+$string['forcetelehelp'] = 'Always force the user\'s telephone number to match the XML, even if it has been manually changed.';
+$string['includeadrhelp'] = 'Include the user\'s street address in the Moodle profile.';
+$string['forceadrhelp'] = 'Always force the user\'s street address to match the XML, even if it has been manually changed.';
+$string['includecityhelp'] = 'Include the user\'s city in the Moodle profile.';
 $string['defaultcityhelp'] = "What to use as the city.
 <ul>
 <li>User XML 'locality': Use the value supplied by the XML.
@@ -328,7 +328,7 @@ $string['defaultcityhelp'] = "What to use as the city.
 </ul>
 ";
 $string['standardcityhelp'] = '';
-$string['forcecityhelp'] = 'Always force the users address/city to match the XML, even if it has been manually changed.';
+$string['forcecityhelp'] = 'Always force the user\'s address/city to match the XML, even if it has been manually changed.';
 
 $string['parseenrolxmlhelp'] = 'Process enrolment records. Parse Course and Parse Person must be on. When unchecked, records will be completely skipped.';
 $string['userestrictdateshelp'] = 'If specified in the enrolment, set enrolment begin and end dates in Moodle.';
