@@ -64,6 +64,25 @@ $string['cronxmlfolder'] = 'Check XML Folder during cron';
 $string['cronunhidecourses'] = 'Unhide Courses';
 $string['cronunhidedays'] = 'Unhide this many days before course start';
 
+$string['termfilter'] = 'Term filtering';
+$string['filtermode'] = 'Filtering mode';
+$string['off'] = 'Off';
+$string['whitelist'] = 'Whitelist';
+$string['blacklist'] = 'Blacklist';
+$string['filtermodehelp'] = 'Term filtering allows the selective disabiling of processing of term, course, and enrollment messages that petain to filtered terms. This setting what mode the term filter will run in
+<ul>
+<li>Off - No filtering will take place.
+<li>Whitelist - In whitelist mode, terms that are matched in the Filter list are processed normally. All other terms are filtered out (not processed).
+<li>Blacklist - In blacklist mode, terms that are matched in the Filter list are filtered out (not processed). All other terms are processed normally.
+</ul>
+Filtering a term that is already on the system will not remove it, only new updated from Banner will be skipped. Making a term no longer filtered will not cause previously filtered messages to take effect - you should run a full extract whenever you "unfilter" a term.';
+$string['filterlist'] = 'Filter list';
+$string['filterlisthelp'] = 'A return delimited (one per line) list of terms to be used with the above filter mode. It may be used two ways:
+<ul>
+<li>Simple - Simpily place one term code per line.
+<li>Advanced - Each line can contain PHP regular expressions, meaning that you can select all 2015 terms by using <code>2015.*</code>. Each line is internally wrapped by <code>/^</code> and <code>$/</code>.
+</ul>';
+
 $string['parsecourse'] = 'XML Parse - Course';
 $string['parsecoursexml'] = 'Parse Course XML';
 $string['coursetitle'] = 'Course full name';

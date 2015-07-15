@@ -483,6 +483,14 @@ class enrol_lmb_plugin extends enrol_plugin {
             return false;
         }
 
+        $ttid = $course->term;
+        if (!enrol_lmb_term_allowed($ttid)) {
+            if (!$this->get_config('logerrors')) {
+                $this->log_line("Skipping course message from term {$ttid} due to filter.");
+            }
+            return true;
+        }
+
         if (preg_match('{<description>.*?<long>(.+?)</long>.*?</description>}is', $tagcontents, $matches)) {
             $course->longtitle = trim($matches[1]);
 
@@ -1114,6 +1122,14 @@ class enrol_lmb_plugin extends enrol_plugin {
             $errormessage = 'No member courses found';
             $errorcode = 5;
             $status = false;
+        }
+
+        $ttid = $term;
+        if (!enrol_lmb_term_allowed($ttid)) {
+            if (!$this->get_config('logerrors')) {
+                $this->log_line("Skipping crosslist message from term {$ttid} due to filter.");
+            }
+            return true;
         }
 
         $params = array('crosslistsourcedid' => $crosslistsourcedid);
@@ -2129,6 +2145,14 @@ class enrol_lmb_plugin extends enrol_plugin {
             return false;
         }
 
+        $ttid = $term->sourcedid;
+        if (!enrol_lmb_term_allowed($ttid)) {
+            if (!$this->get_config('logerrors')) {
+                $this->log_line("Skipping term message from term {$ttid} due to filter.");
+            }
+            return true;
+        }
+
         if (preg_match('{<description>.*?<long>(.+?)</long>.*?</description>}is', $tagcontents, $matches)) {
             $term->title = trim($matches[1]);
         } else {
@@ -2242,6 +2266,13 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             if (preg_match('{.....\.(.+?)$}is', $enrolment->coursesourcedid, $matches)) {
                 $enrolment->term = trim($matches[1]);
+                $ttid = $enrolment->term;
+                if (!enrol_lmb_term_allowed($ttid)) {
+                    if (!$this->get_config('logerrors')) {
+                        $this->log_line("Skipping enrol message from term {$ttid} due to filter.");
+                    }
+                    return true;
+                }
                 if (!isset($this->terms[$enrolment->term])) {
                     $this->terms[$enrolment->term] = 0;
                 }

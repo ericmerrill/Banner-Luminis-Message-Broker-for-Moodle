@@ -23,6 +23,10 @@
  * Based on enrol_imsenterprise from Dan Stowell.
  */
 
+define('ENROL_LMB_FILTER_OFF', 0);
+define('ENROL_LMB_FILTER_WHITE', 1);
+define('ENROL_LMB_FILTER_BLACK', 2);
+
 /**
  * Returns the id of the moodle role for a provided ims/xml role
  *
@@ -557,6 +561,64 @@ function enrol_lmb_hash_idnumber($sourcedid, $source = '') {
     $hash = sha1($str);
 
     return $hash;
+}
+
+/**
+ * Returns true if the passed term is allowed based on current filtering, false if not.
+ *
+ * @param string $termid the term code
+ * @return bool True if the term is allowed, false if it is not
+ */
+function enrol_lmb_term_allowed($termid) {
+    $config = enrol_lmb_get_config();
+
+    if (!isset($config->filtermode) || ($config->filtermode == ENROL_LMB_FILTER_OFF)) {
+        return true;
+    }
+
+    $matches = enrol_lmb_term_matches_list($termid, $config->filterlist);
+    if ($config->filtermode == ENROL_LMB_FILTER_WHITE) {
+        if ($matches) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    if ($config->filtermode == ENROL_LMB_FILTER_BLACK) {
+        if ($matches) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Returns true if the passed term is specified in the list, false if not.
+ *
+ * @param string $termid the term code
+ * @param string $list Return delimited list of terms in the filter list
+ * @return bool True if the term is in the list, false if it is not
+ */
+function enrol_lmb_term_matches_list($termid, $list) {
+    if (empty($termid)) {
+        return false;
+    }
+
+    $filters = explode("\n", $list);
+
+    if ($filters) {
+        foreach ($filters as $filter) {
+            if (preg_match('/^'.trim($filter).'$/', $termid)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 // TODO create_shell_course?

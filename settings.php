@@ -23,6 +23,7 @@ $settings = new admin_category('enrolsettingscat', get_string('pluginname', 'enr
 $settingslmb = new admin_settingpage('enrolsettingslmb', get_string('settings'), 'moodle/site:config');
 
 if ($ADMIN->fulltree) {
+    require_once('enrollib.php');
 
     $plugin = new stdClass();
     include($CFG->dirroot.'/enrol/lmb/version.php');
@@ -137,6 +138,20 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configtext('enrol_lmb/cronunhidedays', get_string('cronunhidedays', 'enrol_lmb'),
             get_string('cronunhidedayshelp', 'enrol_lmb'), '0'));
 
+
+    // Term Filters --------------------------------------------------------------------------------.
+    $settingslmb->add(new admin_setting_heading('enrol_lmb_filter', get_string('termfilter', 'enrol_lmb'), ''));
+
+    unset($options);
+    $options = array();
+    $options[ENROL_LMB_FILTER_OFF] = get_string('off', 'enrol_lmb');
+    $options[ENROL_LMB_FILTER_WHITE] = get_string('whitelist', 'enrol_lmb');
+    $options[ENROL_LMB_FILTER_BLACK] = get_string('blacklist', 'enrol_lmb');
+    $settingslmb->add(new admin_setting_configselect('enrol_lmb/filtermode', get_string('filtermode', 'enrol_lmb'),
+            get_string('filtermodehelp', 'enrol_lmb'), 'off', $options));
+
+    $settingslmb->add(new admin_setting_configtextarea('enrol_lmb/filterlist', get_string('filterlist', 'enrol_lmb'),
+            get_string('filterlisthelp', 'enrol_lmb'), ''));
 
 
     // Parse Course --------------------------------------------------------------------------------.
