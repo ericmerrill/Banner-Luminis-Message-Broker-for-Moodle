@@ -621,6 +621,81 @@ function enrol_lmb_term_matches_list($termid, $list) {
     return false;
 }
 
+/**
+ * Returns true if the passed IP is allowed based on current filtering, false if not.
+ *
+ * @param string $ip the IP address
+ * @return bool True if the IP is allowed, false if it is not
+ */
+function enrol_lmb_ip_allowed($ip) {
+    $config = enrol_lmb_get_config();
+
+    if (!isset($config->livefiltermode) || ($config->livefiltermode == ENROL_LMB_FILTER_OFF)) {
+        return true;
+    }
+
+    if ($ip) {
+        $matches = enrol_lmb_ip_matches_list($ip, $config->livefilterlist);
+    } else {
+        $matches = false;
+    }
+    if ($config->livefiltermode == ENROL_LMB_FILTER_WHITE) {
+        if ($matches) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    if ($config->livefiltermode == ENROL_LMB_FILTER_BLACK) {
+        if ($matches) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Returns true if the passed IP is specified in the list, false if not.
+ *
+ * @param string $ip the IP address
+ * @param string $list Return delimited list of IPs in the filter list
+ * @return bool True if the IP is in the list, false if it is not
+ */
+function enrol_lmb_host_matches_list($ip, $list) {
+    if (empty($ip)) {
+        return false;
+    }
+
+    $host = false;
+
+    $filters = explode("\n", $list);
+
+    if ($filters) {
+        foreach ($filters as $filter) {
+            $parts = explode('-', $filter, 2);
+
+            if ($parts[0] === 'H') {
+                if (!$host) {
+                    $host = gethostbyaddr($ip);
+                }
+                $check = $host;
+            } else {
+                $check = $ip;
+            }
+
+            if (preg_match('/^'.trim($parts[1]).'$/', $check)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 // TODO create_shell_course?
 // TODO get_category_id?
 // TODO expand_crosslist_title?

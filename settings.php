@@ -72,6 +72,17 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configpasswordunmask('enrol_lmb/lmbpasswd', get_string('lmbpasswd', 'enrol_lmb'),
             get_string('lmbpasswdhelp', 'enrol_lmb'), ''));
 
+    unset($options);
+    $options = array();
+    $options[ENROL_LMB_FILTER_OFF] = get_string('off', 'enrol_lmb');
+    $options[ENROL_LMB_FILTER_WHITE] = get_string('whitelist', 'enrol_lmb');
+    $options[ENROL_LMB_FILTER_BLACK] = get_string('blacklist', 'enrol_lmb');
+    $settingslmb->add(new admin_setting_configselect('enrol_lmb/livefiltermode', get_string('livefiltermode', 'enrol_lmb'),
+            get_string('livefiltermodehelp', 'enrol_lmb'), 'off', $options));
+
+    $settingslmb->add(new admin_setting_configtextarea('enrol_lmb/livefilterlist', get_string('livefilterlist', 'enrol_lmb'),
+            get_string('livefilterlisthelp', 'enrol_lmb'), ''));
+
 
 
     // LMB Status Check ----------------------------------------------------------------------------.
