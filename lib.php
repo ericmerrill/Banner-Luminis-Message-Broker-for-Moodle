@@ -1967,7 +1967,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                             && ($this->compare_custom_mapping($moodleuser->id, $lmbperson->customfield1,
                             $this->get_config('customfield1mapping'))))) {
 
-                        if (($oldmoodleuser->username != $moodleuser->username)
+                        if ((strcasecmp($oldmoodleuser->username, $moodleuser->username) !== 0)
                                 && ($collisionid = $DB->get_field('user', 'id', array('username' => $moodleuser->username)))) {
                             $logline .= 'username collision while trying to update:';
                             $status = false;
