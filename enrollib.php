@@ -665,29 +665,30 @@ function enrol_lmb_ip_allowed($ip) {
  * @param string $list Return delimited list of IPs in the filter list
  * @return bool True if the IP is in the list, false if it is not
  */
-function enrol_lmb_host_matches_list($ip, $list) {
-    if (empty($ip)) {
+function enrol_lmb_ip_matches_list($ip, $list) {
+    if (empty($ip) || empty($list)) {
         return false;
     }
 
     $host = false;
-
     $filters = explode("\n", $list);
 
     if ($filters) {
         foreach ($filters as $filter) {
-            $parts = explode('-', $filter, 2);
+            $parts = explode(';', $filter, 2);
 
-            if ($parts[0] === 'H') {
+            if (strcasecmp($parts[0], 'H') === 0) {
                 if (!$host) {
                     $host = gethostbyaddr($ip);
                 }
                 $check = $host;
+            } else if (strcasecmp($parts[0], 'S') === 0) {
+                return address_in_subnet($ip, $parts[1]);
             } else {
                 $check = $ip;
             }
 
-            if (preg_match('/^'.trim($parts[1]).'$/', $check)) {
+            if (preg_match('|^'.trim($parts[1]).'$|', $check)) {
                 return true;
             }
         }

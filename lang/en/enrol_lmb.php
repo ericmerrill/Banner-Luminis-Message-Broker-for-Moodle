@@ -33,9 +33,32 @@ $string['onerror'] = 'Only on error';
 $string['always'] = 'Always';
 
 $string['lmbsecurity'] = 'LMB Live Import Security';
-$string['lmbusername'] = 'Username';
-$string['lmbpasswd'] = 'Password';
-$string['disablesecurity'] = 'Disable Security';
+$string['disablesecurity'] = 'Disable Remote Auth Security';
+$string['lmbusername'] = 'Remote Auth Username';
+$string['lmbpasswd'] = 'Remote Auth Password';
+$string['livefiltermode'] = 'Remote-host filter mode';
+$string['livefiltermodehelp'] = 'Remote-host filtering allows the selective blocking of remote hosts connecting to the live import interface.
+<ul>
+<li>Off - No filtering will take place.
+<li>Whitelist - In whitelist mode, remote hosts that are matched in the filter list are allowed to connect normally. All other hosts are filtered out (blocked).
+<li>Blacklist - In blacklist mode, remote hosts that are matched in the filter list are filtered out (blocked). All other hosts are allowed to connect normally.
+</ul>';
+$string['livefilterlist'] = 'Remote-host filter list';
+$string['livefilterlisthelp'] = 'The remote-host filter list is a return delimited (one per line) list of remote machines to allow or disallow based on the Remote-host filter mode setting.<br>
+Each line will be one of the 3 following formats:
+<ul>
+<li>Hostname - <code>H;hostname.tld</code> - This will match the hostname the remote address resolves to. Regular expressions values may be used.</li>
+<li>IP Address - <code>I;192.168.2.1</code> - This will match the IP address of the remote machine. Regular expressions values may be used.</li>
+<li>Hostname - <code>S;192.168.2.0/32</code> - This will match the remote IP address against a standard subnet mask. IPv4 and IPv6 compatable. Regular expressions values may <b>not</b> be used.<br>
+    3 compatable types:
+    <ul>
+        <li>xxx.xxx.xxx.xxx/nn or xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/nnn - Standard subnet mask format</li>
+        <li>xxx.xxx.xxx.xxx-yyy or  xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx::xxxx-yyyy - A range of IP addresses in the last group</li>
+        <li>xxx.xxx or xxx.xxx. or xxx:xxx:xxxx or xxx:xxx:xxxx. - Partial IP address (match all that start with the provided part)</li>
+    </ul>
+</li>
+</ul> ';
+
 
 $string['lmbcheck'] = 'LMB Downtime Notification';
 $string['performlmbcheck'] = 'Perform LMB downtime check';
@@ -69,7 +92,7 @@ $string['filtermode'] = 'Filtering mode';
 $string['off'] = 'Off';
 $string['whitelist'] = 'Whitelist';
 $string['blacklist'] = 'Blacklist';
-$string['filtermodehelp'] = 'Term filtering allows the selective disabiling of processing of term, course, and enrollment messages that petain to filtered terms. This setting what mode the term filter will run in
+$string['filtermodehelp'] = 'Term filtering allows the selective disabiling of processing of term, course, and enrollment messages that petain to filtered terms. This setting selects what mode the term filter will run in
 <ul>
 <li>Off - No filtering will take place.
 <li>Whitelist - In whitelist mode, terms that are matched in the Filter list are processed normally. All other terms are filtered out (not processed).
@@ -198,8 +221,8 @@ $string['storexmlhelp'] = 'This dictates when XML messages from Luminis Message 
 </ul>
 ';
 
-$string['lmbusernamehelp'] = 'This is the password setting used to limit access to the LMB interface. Should match settings in Luminis Message Broker config.';
-$string['lmbpasswdhelp'] = 'This is the password setting used to limit access to the LMB interface. Should match settings in Luminis Message Broker config.';
+$string['lmbusernamehelp'] = 'This is the username setting used to limit access to the LMB interface. This, along with the password, will be used for HTTP authentication checking. Should match settings in Luminis Message Broker config.';
+$string['lmbpasswdhelp'] = 'This is the password setting used to limit access to the LMB interface.';
 $string['disablesecurityhelp'] = 'When checked, authentication on the LMB will be disabled. This creates a security hole, but may be needed for some connection setups, or testing.';
 
 $string['lmbcheckhelp'] = 'When this box is checked, a check will be run during each cron period, to verify that Luminis Message Broker is sending messages to Moodle.';
