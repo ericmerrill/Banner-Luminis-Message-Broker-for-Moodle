@@ -50,8 +50,11 @@ $config = enrol_lmb_get_config();
 $enrol = new enrol_lmb_plugin();
 $enrol->open_log_file();
 
-if (!enrol_lmb_ip_allowed(getremoteaddr(false))) {
-    $enrol->log_line('Source host not allowed.');
+$ip = getremoteaddr(false);
+if (!enrol_lmb_ip_allowed($ip)) {
+    header("HTTP/1.0 403 Forbidden");
+    header("Status: 403 Forbidden");
+    $enrol->log_line('Connection not allowed from '.$ip.' ('.gethostbyaddr($ip).')');
 
     die();
 }
@@ -100,6 +103,8 @@ if (!isset($config->disablesecurity) || (!$config->disablesecurity)) {
         }
 
     } else {
+        header("HTTP/1.0 403 Forbidden");
+        header("Status: 403 Forbidden");
         $enrol->log_line('Endpoint security not configured.');
 
         die();
@@ -127,6 +132,9 @@ $xml = file_get_contents('php://input');
 
 // Dont proceed if there is no xml present.
 if (!$xml) {
+    header("HTTP/1.0 400 Bad Request");
+    header("Status: 400 Bad Request");
+
     print '2 - POST data not received';
     exit;
 }
