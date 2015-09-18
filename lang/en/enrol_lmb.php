@@ -166,7 +166,7 @@ $string['customfield1help'] = 'Shortname of the custom field to map to.';
 $string['customfield1source'] = 'Custom profile field source';
 $string['customfield1sourcehelp'] = 'Source for the custom user profile field';
 
-$string['ignoreusernamecase'] = 'Ignore username capitalization';
+$string['ignoreusernamecase'] = 'Make usernames lowercase';
 $string['ignoreemailcase'] = 'Ignore email address capitalization';
 
 $string['sourdidfallback'] = 'Fallback to sourcedid if username not found';
@@ -339,7 +339,7 @@ $string['usernamesourcehelp'] = "This determines what will be the username of cr
 <li>useridtype - Other: Use the value supplied in the userid tag marked as indicated in the text box.
 </ul>";
 $string['otheruseridhelp'] = '';
-$string['ignoreusernamecasehelp'] = 'All usernames will be converted to lowercase when this option is selected.';
+$string['ignoreusernamecasehelp'] = 'All usernames will be converted to lowercase when this option is selected. Moodle generally requires lowercase usernames.';
 $string['ignoreemailcasehelp'] = 'All email addresses will be converted to lowercase when this option is selected.';
 $string['sourdidfallbackhelp'] = 'Set the userid to the persons sourcedid if a username is not found. In general users will not know this number, so will not be able to login, but it will create the account as a placeholder until more complete data is received.';
 $string['consolidateusershelp'] = 'If user cannot be found with the expected sourcedid(idnumber), but a username match is found, the accounts will be consolidated. Only use this option if you know that usernames are unique and will not collide.';
