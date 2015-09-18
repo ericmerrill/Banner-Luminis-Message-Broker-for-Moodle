@@ -50,66 +50,7 @@ $config = enrol_lmb_get_config();
 $enrol = new enrol_lmb_plugin();
 $enrol->open_log_file();
 
-$ip = getremoteaddr(false);
-if (!enrol_lmb_ip_allowed($ip)) {
-    header("HTTP/1.0 403 Forbidden");
-    header("Status: 403 Forbidden");
-    $enrol->log_line('Connection not allowed from '.$ip.' ('.gethostbyaddr($ip).')');
-
-    die();
-}
-
-if (!isset($config->disablesecurity) || (!$config->disablesecurity)) {
-    if ($config->lmbusername || $config->lmbpasswd) {
-        $badauth = true;
-        $realm = "LMB Interface";
-
-        if (isset($_SERVER['PHP_AUTH_DIGEST'])) {
-
-            $digest = $_SERVER['PHP_AUTH_DIGEST'];
-            preg_match_all('@(username|nonce|uri|nc|cnonce|qop|response)'.
-                            '=[\'"]?([^\'",]+)@', $digest, $t);
-            $data = array_combine($t[1], $t[2]);
-
-            $baddigest = true;
-
-            if ($data && count($data) == 7) {
-                if ($data['username'] == $config->lmbusername) {
-                    $a1 = md5($data['username'] . ':' . $realm . ':' . $config->lmbpasswd);
-                    $a2 = md5($_SERVER['REQUEST_METHOD'].':'.$data['uri']);
-                    $valid_response = md5($a1.':'.$data['nonce'].':'.$data['nc'].':'.$data['cnonce'].':'.$data['qop'].':'.$a2);
-
-                    if ($valid_response == $data['response']) {
-                        $badauth = false;
-                    }
-                }
-            }
-
-        } else if (isset($_SERVER['PHP_AUTH_USER'])) {
-            if ((addslashes($_SERVER['PHP_AUTH_USER']) == $config->lmbusername)
-                    && (addslashes($_SERVER['PHP_AUTH_PW']) == $config->lmbpasswd)) {
-                $badauth = false;
-            }
-        }
-
-        if ($badauth) {
-            header('HTTP/1.1 401 Unauthorized');
-            header('WWW-Authenticate: Digest realm="'.$realm.
-                   '",qop="auth",nonce="'.uniqid().'",opaque="'.md5($realm).'"');
-
-            $enrol->log_line('Unauthenticated LMB Connection');
-
-            die('This is an authenticated service');
-        }
-
-    } else {
-        header("HTTP/1.0 403 Forbidden");
-        header("Status: 403 Forbidden");
-        $enrol->log_line('Endpoint security not configured.');
-
-        die();
-    }
-}
+enrol_lmb_authenticate_http($enrol);
 
 // This allows sites w/o PHP Apache Module to get header info.
 if (!function_exists('getallheaders')) {
@@ -128,8 +69,6 @@ $headers = serialize(getallheaders());
 $xml = file_get_contents('php://input');
 
 
-
-
 // Dont proceed if there is no xml present.
 if (!$xml) {
     header("HTTP/1.0 400 Bad Request");
@@ -138,8 +77,6 @@ if (!$xml) {
     print '2 - POST data not received';
     exit;
 }
-
-
 
 // Place the XML if not set to 'Never'.
 if ($config->storexml != 'never') {

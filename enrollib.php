@@ -675,7 +675,7 @@ function enrol_lmb_ip_matches_list($ip, $list) {
 
     if ($filters) {
         foreach ($filters as $filter) {
-            $parts = explode(';', $filter, 2);
+            $parts = explode(':', $filter, 2);
 
             if (strcasecmp($parts[0], 'H') === 0) {
                 if (!$host) {
@@ -695,6 +695,77 @@ function enrol_lmb_ip_matches_list($ip, $list) {
     }
 
     return false;
+}
+
+/**
+ * Does remote host validation and authentication for live interfaces.
+ * This function will return headers and die if authenication fails.
+ *
+ * @param object $enrol An enrol_lmb object
+ */
+function enrol_lmb_authenticate_http($enrol) {
+    $config = enrol_lmb_get_config();
+
+    $ip = getremoteaddr(false);
+    if (!enrol_lmb_ip_allowed($ip)) {
+        header("HTTP/1.0 403 Forbidden");
+        header("Status: 403 Forbidden");
+        $enrol->log_line('Connection not allowed from '.$ip.' ('.gethostbyaddr($ip).')');
+
+        die();
+    }
+
+    if (!isset($config->disablesecurity) || (!$config->disablesecurity)) {
+        if ($config->lmbusername || $config->lmbpasswd) {
+            $badauth = true;
+            $realm = "LMB Interface";
+
+            if (isset($_SERVER['PHP_AUTH_DIGEST'])) {
+
+                $digest = $_SERVER['PHP_AUTH_DIGEST'];
+                preg_match_all('@(username|nonce|uri|nc|cnonce|qop|response)'.
+                                '=[\'"]?([^\'",]+)@', $digest, $t);
+                $data = array_combine($t[1], $t[2]);
+
+                $baddigest = true;
+
+                if ($data && count($data) == 7) {
+                    if ($data['username'] == $config->lmbusername) {
+                        $a1 = md5($data['username'] . ':' . $realm . ':' . $config->lmbpasswd);
+                        $a2 = md5($_SERVER['REQUEST_METHOD'].':'.$data['uri']);
+                        $valid_response = md5($a1.':'.$data['nonce'].':'.$data['nc'].':'.$data['cnonce'].':'.$data['qop'].':'.$a2);
+
+                        if ($valid_response == $data['response']) {
+                            $badauth = false;
+                        }
+                    }
+                }
+
+            } else if (isset($_SERVER['PHP_AUTH_USER'])) {
+                if ((addslashes($_SERVER['PHP_AUTH_USER']) == $config->lmbusername)
+                        && (addslashes($_SERVER['PHP_AUTH_PW']) == $config->lmbpasswd)) {
+                    $badauth = false;
+                }
+            }
+
+            if ($badauth) {
+                header('HTTP/1.1 401 Unauthorized');
+                header('WWW-Authenticate: Digest realm="'.$realm.
+                       '",qop="auth",nonce="'.uniqid().'",opaque="'.md5($realm).'"');
+
+                $enrol->log_line('Unauthenticated LMB Connection');
+
+                die('This is an authenticated service');
+            }
+
+        } else {
+            header("HTTP/1.0 403 Forbidden");
+            header("Status: 403 Forbidden");
+            $enrol->log_line('Endpoint security not configured.');
+
+            die();
+        }
+    }
 }
 
 // TODO create_shell_course?

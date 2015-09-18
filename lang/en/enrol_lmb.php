@@ -47,9 +47,9 @@ $string['livefilterlist'] = 'Remote-host filter list';
 $string['livefilterlisthelp'] = 'The remote-host filter list is a return delimited (one per line) list of remote machines to allow or disallow based on the Remote-host filter mode setting.<br>
 Each line will be one of the 3 following formats:
 <ul>
-<li>Hostname - <code>H;hostname.tld</code> - This will match the hostname the remote address resolves to. Regular expressions values may be used.</li>
-<li>IP Address - <code>I;192.168.2.1</code> - This will match the IP address of the remote machine. Regular expressions values may be used.</li>
-<li>Hostname - <code>S;192.168.2.0/32</code> - This will match the remote IP address against a standard subnet mask. IPv4 and IPv6 compatable. Regular expressions values may <b>not</b> be used.<br>
+<li>Hostname - <code>H:hostname.tld</code> - This will match the hostname the remote address resolves to. Regular expressions values may be used.</li>
+<li>IP Address - <code>I:192.168.2.1</code> - This will match the IP address of the remote machine. Regular expressions values may be used.</li>
+<li>Hostname - <code>S:192.168.2.0/32</code> - This will match the remote IP address against a standard subnet mask. IPv4 and IPv6 compatable. Regular expressions values may <b>not</b> be used.<br>
     3 compatable types:
     <ul>
         <li>xxx.xxx.xxx.xxx/nn or xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx/nnn - Standard subnet mask format</li>
