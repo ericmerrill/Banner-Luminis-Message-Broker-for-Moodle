@@ -1,6 +1,6 @@
 Luminis Message Broker enrollment Module.
-Version: 2.7.1
-Moodle version: 2.4.0 through 2.8.x
+Version: 2.9.0
+Moodle version: 2.5.0 through 2.9.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
@@ -13,13 +13,27 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
+Release 2.9.0
+Added option to filter live connections by hostnames and IP addresses.
+Added options to whitelist or blacklist courses and enrollments by term.
+Separated person city and address into separate settings.
+Added live import URL to the Live Import settings area.
+Number of strings updated, some settings renamed.
+Fixed bug that would cause user addresses to be overwritten.
+Fixed fatal DB error when phone, address, or city options are enabled in some cases.
+Fixed false username collisions when username capitalization does not match.
+Improved failure HTTP codes for live connections
+
+
 Release 2.7.1
 Get the term code from the XLS code if possible.
 Prevent course names longer than 255 characters.
 Moving minimum Moodle version to 2.4.
 
+
 Release 2.7.0
 Fix LMB down notification emails.
+
 
 Release 2.6.2
 Fix problem where users were not dropped from crosslists during an extract processing.
@@ -58,28 +72,14 @@ Records are no longer saved in enrol_lmb_raw_xml when storexml is set to never. 
 secure/xmlservice.php (which you probably shouldn't be using...) applies the same security as liveimport.php
 
 
-Release 2.5.0
-Fixing lmbcheck variable name (Good catch from Chris Folin CONTRIB-4263)
-Remove depreciated use of make_categories_list (CONTRIB-4299)
-Set default language when creating new users (Thanks to Charles Fulton - CONTRIB-4054)
-Fixed undefined variable error. (CONTRIB-3940)
-Moved minimum Moodle version to 2.2.0.
-
-
-Release 2.1.9
-Fix for logging to a file. (Thanks to Charles Fulton - CONTRIB-3941)
-Improve drop for crosslisted courses when crosslist is removed. Rerun XLS Drop Tool.
-Fixed DB error in some crosslist cases.
-
-
-If upgrading from a version before 2.1.0, be sure to read the full change log at:
+If upgrading from a version before 2.5.1, be sure to read the full change log at:
 https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
 
 
 GENERAL
 -------
-This enrollment plugin can digest XML from the Luminis Message Broker, allowing realtime Banner to Moodle integration,
+This enrollment plugin can digest XML from the Luminis Message Broker , allowing realtime Banner to Moodle integration,
 as well as full XML extractions from Banner.
 
 You can use this module with or without Luminis Message Broker. If you do not use Luminis Message Broker, you can instead use
