@@ -79,7 +79,7 @@ if ($ADMIN->fulltree) {
     $options[ENROL_LMB_FILTER_WHITE] = get_string('whitelist', 'enrol_lmb');
     $options[ENROL_LMB_FILTER_BLACK] = get_string('blacklist', 'enrol_lmb');
     $settingslmb->add(new admin_setting_configselect('enrol_lmb/livefiltermode', get_string('livefiltermode', 'enrol_lmb'),
-            get_string('livefiltermodehelp', 'enrol_lmb'), 'off', $options));
+            get_string('livefiltermodehelp', 'enrol_lmb'), ENROL_LMB_FILTER_OFF, $options));
 
     $settingslmb->add(new admin_setting_configtextarea('enrol_lmb/livefilterlist', get_string('livefilterlist', 'enrol_lmb'),
             get_string('livefilterlisthelp', 'enrol_lmb'), ''));
@@ -160,7 +160,7 @@ if ($ADMIN->fulltree) {
     $options[ENROL_LMB_FILTER_WHITE] = get_string('whitelist', 'enrol_lmb');
     $options[ENROL_LMB_FILTER_BLACK] = get_string('blacklist', 'enrol_lmb');
     $settingslmb->add(new admin_setting_configselect('enrol_lmb/filtermode', get_string('filtermode', 'enrol_lmb'),
-            get_string('filtermodehelp', 'enrol_lmb'), 'off', $options));
+            get_string('filtermodehelp', 'enrol_lmb'), ENROL_LMB_FILTER_OFF, $options));
 
     $settingslmb->add(new admin_setting_configtextarea('enrol_lmb/filterlist', get_string('filterlist', 'enrol_lmb'),
             get_string('filterlisthelp', 'enrol_lmb'), ''));
@@ -214,7 +214,7 @@ if ($ADMIN->fulltree) {
     }
 
     $settingslmb->add(new admin_setting_configselect('enrol_lmb/catselect', get_string('catselect', 'enrol_lmb'),
-            get_string('catselecthelp', 'enrol_lmb'), '', $displaylist));
+            get_string('catselecthelp', 'enrol_lmb'), 1, $displaylist));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/cathidden', get_string('cathidden', 'enrol_lmb'),
             get_string('cathiddenhelp', 'enrol_lmb'), 0));
@@ -318,7 +318,7 @@ if ($ADMIN->fulltree) {
             get_string('customfield1help', 'enrol_lmb'), ''));
 
     $settingslmb->add(new admin_setting_configselect('enrol_lmb/customfield1source', get_string('customfield1source', 'enrol_lmb'),
-            get_string('customfield1sourcehelp', 'enrol_lmb'), '', $options));
+            get_string('customfield1sourcehelp', 'enrol_lmb'), 'email', $options));
 
     unset($options);
     $modules = get_plugin_list('auth');
