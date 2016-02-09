@@ -223,7 +223,7 @@ if ($ADMIN->fulltree) {
             get_string('forcecathelp', 'enrol_lmb'), 1));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/usemoodlecoursesettings',
-            get_string('usemoodlecoursesettings', 'enrol_lmb'), get_string('usemoodlecoursesettingshelp', 'enrol_lmb'), 0));
+            get_string('usemoodlecoursesettings', 'enrol_lmb'), get_string('usemoodlecoursesettingshelp', 'enrol_lmb'), 1));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/computesections', get_string('computesections', 'enrol_lmb'),
             get_string('computesectionshelp', 'enrol_lmb'), 0));
