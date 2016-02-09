@@ -694,6 +694,23 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $moodlecourse = new stdClass();
 
+        // Set some preferences.
+        $moodlecourseconfig = get_config('moodlecourse');
+        if ($this->get_config('usemoodlecoursesettings') && ($moodlecourseconfig)) {
+            $logline .= 'Using default Moodle settings:';
+            foreach ($moodlecourseconfig as $key => $value) {
+                $moodlecourse->key = $value;
+            }
+        } else {
+            $logline .= 'Using hard-coded settings:';
+            $moodlecourse->format               = 'topics';
+            $moodlecourse->numsections          = 6;
+            $moodlecourse->hiddensections       = 0;
+            $moodlecourse->newsitems            = 3;
+            $moodlecourse->showgrades           = 1;
+            $moodlecourse->showreports          = 1;
+        }
+
         $moodlecourse->idnumber = $idnumber;
         $moodlecourse->timemodified = time();
 
@@ -720,33 +737,6 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         $moodlecourse->timecreated = time();
         $moodlecourse->category = $catid;
-
-        // Set some preferences.
-        $moodlecourseconfig = get_config('moodlecourse');
-        if ($this->get_config('usemoodlecoursesettings') && ($moodlecourseconfig)) {
-            $logline .= 'Using default Moodle settings:';
-            $moodlecourse->format                   = $moodlecourseconfig->format;
-            $moodlecourse->numsections              = $moodlecourseconfig->numsections;
-            $moodlecourse->hiddensections           = $moodlecourseconfig->hiddensections;
-            $moodlecourse->newsitems                = $moodlecourseconfig->newsitems;
-            $moodlecourse->showgrades               = $moodlecourseconfig->showgrades;
-            $moodlecourse->showreports              = $moodlecourseconfig->showreports;
-            $moodlecourse->maxbytes                 = $moodlecourseconfig->maxbytes;
-            $moodlecourse->groupmode                = $moodlecourseconfig->groupmode;
-            $moodlecourse->groupmodeforce           = $moodlecourseconfig->groupmodeforce;
-            $moodlecourse->lang                     = $moodlecourseconfig->lang;
-            $moodlecourse->enablecompletion         = $moodlecourseconfig->enablecompletion;
-            $moodlecourse->completionstartonenrol   = $moodlecourseconfig->completionstartonenrol;
-
-        } else {
-            $logline .= 'Using hard-coded settings:';
-            $moodlecourse->format               = 'topics';
-            $moodlecourse->numsections          = 6;
-            $moodlecourse->hiddensections       = 0;
-            $moodlecourse->newsitems            = 3;
-            $moodlecourse->showgrades           = 1;
-            $moodlecourse->showreports          = 1;
-        }
 
         if ($this->get_config('computesections')) {
             $length = $enddate - $startdate;
