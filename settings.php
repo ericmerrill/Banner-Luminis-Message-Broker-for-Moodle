@@ -324,7 +324,7 @@ if ($ADMIN->fulltree) {
             get_string('customfield1sourcehelp', 'enrol_lmb'), 'email', $options));
 
     unset($options);
-    $modules = get_plugin_list('auth');
+    $modules = \core\plugininfo\auth::get_enabled_plugins();
     $options = array();
     foreach ($modules as $module => $path) {
         $options[$module] = get_string("pluginname", "auth_".$module);
