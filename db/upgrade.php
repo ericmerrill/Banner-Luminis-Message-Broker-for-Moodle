@@ -894,5 +894,21 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         // Lmb savepoint reached.
         upgrade_plugin_savepoint(true, 2014121402, 'enrol', 'lmb');
     }
+
+    if ($oldversion < 2016020901) {
+
+        // Define field sctid to be added to enrol_lmb_people.
+        $table = new xmldb_table('enrol_lmb_people');
+        $field = new xmldb_field('sctid', XMLDB_TYPE_CHAR, '127', null, null, null, null, 'sourcedidsource');
+
+        // Conditionally launch add field sctid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Lmb savepoint reached.
+        upgrade_plugin_savepoint(true, 2016020901, 'enrol', 'lmb');
+    }
+
     return $result;
 }

@@ -147,6 +147,8 @@ $string['catselect'] = 'Selected Category';
 
 $string['parseperson'] = 'XML Parse - Person';
 $string['parsepersonxml'] = 'Parse Person XML';
+$string['recordsctid'] = 'Record SCT ID';
+$string['recordsctidhelp'] = "Record the user's SCT ID in the database. For use with grade exchange.";
 $string['createnewusers'] = 'Create user accounts for users not yet registered in Moodle';
 $string['createusersemaildomain'] = 'Only create users with email in this domain';
 $string['ignoredomaincase'] = 'Ignore domain capitalization';

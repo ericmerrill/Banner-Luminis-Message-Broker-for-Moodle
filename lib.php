@@ -1586,6 +1586,13 @@ class enrol_lmb_plugin extends enrol_plugin {
             return false;
         }
 
+        $recordsctid = $this->get_config('recordsctid');
+        if (!empty($recordsctid)) {
+            if (preg_match('{<userid.+?useridtype *= *"SCTID".*?\>(.+?)</userid>}is', $tagcontents, $matches)) {
+                $person->sctid = trim($matches[1]);
+            }
+        }
+
         // Full Name.
         if (preg_match('{<name>.*?<fn>(.+?)</fn>.*?</name>}is', $tagcontents, $matches)) {
             $person->fullname = trim($matches[1]);
@@ -1771,6 +1778,11 @@ class enrol_lmb_plugin extends enrol_plugin {
 
         if (isset($person->sourcedid)) {
             $lmbperson->sourcedid = $person->sourcedid;
+        }
+        if (isset($person->sctid)) {
+            $lmbperson->sctid = $person->sctid;
+        } else {
+            $lmbperson->sctid = null;
         }
         if (isset($person->sourcedidsource)) {
             $lmbperson->sourcedidsource = $person->sourcedidsource;

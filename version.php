@@ -15,13 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 
-$plugin->version  = 2015091700;
-
-$plugin->release = "2.9.0";
-
-$plugin->maturity = MATURITY_STABLE;
-
-
+$plugin->version  = 2016020901;
+$plugin->release = "3.0.0";
+$plugin->maturity = MATURITY_BETA;
 $plugin->requires = 2012120300;
 $plugin->component = 'enrol_lmb';
 $plugin->cron = 600;

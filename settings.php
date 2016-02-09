@@ -273,6 +273,9 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/parsepersonxml', get_string('parsepersonxml', 'enrol_lmb'),
             get_string('parsepersonxmlhelp', 'enrol_lmb'), 1));
 
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/recordsctid', get_string('recordsctid', 'enrol_lmb'),
+            get_string('recordsctidhelp', 'enrol_lmb'), 0));
+
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/createnewusers', get_string('createnewusers', 'enrol_lmb'),
             get_string('createnewusershelp', 'enrol_lmb'), 1));
 
