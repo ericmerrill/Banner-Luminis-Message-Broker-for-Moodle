@@ -45,6 +45,14 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     private $xmlcache = '';
 
+    private $catcache = array();
+
+
+    public function __construct() {
+        $this->catcache['term'] = array();
+        $this->catcache['termdept'] = array();
+        $this->catcache['dept'] = array();
+    }
 
     /**
      * Preform any cron tasks for the module.
@@ -800,7 +808,7 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function get_category_id($term, $depttitle, $deptcode, &$logline, &$status) {
         global $DB;
 
-        $cat = new Object();
+        $cat = new stdClass();
 
         if (($this->get_config('cattype') == 'deptcode') || ($this->get_config('cattype') == 'termdeptcode')) {
             $depttitle = $deptcode;
@@ -814,74 +822,93 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             case 'deptcode':
             case 'dept':
-                // TODO2 - Removed addslashes around depttitle, check.
+                if (isset($this->catcache['dept'][$depttitle])) {
+                    return $this->catcache['dept'][$depttitle];
+                }
                 if ($lmbcat = $DB->get_record('enrol_lmb_categories', array('dept' => $depttitle, 'cattype' => 'dept'))) {
-                    $cat->id = $lmbcat->categoryid;
+                    if ($DB->record_exists('course_categories', array('id' => $lmbcat->categoryid))) {
+                        $this->catcache['dept'][$depttitle] = $lmbcat->categoryid;
+                        return $lmbcat->categoryid;
+                    } else {
+                        $DB->delete_records('enrol_lmb_categories', array('dept' => $depttitle, 'cattype' => 'dept'));
+                    }
+                }
+
+                $cat->name = $depttitle;
+                if ($this->get_config('cathidden')) {
+                    $cat->visible = 0;
                 } else {
-                    $cat->name = $depttitle;
-                    if ($this->get_config('cathidden')) {
-                        $cat->visible = 0;
-                    } else {
-                        $cat->visible = 1;
-                    }
-                    $cat->sortorder = 999;
-                    if ($cat->id = $DB->insert_record('course_categories', $cat, true)) {
-                        $lmbcat = new Object();
-                        $lmbcat->categoryid = $cat->id;
-                        $lmbcat->cattype = 'dept';
-                        $lmbcat->dept = $depttitle;
+                    $cat->visible = 1;
+                }
+                $cat->sortorder = 999;
+                if ($cat->id = $DB->insert_record('course_categories', $cat, true)) {
+                    $lmbcat = new stdClass();
+                    $lmbcat->categoryid = $cat->id;
+                    $lmbcat->cattype = 'dept';
+                    $lmbcat->dept = $depttitle;
 
-                        $cat->context = context_coursecat::instance($cat->id);
-                        $cat->context->mark_dirty();
-                        fix_course_sortorder();
-                        if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
-                            $logline .= "error saving category to enrol_lmb_categories:";
-                        }
-                        $logline .= 'Created new (hidden) category:';
-                    } else {
-                        $logline .= 'error creating category:';
-                        $status = false;
+                    $cat->context = context_coursecat::instance($cat->id);
+                    $cat->context->mark_dirty();
+                    fix_course_sortorder();
+                    if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
+                        $logline .= "error saving category to enrol_lmb_categories:";
                     }
-
+                    $this->catcache['dept'][$depttitle] = $lmbcat->categoryid;
+                    $logline .= 'Created new (hidden) category:';
+                } else {
+                    $logline .= 'error creating category:';
+                    $status = false;
                 }
 
                 break;
 
             case 'termdeptcode':
             case 'termdept':
-                // TODO2 - Removed addslashes around depttitle, check.
+                $key = $term.'termdept'.$depttitle;
+                if (isset($this->catcache['termdept'][$key])) {
+                    return $this->catcache['termdept'][$key];
+                }
+
                 $params = array('termsourcedid' => $term, 'dept' => $depttitle, 'cattype' => 'termdept');
                 if ($lmbcat = $DB->get_record('enrol_lmb_categories', $params)) {
-                    $cat->id = $lmbcat->categoryid;
-                } else {
-                    if ($termid = $this->get_term_category_id($term, $logline, $status)) {
-                        $cat->name = $depttitle;
-                        if ($this->get_config('cathidden')) {
-                            $cat->visible = 0;
-                        } else {
-                            $cat->visible = 1;
-                        }
-                        $cat->parent = $termid;
-                        $cat->sortorder = 999;
-                        if ($cat->id = $DB->insert_record('course_categories', $cat, true)) {
-                            $lmbcat = new Object();
-                            $lmbcat->categoryid = $cat->id;
-                            $lmbcat->cattype = 'termdept';
-                            $lmbcat->termsourcedid = $term;
-                            $lmbcat->dept = $depttitle;
-
-                            $cat->context = context_coursecat::instance($cat->id);
-                            $cat->context->mark_dirty();
-                            fix_course_sortorder();
-                            if (!$DB->insert_record('enrol_lmb_categories', $lmbcat, true)) {
-                                $logline .= "error saving category to enrol_lmb_categories:";
-                            }
-                            $logline .= 'Created new (hidden) category:';
-                        } else {
-                            $logline .= 'error creating category:';
-                            $status = false;
-                        }
+                    if ($DB->record_exists('course_categories', array('id' => $lmbcat->categoryid))) {
+                        $this->catcache['termdept'][$key] = $lmbcat->categoryid;
+                        return $lmbcat->categoryid;
+                    } else {
+                        $DB->delete_records('enrol_lmb_categories', $params);
                     }
+                }
+                if ($termid = $this->get_term_category_id($term, $logline, $status)) {
+                    $cat->name = $depttitle;
+                    if ($this->get_config('cathidden')) {
+                        $cat->visible = 0;
+                    } else {
+                        $cat->visible = 1;
+                    }
+                    $cat->parent = $termid;
+                    $cat->sortorder = 999;
+                    if ($cat->id = $DB->insert_record('course_categories', $cat, true)) {
+                        $lmbcat = new stdClass();
+                        $lmbcat->categoryid = $cat->id;
+                        $lmbcat->cattype = 'termdept';
+                        $lmbcat->termsourcedid = $term;
+                        $lmbcat->dept = $depttitle;
+
+                        $cat->context = context_coursecat::instance($cat->id);
+                        $cat->context->mark_dirty();
+                        fix_course_sortorder();
+                        if (!$DB->insert_record('enrol_lmb_categories', $lmbcat, true)) {
+                            $logline .= "error saving category to enrol_lmb_categories:";
+                        }
+                        $this->catcache['termdept'][$key] = $lmbcat->categoryid;
+                        $logline .= 'Created new category:';
+                    } else {
+                        $logline .= 'error creating category:';
+                        $status = false;
+                    }
+                } else {
+                    $logline .= 'error creating category:';
+                    $status = false;
                 }
 
                 break;
@@ -918,45 +945,55 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function get_term_category_id($term, &$logline, &$status) {
         global $DB;
 
+        if (isset($this->catcache['term'][$term])) {
+            return $this->catcache['term'][$term];
+        }
+
         if ($lmbcat = $DB->get_record('enrol_lmb_categories', array('termsourcedid' => $term, 'cattype' => 'term'))) {
-            return $lmbcat->categoryid;
-        } else {
-            if ($lmbterm = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $term))) {
-                $cat = new stdClass();
-
-                $cat->name = $lmbterm->title;
-                if ($this->get_config('cathidden')) {
-                    $cat->visible = 0;
-                } else {
-                    $cat->visible = 1;
-                }
-
-                $cat->sortorder = 999;
-                if ($cat->id = $DB->insert_record('course_categories', $cat, true)) {
-                    $lmbcat = new Object();
-                    $lmbcat->categoryid = $cat->id;
-                    $lmbcat->termsourcedid = $lmbterm->sourcedid;
-                    $lmbcat->sourcedidsource = $lmbterm->sourcedidsource;
-                    $lmbcat->cattype = 'term';
-
-                    $cat->context = context_coursecat::instance($cat->id);
-                    $cat->context->mark_dirty();
-                    fix_course_sortorder();
-
-                    if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
-                        $logline .= "error saving category to enrol_lmb_categories:";
-                    }
-                    $logline .= 'Created new (hidden) category:';
-
-                    return $cat->id;
-                } else {
-                    $logline .= 'error creating category:';
-                    $status = false;
-                }
+            if ($DB->record_exists('course_categories', array('id' => $lmbcat->categoryid))) {
+                $this->catcache['term'][$term] = $lmbcat->categoryid;
+                return $lmbcat->categoryid;
             } else {
-                $logline .= "term does not exist, error creating category:";
+                $DB->delete_records('enrol_lmb_categories', array('termsourcedid' => $term, 'cattype' => 'term'));
+            }
+        }
+
+        if ($lmbterm = $DB->get_record('enrol_lmb_terms', array('sourcedid' => $term))) {
+            $cat = new stdClass();
+
+            $cat->name = $lmbterm->title;
+            if ($this->get_config('cathidden')) {
+                $cat->visible = 0;
+            } else {
+                $cat->visible = 1;
+            }
+
+            $cat->sortorder = 999;
+            if ($cat->id = $DB->insert_record('course_categories', $cat, true)) {
+                $lmbcat = new stdClass();
+                $lmbcat->categoryid = $cat->id;
+                $lmbcat->termsourcedid = $lmbterm->sourcedid;
+                $lmbcat->sourcedidsource = $lmbterm->sourcedidsource;
+                $lmbcat->cattype = 'term';
+
+                $cat->context = context_coursecat::instance($cat->id);
+                $cat->context->mark_dirty();
+                fix_course_sortorder();
+
+                if (!$DB->insert_record('enrol_lmb_categories', $lmbcat)) {
+                    $logline .= "error saving category to enrol_lmb_categories:";
+                }
+                $logline .= 'Created new category:';
+                $this->catcache['term'][$term] = $cat->id;
+
+                return $cat->id;
+            } else {
+                $logline .= 'error creating category:';
                 $status = false;
             }
+        } else {
+            $logline .= "term does not exist, error creating category:";
+            $status = false;
         }
 
         return false;
@@ -2641,7 +2678,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                     }
 
                     if ($enrol->status || !$enrol->succeeded) {
-                        $enrolup = new Object();
+                        $enrolup = new stdClass();
                         $enrolup->id = $enrol->id;
                         $enrolup->timemodified = time();
                         $enrolup->status = 0;
@@ -2729,7 +2766,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             $groupid = false;
         }
 
-        $enrolup = new object();
+        $enrolup = new stdClass();
         $enrolup->id = $enrol->id;
 
         if ($newcoursedid) {
