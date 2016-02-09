@@ -431,9 +431,11 @@ function enrol_lmb_compare_objects($new, $old) {
         return false;
     }
 
+    $oldparams = get_object_vars($old);
+
     foreach ($new as $key => $val) {
         if ($key != 'timemodified') {
-            if (!isset($old->$key) || ($new->$key != $old->$key)) {
+            if (!array_key_exists($key, $oldparams) || ($new->$key != $old->$key)) {
                 return true;
             }
         }
