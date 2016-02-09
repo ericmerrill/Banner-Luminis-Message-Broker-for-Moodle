@@ -2111,16 +2111,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
             } else if ($this->get_config('imsdeleteusers') && ($lmbperson->recstatus == 3)
                     && ($moodleuser = $DB->get_record('user', array('idnumber' => $lmbperson->idnumber)))) {
-                $deleteuser = new object();
-                $deleteuser->id           = $moodleuser->id;
-                $deleteuser->deleted      = 1;
-                // TODO2 $deleteuser->username     = addslashes("$moodleuser->email.".time());  // Remember it just in case.
-                $deleteuser->username     = "$moodleuser->email.".time();  // Remember it just in case
-                $deleteuser->email        = '';               // Clear this field to free it up.
-                $deleteuser->idnumber     = '';               // Clear this field to free it up.
-                $deleteuser->timemodified = time();
-
-                if ($id = $DB->update_record('user', $deleteuser)) {
+                if (delete_user($moodleuser)) {
                     $logline .= 'deleted user:';
                     $deleted = true;
                 } else {
