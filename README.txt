@@ -1,6 +1,6 @@
 Luminis Message Broker enrollment Module.
-Version: 2.9.0
-Moodle version: 2.5.0 through 2.9.x
+Version: 3.0.0
+Moodle version: 2.6.0 through 3.0.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
@@ -12,6 +12,17 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 3.0.0
+Change default for "Use Moodle default course settings" to true.
+Improve handling of Moodle default course settings.
+Fix bug with missing/deleted categories.
+Use the Moodle delete_user library function.
+Only show enabled auth plugins on the settings page.
+Add option to record SCT ID to the database. For upcoming grade exchange work.
+Fix a bug that was causing unneeded database updates.
+Add defaults for settings missing them (Thanks to Charles Fulton).
+
 
 Release 2.9.0
 Added option to filter live connections by hostnames and IP addresses.
