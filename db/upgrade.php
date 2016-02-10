@@ -910,5 +910,21 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2016020901, 'enrol', 'lmb');
     }
 
+    if ($oldversion < 2016020902) {
+
+        // Define field extractstatus to be added to enrol_lmb_crosslists.
+        $table = new xmldb_table('enrol_lmb_crosslists');
+        $field = new xmldb_field('extractstatus', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'type');
+
+        // Conditionally launch add field extractstatus.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Lmb savepoint reached.
+        upgrade_plugin_savepoint(true, 2016020902, 'enrol', 'lmb');
+    }
+
+
     return $result;
 }

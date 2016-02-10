@@ -40,6 +40,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     public $processid = 0;
     private $terms = array();
+    private $xlsterms = array();
 
     private $customfields = array();
 
@@ -367,7 +368,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($this->get_config('bannerxmlfoldercomp')) {
             $this->process_extract_drops();
         }
-
+$this->process_crosslist_drops();
         if ($this->get_config('usestatusfiles')) {
             unlink($processfile);
             fclose(fopen($donefile, 'x'));
@@ -1206,6 +1207,18 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($status) {
             foreach ($xlists as $xlist) {
                 $xlist->type = $type;
+                if ($this->processid) {
+                    $xlist->extractstatus = $this->processid;
+                    if ($term) {
+                        if (!isset($this->xlsterms[$term])) {
+                            $this->xlsterms[$term] = array();
+                        }
+                        if (!isset($this->xlsterms[$term][$xlist->crosssourcedidsource])) {
+                            $this->xlsterms[$term][$xlist->crosssourcedidsource] = 0;
+                        }
+                        $this->xlsterms[$term][$xlist->crosssourcedidsource]++;
+                    }
+                }
                 $params = array('crosslistsourcedid' => $xlist->crosslistsourcedid, 'coursesourcedid' => $xlist->coursesourcedid);
                 if ($oldxlist = $DB->get_record('enrol_lmb_crosslists', $params)) {
                     $xlist->id = $oldxlist->id;
@@ -2599,6 +2612,73 @@ class enrol_lmb_plugin extends enrol_plugin {
     }
 
 
+    /**
+     * Drops all enrolments that not been updated by this extract.
+     * Since an extract is comprehensive, we track all enrolemnts that
+     * were not updated by the extract import.
+     * All the remaining ones are assumed to have dropped, and so we set their
+     * status to 0, and unassign the role assignment from moodle.
+     *
+     * This should only ever be called at the end of an extract process, or
+     * users may get un-intentionally unenrolled from courses
+     *
+     * @return bool success or failure of the drops
+     */
+    public function process_crosslist_drops() {
+        global $CFG, $DB;
+        $status = true;
+
+        foreach ($this->xlsterms as $term => $sources) {
+            foreach ($sources as $source => $count) {
+                $this->log_line('Processing crosslist drops for term '.$term.' source '.$source);
+
+                $sqlparams = array('term' => '%'.$term, 'status' => 1, 'source' => $source);
+                $select = 'crosslistsourcedid LIKE :term AND status = :status AND crosssourcedidsource = :source';
+                $xlscnt = $DB->count_records_select('enrol_lmb_crosslists', $select, $sqlparams);
+
+                $sqlparams = array('processid' => $this->processid, 'term' => '%'.$term, 'status' => 1, 'source' => $source);
+                $select = 'extractstatus < :processid AND crosslistsourcedid LIKE :term '
+                        .'AND status = :status AND crosssourcedidsource = :source';
+                $dropcnt = $DB->count_records_select('enrol_lmb_crosslists', $select, $sqlparams);
+
+                $percent = (int)ceil(($dropcnt/$xlscnt)*100);
+
+                $this->log_line('Dropping '.$dropcnt.' out of '.$xlscnt.' ('.$percent.'%) crosslists.');
+
+                if ($percent > $this->get_config('dropprecentlimit')) {
+                    $this->log_line('Exceeds the drop percent limit, skipping term/source.');
+                    continue;
+                }
+
+                $xlss = $DB->get_recordset_select('enrol_lmb_crosslists', $select, $sqlparams);
+
+                if ($xlss->valid()) {
+                    $curr = 0;
+                    $percent = 0;
+                    $csourcedid = '';
+
+                    $this->log_line($count.' records to process');
+                    foreach ($xlss as $xls) {
+                        $logline = $xls->crosslistsourcedid.':'.$xls->coursesourcedid.':';
+
+                        $enrolstatus = true;
+
+                        $cperc = (int)floor(($curr/$dropcnt)*100);
+                        if ($cperc > $percent) {
+                            $percent = $cperc;
+                            if ($this->get_config('logpercent')) {
+                                $this->log_line($percent.'% complete');
+                            }
+                        }
+                        $curr++;
+
+
+                    }
+                }
+                $xlss->close();
+            }
+        }
+    }
 
     /**
      * Drops all enrolments that not been updated by this extract.

@@ -111,6 +111,7 @@
         <FIELD NAME="status" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="The current status of the enrolment"/>
         <FIELD NAME="manual" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Is a manual XLS"/>
         <FIELD NAME="type" TYPE="char" LENGTH="8" NOTNULL="false" SEQUENCE="false" COMMENT="Is this a merged or meta crosslist?"/>
+        <FIELD NAME="extractstatus" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
