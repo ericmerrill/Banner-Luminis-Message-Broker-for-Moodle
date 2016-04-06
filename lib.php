@@ -699,7 +699,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         if ($this->get_config('usemoodlecoursesettings') && ($moodlecourseconfig)) {
             $logline .= 'Using default Moodle settings:';
             foreach ($moodlecourseconfig as $key => $value) {
-                $moodlecourse->key = $value;
+                $moodlecourse->$key = $value;
             }
         } else {
             $logline .= 'Using hard-coded settings:';
