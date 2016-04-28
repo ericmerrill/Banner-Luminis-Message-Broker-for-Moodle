@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 3.0.0
+Version: 3.0.1
 Moodle version: 2.6.0 through 3.0.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -12,6 +12,10 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 3.0.1
+Fix typo in setting up course default settings. Thanks to Michael Spall.
+
 
 Release 3.0.0
 Change default for "Use Moodle default course settings" to true.
