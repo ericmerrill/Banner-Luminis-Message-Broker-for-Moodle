@@ -17,6 +17,7 @@ Since 3.0.1
 Add support for course end dates, and a tool to backfill course end dates for a term.
 Fix error on enrollment methods page due to missing can_hide_show_instance().
 Change instance_deleteable() to can_delete_instance().
+Fix error in ignore domain case setting. Thanks to Charles Fulton.
 
 
 Release 3.0.1
