@@ -387,6 +387,7 @@ $string['page_extractprocess'] = 'Process Extract';
 $string['page_reprocessenrolments'] = 'Reprocess Enrolments';
 $string['page_prunelmbtables'] = 'Prune Tables';
 $string['page_cleanxlsdrops'] = 'Clean XLS Drops';
+$string['page_backfillenddates'] = 'Backfill Course End Dates';
 $string['tools'] = 'Tools';
 
 $string['lmb:enrol'] = 'Enrol users';

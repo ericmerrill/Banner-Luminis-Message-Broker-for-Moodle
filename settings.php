@@ -467,3 +467,6 @@ $settings->add("enroltoolsscat", new admin_externalpage('enroltoolprune', get_st
 
 $settings->add("enroltoolsscat", new admin_externalpage('enrolcleanxlsdrops', get_string('page_cleanxlsdrops', 'enrol_lmb'),
         "$CFG->wwwroot/enrol/lmb/tools/cleanxlsdrops.php", "moodle/role:manage"));
+
+$settings->add("enroltoolsscat", new admin_externalpage('enrolbackfillenddates', get_string('page_backfillenddates', 'enrol_lmb'),
+        "$CFG->wwwroot/enrol/lmb/tools/backfillenddates.php", "moodle/role:manage"));

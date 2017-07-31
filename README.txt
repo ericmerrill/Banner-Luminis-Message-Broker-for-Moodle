@@ -13,6 +13,10 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
+Since 3.0.1
+Add support for course end dates, and a tool to backfill course end dates for a term.
+
+
 Release 3.0.1
 Fix typo in setting up course default settings. Thanks to Michael Spall.
 

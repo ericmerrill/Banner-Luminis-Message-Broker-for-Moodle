@@ -480,6 +480,31 @@ function enrol_lmb_retry_term_enrolments($termid) {
     return $status;
 }
 
+function enrol_lmb_backfill_end_dates($termid) {
+    global $DB;
+
+    $lmbcourserecs = $DB->get_recordset('enrol_lmb_courses', array('term' => $termid));
+    foreach ($lmbcourserecs as $rec) {
+        print "Setting course {$rec->sourcedid} to end data {$rec->enddate}.<br>\n";
+        $DB->set_field('course', 'enddate', $rec->enddate, array('idnumber' => $rec->sourcedid));
+    }
+    $lmbcourserecs->close();
+
+    $enrol = new enrol_lmb_plugin();
+
+    $sql = "SELECT DISTINCT crosslistsourcedid AS xlsid FROM {enrol_lmb_crosslists} WHERE crosslistsourcedid LIKE ?";
+    $lmbxlsrecs = $DB->get_recordset_sql($sql, array('%'.$termid));
+    foreach ($lmbxlsrecs as $rec) {
+        $enddate = $enrol->get_crosslist_endtime($rec->xlsid);
+        if (!empty($enddate)) {
+            print "Setting crosslist {$rec->xlsid} to end data {$enddate}.<br>\n";
+            $DB->set_field('course', 'enddate', $enddate, array('idnumber' => $rec->xlsid));
+        }
+    }
+    $lmbxlsrecs->close();
+
+    print "Complete.<br>\n";
+}
 
 /**
  * Generate a new internal crosslist id number

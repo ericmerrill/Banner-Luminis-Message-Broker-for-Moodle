@@ -586,6 +586,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
 
             $moodlecourse->startdate = $course->startdate;
+            $moodlecourse->enddate = $course->enddate;
 
             if ($this->get_config('forcecomputesections') && $this->get_config('computesections')) {
                 $moodlecourseconfig = get_config('moodlecourse');
@@ -718,6 +719,7 @@ class enrol_lmb_plugin extends enrol_plugin {
         $moodlecourse->fullname = $name;
 
         $moodlecourse->startdate = $startdate;
+        $moodlecourse->enddate = $enddate;
 
         if ($this->get_config('coursehidden') == 'never') {
             $moodlecourse->visible = 1;
