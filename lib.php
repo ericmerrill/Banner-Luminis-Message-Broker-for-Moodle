@@ -1893,7 +1893,7 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                 $domain = trim($domain[1]);
 
-                if (isset($CFG->ignoredomaincase) && $CFG->ignoredomaincase) {
+                if ($this->get_config('ignoredomaincase')) {
                     $matchappend = 'i';
                 } else {
                     $matchappend = '';
