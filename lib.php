@@ -3106,5 +3106,9 @@ class enrol_lmb_plugin extends enrol_plugin {
         */
     }
 
+    public function can_hide_show_instance() {
+        return true;
+    }
+
 } // End of class.
 

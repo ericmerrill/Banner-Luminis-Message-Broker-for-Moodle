@@ -1,6 +1,6 @@
 Luminis Message Broker enrollment Module.
-Version: 3.0.1
-Moodle version: 2.6.0 through 3.0.x
+Version: 3.2.0
+Moodle version: 2.8.0 through 3.1.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
@@ -12,6 +12,11 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+=======
+Release 3.2.0
+Fix error on enrollment methods page due to missing can_hide_show_instance().
+
 
 Release 3.0.1
 Fix typo in setting up course default settings. Thanks to Michael Spall.
