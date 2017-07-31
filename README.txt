@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 3.2.0
+Version: 3.1.0
 Moodle version: 2.8.0 through 3.1.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -14,7 +14,7 @@ RECENT CHANGES
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
 =======
-Release 3.2.0
+Release 3.1.0
 Fix error on enrollment methods page due to missing can_hide_show_instance().
 Fix error in ignore domain case setting. Thanks to Charles Fulton.
 Change instance_deleteable() to can_delete_instance().
