@@ -1,6 +1,6 @@
 Luminis Message Broker enrollment Module.
-Version: 3.0.1+
-Moodle version: 2.6.0 through 3.0.x
+Version: 3.3.0
+Moodle version: 3.2.0 through 3.3.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
@@ -13,7 +13,7 @@ RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
-Since 3.0.1
+Release 3.3.0
 Add support for course end dates, and a tool to backfill course end dates for a term.
 Fix error on enrollment methods page due to missing can_hide_show_instance().
 Change instance_deleteable() to can_delete_instance().
