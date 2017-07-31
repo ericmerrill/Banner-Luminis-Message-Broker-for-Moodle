@@ -780,7 +780,7 @@ class enrol_lmb_plugin extends enrol_plugin {
      * @param object $instance
      * @return bool
      */
-    public function instance_deleteable($instance) {
+    public function can_delete_instance($instance) {
         return false;
     }// TODO - make option?
 
