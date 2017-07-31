@@ -17,6 +17,7 @@ View full change log at https://github.com/merrill-oakland/Banner-Luminis-Messag
 Release 3.2.0
 Fix error on enrollment methods page due to missing can_hide_show_instance().
 Fix error in ignore domain case setting. Thanks to Charles Fulton.
+Change instance_deleteable() to can_delete_instance().
 
 
 Release 3.0.1
