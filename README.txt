@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 3.3.0
+Version: 3.3.1
 Moodle version: 3.2.0 through 3.3.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -12,6 +12,9 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 3.3.1
+Improve handling of start and end times for crosslists. Thanks to Charles Fulton.
 
 Release 3.3.0
 Add support for course end dates, and a tool to backfill course end dates for a term.

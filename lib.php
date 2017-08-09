@@ -1259,10 +1259,10 @@ class enrol_lmb_plugin extends enrol_plugin {
                 unset($moodlecourse);
                 $moodlecourse = new stdClass();
 
+                $starttime = $this->get_crosslist_starttime($xlist->crosslistsourcedid);
                 $enddate = $this->get_crosslist_endtime($xlist->crosslistsourcedid);
                 $params = array('idnumber' => $xlist->crosslistsourcedid);
                 if ($substatus && !$moodlecourse->id = $DB->get_field('course', 'id', $params)) {
-                    $starttime = $this->get_crosslist_starttime($xlist->crosslistsourcedid);
                     $moodlecourse->id = $this->create_shell_course($xlist->crosslistsourcedid, 'Crosslisted Course',
                                                 $xlist->crosslistsourcedid, $catid,
                                                 $logline, $substatus, $meta, $starttime, $enddate);
@@ -1278,17 +1278,20 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $this->get_config('xlsshorttitledivider'));
 
                     // TODO We should recompute the hidden status if this changes.
-                    $moodlecourse->startdate = $this->get_crosslist_starttime($xlist->crosslistsourcedid);
+                    $moodlecourse->startdate = $starttime;
+                    $moodlecourse->enddate = $enddate;
 
                     if ($this->get_config('forcecomputesections') && $this->get_config('computesections')) {
                         $moodlecourseconfig = get_config('moodlecourse');
 
-                        $length = $enddate - $moodlecourse->startdate;
+                        if (!empty($enddate) && !empty($moodlecourse->startdate)) {
+                            $length = $enddate - $moodlecourse->startdate;
 
-                        $length = ceil(($length/(24*3600)/7));
+                            $length = ceil(($length/(24*3600)/7));
 
-                        if (($length > 0) && ($length <= $moodlecourseconfig->maxsections)) {
-                            $moodlecourse->numsections = $length;
+                            if (($length > 0) && ($length <= $moodlecourseconfig->maxsections)) {
+                                $moodlecourse->numsections = $length;
+                            }
                         }
                     }
 
@@ -1495,7 +1498,7 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
             }
 
-            if ($course = $courses[0]) {
+            if (!empty($courses) && $course = $courses[0]) {
                 $title = enrol_lmb_expand_course_title($course, $title);
 
                 $i = 1;
@@ -1540,6 +1543,10 @@ class enrol_lmb_plugin extends enrol_plugin {
                 }
             }
 
+            if (empty($enddates)) {
+                return 0;
+            }
+
             if ($enddate = $enddates[0]) {
                 rsort($enddates);
 
@@ -1567,6 +1574,11 @@ class enrol_lmb_plugin extends enrol_plugin {
                 if ($startdate = $DB->get_field('enrol_lmb_courses', 'startdate', $params)) {
                     array_push($startdates, $startdate);
                 }
+            }
+
+            if (empty($startdates)) {
+                // We didn't get a start time, so just do now...
+                return time();
             }
 
             if ($startdate = $startdates[0]) {
