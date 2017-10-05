@@ -2032,6 +2032,9 @@ class enrol_lmb_plugin extends enrol_plugin {
                                     $this->update_custom_mapping($moodleuser->id, $lmbperson->customfield1,
                                         $this->get_config('customfield1mapping'));
                                 }
+
+                                // Trigger user_updated event.
+                                \core\event\user_updated::create_from_userid($moodleuser->id)->trigger();
                             } else {
                                 $logline .= 'failed to update user:';
                                 $status = false;
@@ -2120,6 +2123,9 @@ class enrol_lmb_plugin extends enrol_plugin {
                                 }
                                 $moodleuser->id = $id;
                                 $newuser = true;
+
+                                // Trigger user_created event.
+                                \core\event\user_created::create_from_userid($moodleuser->id)->trigger();
 
                                 $status = $status && $this->restore_user_enrolments($lmbperson->sourcedid);
 
