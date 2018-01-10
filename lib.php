@@ -518,12 +518,16 @@ class enrol_lmb_plugin extends enrol_plugin {
             $date = explode('-', trim($matches[1]));
 
             $course->startdate = make_timestamp($date[0], $date[1], $date[2]);
+        } else {
+            $course->startdate = 0;
         }
 
         if (preg_match('{<timeframe>.*?<end.*?\>(.+?)</end>.*?</timeframe>}is', $tagcontents, $matches)) {
             $date = explode('-', trim($matches[1]));
 
             $course->enddate = make_timestamp($date[0], $date[1], $date[2]);
+        } else {
+            $course->enddate = 0;
         }
 
         if (preg_match('{<org>.*?<orgunit>(.+?)</orgunit>.*?</org>}is', $tagcontents, $matches)) {
@@ -694,6 +698,14 @@ class enrol_lmb_plugin extends enrol_plugin {
         $status = true;
 
         $moodlecourse = new stdClass();
+
+        if (empty($enddate)) {
+            $enddate = 0;
+        }
+
+        if (empty($startdate)) {
+            $startdate = 0;
+        }
 
         // Set some preferences.
         $moodlecourseconfig = get_config('moodlecourse');
