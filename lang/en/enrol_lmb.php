@@ -288,7 +288,7 @@ $string['cathiddenhelp'] = 'Create new categories as hidden.';
 $string['forcecathelp'] = 'This option will cause the category to changed to the above setting whenever a LMB/Banner update occurs, even if it has been manually changed.';
 $string['usemoodlecoursesettingshelp'] = 'When creating a new course, use the default course setting options found in the Moodle admin settings, instead of the settings hard-coded in this module.';
 $string['computesectionshelp'] = 'Compute the number of sections/topics to display, based on the number of weeks in a course.';
-$string['forcecomputesectionshelp'] = 'Force section count on update.';
+$string['forcecomputesectionshelp'] = 'Force section count on update, but only more than existing, never removes sections.';
 
 
 $string['parsexlsxmlhelp'] = 'When checked, Crosslist XML will be processed. Course XML parsing must be on. When unchecked, records will be completely skipped.';
