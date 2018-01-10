@@ -1,6 +1,6 @@
 Luminis Message Broker enrollment Module.
-Version: 3.3.1
-Moodle version: 3.2.0 through 3.3.x
+Version: 3.4.0 Beta
+Moodle version: 3.2.0 through 3.4.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
