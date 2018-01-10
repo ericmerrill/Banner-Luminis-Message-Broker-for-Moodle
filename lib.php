@@ -595,7 +595,7 @@ class enrol_lmb_plugin extends enrol_plugin {
             if ($this->get_config('forcecomputesections') && $this->get_config('computesections')) {
                 $moodlecourseconfig = get_config('moodlecourse');
                 $existing = $DB->get_fieldset_sql('SELECT section from {course_sections} WHERE course = ?', [$moodlecourse->id]);
-                $existingcount = count($existing);
+                $existingcount = count($existing) - 1;
 
                 $length = $course->enddate - $course->startdate;
 
@@ -607,11 +607,11 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $length = $moodlecourseconfig->maxsections;
                 }
 
-                if (($length + 1) > $existingcount) {
+                if ($length > $existingcount) {
                     $newsections = array_diff(range(0, $length), $existing);
-                    foreach ($newsections as $sectionnum) {
-                        course_create_section($moodlecourse->id, $sectionnum, true);
-                    }
+                    course_create_sections_if_missing($moodlecourse->id, range(0, $length));
+
+                    $moodlecourse->numsections = $length;
                 }
             }
 
