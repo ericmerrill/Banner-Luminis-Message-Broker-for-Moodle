@@ -1298,8 +1298,17 @@ class enrol_lmb_plugin extends enrol_plugin {
                             $this->get_config('xlsshorttitledivider'));
 
                     // TODO We should recompute the hidden status if this changes.
-                    $moodlecourse->startdate = $starttime;
-                    $moodlecourse->enddate = $enddate;
+                    if (empty($startdate)) {
+                        $moodlecourse->startdate = 0;
+                    } else {
+                        $moodlecourse->startdate = $startdate;
+                    }
+
+                    if (empty($enddate)) {
+                        $moodlecourse->enddate = 0;
+                    } else {
+                        $moodlecourse->enddate = $enddate;
+                    }
 
                     if ($this->get_config('forcecomputesections') && $this->get_config('computesections')) {
                         $moodlecourseconfig = get_config('moodlecourse');
