@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 3.4.0 Beta
+Version: 3.4.0
 Moodle version: 3.2.0 through 3.4.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -12,6 +12,11 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 3.4.0
+Fix error fatal with course sections that come through with no end date
+Fix error where the correct number of course sections may not be built in some cases.
+Fix error when adding an unknown course to a crosslist.
 
 Release 3.3.1
 Improve handling of start and end times for crosslists. Thanks to Charles Fulton.
