@@ -1279,13 +1279,13 @@ class enrol_lmb_plugin extends enrol_plugin {
                 unset($moodlecourse);
                 $moodlecourse = new stdClass();
 
-                $starttime = $this->get_crosslist_starttime($xlist->crosslistsourcedid);
+                $startdate = $this->get_crosslist_starttime($xlist->crosslistsourcedid);
                 $enddate = $this->get_crosslist_endtime($xlist->crosslistsourcedid);
                 $params = array('idnumber' => $xlist->crosslistsourcedid);
                 if ($substatus && !$moodlecourse->id = $DB->get_field('course', 'id', $params)) {
                     $moodlecourse->id = $this->create_shell_course($xlist->crosslistsourcedid, 'Crosslisted Course',
                                                 $xlist->crosslistsourcedid, $catid,
-                                                $logline, $substatus, $meta, $starttime, $enddate);
+                                                $logline, $substatus, $meta, $startdate, $enddate);
                 }
 
                 if ($substatus && $moodlecourse->id) {
