@@ -1362,9 +1362,9 @@ class enrol_lmb_plugin extends enrol_plugin {
 
                 if ($substatus && !$meta && isset($xlist->newrecord) && $xlist->newrecord) {
                     $count = 0;
-                    // TODO - removing at some future version.
-                    if ($CFG->version >= 2013111800) {
-                        $courseid = $DB->get_field('course', 'id', array('idnumber' => $xlist->coursesourcedid));
+
+                    $courseid = $DB->get_field('course', 'id', array('idnumber' => $xlist->coursesourcedid));
+                    if ($courseid) {
                         $coursemodinfo = course_modinfo::instance($courseid, -1);
 
                         $instances = $coursemodinfo->get_instances();
@@ -1373,23 +1373,17 @@ class enrol_lmb_plugin extends enrol_plugin {
                                 $count += count($instance);
                             }
                         }
-                    } else {
-                        if (!$modinfo = $DB->get_field('course', 'modinfo', array('idnumber' => $xlist->coursesourcedid))) {
-                            $modinfo = '';
+
+
+                        if ($count <= 1) {
+                            enrol_lmb_drop_all_users($xlist->coursesourcedid, 2, true);
                         }
 
-                        $modinfo = unserialize($modinfo);
-                        $count = count($modinfo);
-                    }
-
-                    if ($count <= 1) {
-                        enrol_lmb_drop_all_users($xlist->coursesourcedid, 2, true);
-                    }
-
-                    $substatus = $substatus && enrol_lmb_drop_all_users($xlist->coursesourcedid, 1, true);
-                    if (!$substatus) {
-                        $errormessage = 'Error removing students from course '.$xlist->coursesourcedid;
-                        $errorcode = 10;
+                        $substatus = $substatus && enrol_lmb_drop_all_users($xlist->coursesourcedid, 1, true);
+                        if (!$substatus) {
+                            $errormessage = 'Error removing students from course '.$xlist->coursesourcedid;
+                            $errorcode = 10;
+                        }
                     }
 
                     $substatus = $substatus && enrol_lmb_restore_users_to_course($xlist->coursesourcedid);
