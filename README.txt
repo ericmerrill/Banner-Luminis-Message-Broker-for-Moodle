@@ -1,5 +1,5 @@
 Luminis Message Broker enrollment Module.
-Version: 3.4.0
+Version: 3.4.1
 Moodle version: 3.2.0 through 3.4.x
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
@@ -12,6 +12,9 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 RECENT CHANGES
 --------------
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
+
+Release 3.4.1
+Fix fatal errors - remove references to the Object class
 
 Release 3.4.0
 Fix error fatal with course sections that come through with no end date
