@@ -128,7 +128,7 @@ function enrol_lmb_create_crosslist_group($lmbcrosslist) {
 
     $config = enrol_lmb_get_config();
 
-    $data = new Object();
+    $data = new stdClass();
     $data->courseid = $mdlcourse->id;
     $data->name = enrol_lmb_expand_course_title($lmbcourse, $config->coursetitle);
     $data->timecreated = time();
@@ -137,7 +137,7 @@ function enrol_lmb_create_crosslist_group($lmbcrosslist) {
         return false;
     }
 
-    $crossup = new Object();
+    $crossup = new stdClass();
     $crossup->id = $lmbcrosslist->id;
     $crossup->crosslistgroupid = $groupid;
     $DB->update_record('enrol_lmb_crosslists', $crossup);

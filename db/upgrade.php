@@ -390,13 +390,13 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         $result = $result && $dbman->create_table($table);
 
         $depts = get_records_sql('SELECT MIN(id), depttitle FROM '.$CFG->prefix.'lmb_courses GROUP BY depttitle');
-        $xl = new Object();
+        $xl = new stdClass();
         $xl->depttitle = 'Crosslisted';
         $depts[] = $xl;
         if ($terms = get_records('lmb_terms')) {
             foreach ($terms as $term) {
                 if ($term->categoryid) {
-                    $cat = new Object();
+                    $cat = new stdClass();
                     $cat->categoryid = $term->categoryid;
                     $cat->termsourcedid = $term->sourcedid;
                     $cat->sourcedidsource = $term->sourcedidsource;
@@ -409,7 +409,7 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
                         foreach ($depts as $dept) {
                             if ($catid = get_field('course_categories', 'id', 'name',
                                         addslashes($dept->depttitle), 'parent', $term->categoryid)) {
-                                $cat = new Object();
+                                $cat = new stdClass();
                                 $cat->categoryid = $catid;
                                 $cat->termsourcedid = $term->sourcedid;
                                 $cat->sourcedidsource = $term->sourcedidsource;
@@ -428,7 +428,7 @@ function xmldb_enrol_lmb_upgrade($oldversion=0) {
         if ($depts) {
             foreach ($depts as $dept) {
                 if ($catid = get_field('course_categories', 'id', 'name', addslashes($dept->depttitle), 'parent', 0)) {
-                    $cat = new Object();
+                    $cat = new stdClass();
                     $cat->categoryid = $catid;
                     $cat->dept = $dept->depttitle;
                     $cat->cattype = 'dept';
