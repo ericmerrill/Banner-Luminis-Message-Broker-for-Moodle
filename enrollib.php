@@ -268,7 +268,7 @@ function enrol_lmb_drop_all_users($idnumber, $role = null, $original = false) {
             $enrolmod = new enrol_lmb_plugin();
 
             foreach ($enrols as $enrol) {
-                $enrolup = new object();
+                $enrolup = new stdClass();
 
                 $enrolup->succeeded = 0;
 
