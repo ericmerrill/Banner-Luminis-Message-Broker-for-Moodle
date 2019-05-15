@@ -853,6 +853,18 @@ class enrol_lmb_plugin extends enrol_plugin {
                     $cat->visible = 1;
                 }
                 $cat->sortorder = 999;
+
+                if ($this->get_config('catnested')) {
+                    if ($this->get_config('catselect') > 0) {
+                        $cat->parent = $this->get_config('catselect');
+                    } else {
+                        $logline .= "category not selected:";
+                        $status = false;
+
+                        break; 
+                    }
+                }
+
                 if ($cat->id = $DB->insert_record('course_categories', $cat, true)) {
                     $lmbcat = new stdClass();
                     $lmbcat->categoryid = $cat->id;
@@ -978,6 +990,17 @@ class enrol_lmb_plugin extends enrol_plugin {
                 $cat->visible = 0;
             } else {
                 $cat->visible = 1;
+            }
+
+            if ($this->get_config('catnested')) {
+                if ($this->get_config('catselect') > 0) {
+                    $cat->parent = $this->get_config('catselect');
+                } else {
+                    $logline .= "category not selected:";
+                    $status = false;
+
+                    return false; 
+                }
             }
 
             $cat->sortorder = 999;

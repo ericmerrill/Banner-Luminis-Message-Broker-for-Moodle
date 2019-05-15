@@ -216,6 +216,9 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configselect('enrol_lmb/catselect', get_string('catselect', 'enrol_lmb'),
             get_string('catselecthelp', 'enrol_lmb'), 1, $displaylist));
 
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/catnested', get_string('catnested', 'enrol_lmb'),
+            get_string('catnestedhelp', 'enrol_lmb'), 0));
+
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/cathidden', get_string('cathidden', 'enrol_lmb'),
             get_string('cathiddenhelp', 'enrol_lmb'), 0));
 

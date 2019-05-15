@@ -118,6 +118,7 @@ $string['coursehiddennever'] = 'Never';
 $string['coursehiddencron'] = 'Based on cron setting';
 $string['coursehiddenalways'] = 'Always';
 $string['cathidden'] = 'Create new categories as hidden';
+$string['catnested'] = 'Nest new categories under the selected course';
 $string['forcecat'] = 'Force category on update';
 $string['usemoodlecoursesettings'] = 'Use Moodle default course settings';
 $string['computesections'] = 'Compute number of sections';
@@ -285,6 +286,7 @@ $string['categorytypehelp'] = 'This allows you select what categories you would 
 </ul>';
 $string['catselecthelp'] = '';
 $string['cathiddenhelp'] = 'Create new categories as hidden.';
+$string['catnestedhelp'] = 'When checked, new categories will be created within the selected category. If this option is left unchecked, categories will be created in the root space. This option has no effect when the \'Selected\' category option is used.';
 $string['forcecathelp'] = 'This option will cause the category to changed to the above setting whenever a LMB/Banner update occurs, even if it has been manually changed.';
 $string['usemoodlecoursesettingshelp'] = 'When creating a new course, use the default course setting options found in the Moodle admin settings, instead of the settings hard-coded in this module.';
 $string['computesectionshelp'] = 'Compute the number of sections/topics to display, based on the number of weeks in a course.';
