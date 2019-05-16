@@ -203,9 +203,16 @@ if ($ADMIN->fulltree) {
     $settingslmb->add(new admin_setting_configselect('enrol_lmb/cattype', get_string('categorytype', 'enrol_lmb'),
             get_string('categorytypehelp', 'enrol_lmb'), 'term', $options));
 
+    
+
+    $moodleversion = $CFG->version;
+
+    if ($moodleversion >= 2018120300) { // Moodle 3.6 changed coursecat to core_course_category
+        $displaylist = \core_course_category::make_categories_list();
+    }
     // Check for coursecat::make_categories_list, new in 2.5.
     // Old make_categories_list() depricated in 2.5.
-    if (method_exists('coursecat', 'make_categories_list')) {
+    elseif (method_exists('coursecat', 'make_categories_list')) {
         $displaylist = coursecat::make_categories_list();
     } else {
         $displaylist = array();
@@ -215,6 +222,9 @@ if ($ADMIN->fulltree) {
 
     $settingslmb->add(new admin_setting_configselect('enrol_lmb/catselect', get_string('catselect', 'enrol_lmb'),
             get_string('catselecthelp', 'enrol_lmb'), 1, $displaylist));
+
+    $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/catnested', get_string('catnested', 'enrol_lmb'),
+            get_string('catnestedhelp', 'enrol_lmb'), 0));
 
     $settingslmb->add(new admin_setting_configcheckbox('enrol_lmb/cathidden', get_string('cathidden', 'enrol_lmb'),
             get_string('cathiddenhelp', 'enrol_lmb'), 0));
