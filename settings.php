@@ -209,10 +209,10 @@ if ($ADMIN->fulltree) {
 
     if ($moodleversion >= 2018120300) { // Moodle 3.6 changed coursecat to core_course_category
         $displaylist = \core_course_category::make_categories_list();
-    }
-    // Check for coursecat::make_categories_list, new in 2.5.
-    // Old make_categories_list() depricated in 2.5.
-    elseif (method_exists('coursecat', 'make_categories_list')) {
+    } else if (method_exists('coursecat', 'make_categories_list')) {
+        // Check for coursecat::make_categories_list, new in 2.5.
+        // Old make_categories_list() depricated in 2.5.
+    
         $displaylist = coursecat::make_categories_list();
     } else {
         $displaylist = array();
