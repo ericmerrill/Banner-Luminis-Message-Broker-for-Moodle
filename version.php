@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 
-$plugin->version  = 2018042501;
+$plugin->version  = 2018042502;
 $plugin->release = "3.8.0";
 $plugin->maturity = MATURITY_STABLE;
 $plugin->requires = 2018051700; // Moodle 3.2.0.

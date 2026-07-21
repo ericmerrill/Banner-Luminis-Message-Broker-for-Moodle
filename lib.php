@@ -1464,7 +1464,8 @@ class enrol_lmb_plugin extends enrol_plugin {
         global $DB;
 
         $params = array('courseid' => $parentid, 'customint1' => $childid, 'enrol' => 'meta');
-        if (($enrols = $DB->get_record('enrol', $params, '*', IGNORE_MULTIPLE)) && (count($enrols) > 0)) {
+        $enrol = $DB->get_record('enrol', $params, '*', IGNORE_MULTIPLE);
+        if ($enrol) {
             return true;
         }
 
