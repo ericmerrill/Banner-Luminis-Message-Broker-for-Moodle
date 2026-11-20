@@ -24,7 +24,6 @@ namespace enrol_lmb\task;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class check_lmb extends \core\task\scheduled_task {
-
     /**
      * Get the name of the task.
      *

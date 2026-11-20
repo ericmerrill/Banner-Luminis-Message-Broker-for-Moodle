@@ -27,7 +27,6 @@ namespace enrol_lmb\task;
 #[\PHPUnit\Framework\Attributes\CoversClass(\enrol_lmb\task\check_lmb::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(\enrol_lmb\task\unhide_courses::class)]
 final class scheduled_tasks_test extends \advanced_testcase {
-
     /** @var string LMB course sourcedid used in tests. */
     const SOURCEDID = '12345.202610';
 

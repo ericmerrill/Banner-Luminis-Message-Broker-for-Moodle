@@ -27,7 +27,6 @@ use core_privacy\local\metadata\collection;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\enrol_lmb\privacy\provider::class)]
 final class provider_test extends \advanced_testcase {
-
     public function test_get_metadata(): void {
         $collection = provider::get_metadata(new collection('enrol_lmb'));
         $names = array_map(fn($item) => $item->get_name(), $collection->get_collection());

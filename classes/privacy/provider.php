@@ -28,7 +28,6 @@ use core_privacy\local\metadata\collection;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements \core_privacy\local\metadata\provider {
-
     /** @var array Fields stored per table. */
     const TABLES = [
         'enrol_lmb_people' => ['sourcedid', 'sctid', 'fullname', 'familyname', 'givenname', 'nickname', 'email',

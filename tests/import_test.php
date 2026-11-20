@@ -30,7 +30,6 @@ require_once($CFG->dirroot . '/enrol/lmb/lib.php');
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(\enrol_lmb_plugin::class)]
 final class import_test extends \advanced_testcase {
-
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();

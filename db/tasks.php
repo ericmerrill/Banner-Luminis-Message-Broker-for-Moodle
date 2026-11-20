@@ -24,15 +24,32 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = [];
-foreach (['import_files', 'check_lmb', 'unhide_courses'] as $name) {
-    $tasks[] = [
-        'classname' => '\\enrol_lmb\\task\\' . $name,
+$tasks = [
+    [
+        'classname' => '\\enrol_lmb\\task\\import_files',
         'blocking' => 0,
         'minute' => '*/10',
         'hour' => '*',
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*',
-    ];
-}
+    ],
+    [
+        'classname' => '\\enrol_lmb\\task\\check_lmb',
+        'blocking' => 0,
+        'minute' => '*/10',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+    [
+        'classname' => '\\enrol_lmb\\task\\unhide_courses',
+        'blocking' => 0,
+        'minute' => '*/10',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+];
