@@ -47,6 +47,12 @@ class enrol_lmb_plugin extends enrol_plugin {
 
     private $catcache = array();
 
+    /** @var resource|false File pointer for the log file. */
+    private $logfp = false;
+
+    /** @var bool Whether file processing should continue. */
+    private $continueprocessing = false;
+
 
     public function __construct() {
         $this->catcache['term'] = array();
