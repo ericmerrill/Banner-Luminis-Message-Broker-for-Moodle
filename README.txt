@@ -1,6 +1,7 @@
 Luminis Message Broker enrollment Module.
-Version: 3.4.1
-Moodle version: 3.2.0 through 3.4.x
+Version: 4.0.0
+Moodle version: 4.5 through 5.3 (PHP 8.1 through 8.4)
+For older Moodle versions, use the Release_32 branch.
 Maintainer: Eric Merrill (merrill@oakland.edu)
 
 
@@ -11,6 +12,8 @@ Documentation at https://github.com/merrill-oakland/Banner-Luminis-Message-Broke
 
 RECENT CHANGES
 --------------
+See CHANGES.md for release 4.0.0, including an important upgrade warning.
+
 View full change log at https://github.com/merrill-oakland/Banner-Luminis-Message-Broker-for-Moodle/wiki/Change-Log
 
 Release 3.4.1
