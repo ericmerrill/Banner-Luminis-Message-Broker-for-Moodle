@@ -396,3 +396,6 @@ $string['lmb:enrol'] = 'Enrol users';
 $string['lmb:unenrol'] = 'Unenrol users from the course';
 $string['lmb:unenrolself'] = 'Unenrol self from the course';
 $string['lmb:manage'] = 'Manage user enrolments';
+$string['task_checklmb'] = 'Check for recent LMB messages';
+$string['task_importfiles'] = 'Import LMB/Banner XML files';
+$string['task_unhidecourses'] = 'Unhide upcoming LMB courses';

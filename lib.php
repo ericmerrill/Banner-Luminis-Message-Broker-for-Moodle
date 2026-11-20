@@ -61,23 +61,32 @@ class enrol_lmb_plugin extends enrol_plugin {
     }
 
     /**
-     * Preform any cron tasks for the module.
+     * Scheduled task: import the configured XML file and/or folder.
      */
-    public function cron() {
-        // If enabled, before a LMB time check.
-        if ($this->get_config('lmbcheck')) {
-            $this->check_last_luminis_event();
-        }
-
+    public function cron_import_files(): void {
         if ($this->get_config('cronxmlfile')) {
             $this->process_file(null, false);
         }
 
-        // TODO.
         if ($this->get_config('cronxmlfolder')) {
             $this->process_folder();
         }
+    }
 
+    /**
+     * Scheduled task: check when the last LMB message was received.
+     */
+    public function cron_check_lmb(): void {
+        // If enabled, before a LMB time check.
+        if ($this->get_config('lmbcheck')) {
+            $this->check_last_luminis_event();
+        }
+    }
+
+    /**
+     * Scheduled task: unhide courses that are starting soon.
+     */
+    public function cron_unhide_courses(): void {
         if ($this->get_config('nextunhiderun') === null) {
             $curtime = time();
             $endtoday = mktime(23, 59, 59, date('n', $curtime), date('j', $curtime), date('Y', $curtime));
@@ -2653,8 +2662,8 @@ class enrol_lmb_plugin extends enrol_plugin {
     public function email_luminis_error($timeelapsed, $emailaddress) {
         $fromuser = get_admin();
 
-        $touser = new stdClass();
-        $touser->id = $fromuser->id;
+        // Send to the given address, using the admin user record for the other required fields.
+        $touser = clone $fromuser;
         $touser->email = $emailaddress;
 
         $time = format_time($timeelapsed);
