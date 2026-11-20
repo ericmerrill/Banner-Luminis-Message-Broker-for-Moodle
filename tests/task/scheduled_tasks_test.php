@@ -125,4 +125,46 @@ final class scheduled_tasks_test extends \advanced_testcase {
         $this->assertCount(1, $messages);
         $this->assertSame(get_string('nomessage', 'enrol_lmb'), $messages[0]->subject);
     }
+
+    public function test_import_files_no_location(): void {
+        set_config('cronxmlfile', 1, 'enrol_lmb');
+        unset_config('bannerxmllocation', 'enrol_lmb');
+        $this->expectOutputRegex('/XML file not found/');
+        (new import_files())->execute();
+        $this->assertDebuggingNotCalled();
+        $this->assertFalse(get_config('enrol_lmb', 'xmlfiletime'));
+    }
+
+    public function test_import_files_missing_file(): void {
+        set_config('cronxmlfile', 1, 'enrol_lmb');
+        set_config('bannerxmllocation', '/nonexistent/lmb.xml', 'enrol_lmb');
+        $this->expectOutputRegex('/XML file not found/');
+        (new import_files())->execute();
+        $this->assertDebuggingNotCalled();
+        $this->assertFalse(get_config('enrol_lmb', 'xmlfiletime'));
+    }
+
+    public function test_tasks_skip_when_disabled(): void {
+        global $DB;
+        set_config('enrol_plugins_enabled', 'manual');
+        $course = $this->setup_unhide(time() - 1);
+        $this->setup_lmbcheck(1);
+        $sink = $this->redirectEmails();
+        (new unhide_courses())->execute();
+        (new check_lmb())->execute();
+        $this->assertEquals(0, $DB->get_field('course', 'visible', ['id' => $course->id]));
+        $this->assertCount(0, $sink->get_messages());
+    }
+
+    public function test_folder_import_respects_stale_flag(): void {
+        global $DB;
+        $dir = make_request_directory();
+        copy(__DIR__ . '/../fixtures/smoke.xml', $dir . '/extract.xml');
+        set_config('cronxmlfolder', 1, 'enrol_lmb');
+        set_config('bannerxmlfolder', $dir, 'enrol_lmb');
+        set_config('processingfolder', 1, 'enrol_lmb');
+        (new import_files())->execute();
+        $this->assertSame(0, $DB->count_records('enrol_lmb_people'));
+        $this->assertEquals(1, get_config('enrol_lmb', 'processingfolder'));
+    }
 }

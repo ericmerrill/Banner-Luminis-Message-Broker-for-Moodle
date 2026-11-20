@@ -219,6 +219,11 @@ class enrol_lmb_plugin extends enrol_plugin {
             }
         }
 
+        if (empty($filename) || !is_readable($filename)) {
+            $this->log_line("XML file not found: {$filename}");
+            return false;
+        }
+
         $filetime = filemtime($filename);
 
         if (!$folderprocess && ($this->get_config('xmlfiletime') !== null)
