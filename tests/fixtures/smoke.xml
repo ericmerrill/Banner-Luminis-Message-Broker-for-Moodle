@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<enterprise>
+<properties lang="en">
+<datasource>Banner</datasource>
+<datetime>2026-11-20T00:00:00</datetime>
+</properties>
+<group>
+<sourcedid>
+<source>Banner</source>
+<id>202610</id>
+</sourcedid>
+<grouptype>
+<scheme>Luminis</scheme>
+<typevalue level="1">Term</typevalue>
+</grouptype>
+<description>
+<short>202610</short>
+<long>Fall Semester 2026</long>
+</description>
+<timeframe>
+<begin restrict="0">2026-09-01</begin>
+<end restrict="0">2026-12-20</end>
+</timeframe>
+</group>
+<group>
+<sourcedid>
+<source>Banner</source>
+<id>12345.202610</id>
+</sourcedid>
+<grouptype>
+<scheme>Luminis</scheme>
+<typevalue level="1">CourseSection</typevalue>
+</grouptype>
+<description>
+<short>12345</short>
+<long>SMK-101-001</long>
+<full>Smoke Testing 101</full>
+</description>
+<org>
+<orgunit>Testing Department</orgunit>
+</org>
+<timeframe>
+<begin restrict="0">2026-09-01</begin>
+<end restrict="0">2026-12-20</end>
+</timeframe>
+<relationship relation="1">
+<sourcedid>
+<source>Banner</source>
+<id>202610</id>
+</sourcedid>
+<label>Term</label>
+</relationship>
+</group>
+<person>
+<sourcedid>
+<source>Banner</source>
+<id>9000001</id>
+</sourcedid>
+<userid useridtype="Logon ID" password="">smoke</userid>
+<userid useridtype="SCTID">9000001</userid>
+<userid useridtype="Email ID">smoke@example.com</userid>
+<name>
+<fn>Sam Smoke</fn>
+<n>
+<family>Smoke</family>
+<given>Sam</given>
+</n>
+</name>
+<email>smoke@example.com</email>
+<extension>
+<luminisperson>
+<academicmajor>Testing</academicmajor>
+</luminisperson>
+</extension>
+</person>
+<membership>
+<sourcedid>
+<source>Banner</source>
+<id>12345.202610</id>
+</sourcedid>
+<member>
+<sourcedid>
+<source>Banner</source>
+<id>9000001</id>
+</sourcedid>
+<idtype>1</idtype>
+<role roletype="01">
+<status>1</status>
+<subrole>Student</subrole>
+</role>
+</member>
+</membership>
+</enterprise>
