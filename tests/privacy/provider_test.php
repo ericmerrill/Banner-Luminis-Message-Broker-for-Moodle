@@ -24,8 +24,8 @@ use core_privacy\local\metadata\collection;
  * @package    enrol_lmb
  * @copyright  2026 Eric Merrill
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \enrol_lmb\privacy\provider
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\enrol_lmb\privacy\provider::class)]
 final class provider_test extends \advanced_testcase {
 
     public function test_get_metadata(): void {

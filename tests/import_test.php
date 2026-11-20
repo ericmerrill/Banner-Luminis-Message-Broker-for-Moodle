@@ -27,8 +27,8 @@ require_once($CFG->dirroot . '/enrol/lmb/lib.php');
  * @package    enrol_lmb
  * @copyright  2026 Eric Merrill
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \enrol_lmb_plugin
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\enrol_lmb_plugin::class)]
 final class import_test extends \advanced_testcase {
 
     protected function setUp(): void {

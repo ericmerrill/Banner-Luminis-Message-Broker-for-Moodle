@@ -22,10 +22,10 @@ namespace enrol_lmb\task;
  * @package    enrol_lmb
  * @copyright  2026 Eric Merrill
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \enrol_lmb\task\import_files
- * @covers     \enrol_lmb\task\check_lmb
- * @covers     \enrol_lmb\task\unhide_courses
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\enrol_lmb\task\import_files::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\enrol_lmb\task\check_lmb::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\enrol_lmb\task\unhide_courses::class)]
 final class scheduled_tasks_test extends \advanced_testcase {
 
     /** @var string LMB course sourcedid used in tests. */
