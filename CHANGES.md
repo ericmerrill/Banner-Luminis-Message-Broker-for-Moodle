@@ -28,8 +28,10 @@ upgrading, or by disabling the three tasks until you have checked, review:
   falls between the last time cron ran (`prevunhideendtime`) and today plus the
   "Unhide this many days before course start" setting. Courses you have hidden by hand in that window will be
   made visible again.
-- **Folder import blocked:** if the `processingfolder` setting was left on by
-  an interrupted run, the folder import will never run until it is cleared.
+- **File import blocked:** if a file import was interrupted, the
+  `processingfile` setting stays set and the file import will silently skip
+  every run until it is cleared (set it to 0). The folder import has a similar
+  `processingfolder` setting; check that it is also 0.
 - **Old extracts:** any extract still in the XML folder will be processed on the
   first run. If "Treat the Banner XML folder as comprehensive" (`bannerxmlfoldercomp`) is on,
   enrolments missing from that extract will be dropped.
